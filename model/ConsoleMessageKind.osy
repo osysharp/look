@@ -1,0 +1,5 @@
+namespace Osysharp.Look;
+
+/// What a `ConsoleMessage` says: something to know (info), something done (success), something refused or failed (error).
+/// What needs somebody is a `ConsoleNote`; what is critical, a `ConsoleAlert`.
+public enum ConsoleMessageKind { Info, Success, Error }

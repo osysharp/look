@@ -1,0 +1,4 @@
+namespace Osysharp.Look;
+
+/// The six status tones.
+public enum StatusTone { Ok, Run, Wait, You, Bad, Floor }

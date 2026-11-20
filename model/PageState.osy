@@ -1,0 +1,47 @@
+namespace Osysharp.Look;
+
+// A whole page that is only a state: the address names nothing, the reader may not see it, the page could not load, or
+// the browser is offline — and there is no page around it to hold a state panel. The platform session's placement for
+// Admin: on the ground, centred, 96 px from the top, at most 520 wide. The card is the state panels' own (`StateCard`,
+// `StateOverline`), so a full-page state reads as the in-page one does.
+
+/// A full-page state: on the ground, 96 px from the top, centred, at most 520 wide (20 px in on a phone); in it the
+/// state card — the overline ("Not found" · "No access" · "Error" in the bad ink · "Offline"), the title (22/700, the
+/// page's h1), what happened and what still holds (14/1.5 Ink 2) and the block, 4 below, for its one action
+/// (a `LookButton` or `StateLink`). The page's main region named by its title; an error and offline are alerts.
+[Composable]
+component PageState(PageStateKind kind, string title, string text) {
+  render {
+    Box(w: "100%", minH: "100vh", bg: Colors.Bg, color: Colors.OnSurface, fontFamily: Font.Sans, lineHeight: "normal", pt: "96px", px: "20px",
+        pb: "40px") {
+      Stack(w: "100%", maxW: "520px", mx: "auto", minW: "0", role: UiRole.Main, label: title) {
+        if (kind == PageStateKind.Error || kind == PageStateKind.Offline) {
+          Box(role: UiRole.Alert, label: title) { PageStateCard(kind, title, text) { Slot; } }
+        } else {
+          PageStateCard(kind, title, text) { Slot; }
+        }
+      }
+    }
+  }
+}
+
+/// The card of a full-page state (an error's on the bad line, the rest on the hairline), its words and its action.
+[Composable]
+component PageStateCard(PageStateKind kind, string title, string text) {
+  render {
+    StateCard(kind == PageStateKind.Error ? StateKind.Error : StateKind.Empty) {
+      StateOverline(PageStateWord(kind), bad: kind == PageStateKind.Error);
+      Text(title, role: UiRole.Heading, level: 1, fontSize: "22px", fontWeight: FontWeight.Heavy, color: Colors.OnSurface, lineHeight: "1.25");
+      Text(text, fontSize: FontSize.Body, color: Colors.Ink2, lineHeight: "1.5");
+      Row(gap: "8px", wrap: Wrapping.Wrap, align: Align.Center, pt: "4px") { Slot; }
+    }
+  }
+}
+
+/// The overline of a full-page state.
+public string PageStateWord(PageStateKind kind) {
+  if (kind == PageStateKind.NotFound) { return "Not found"; }
+  if (kind == PageStateKind.Forbidden) { return "No access"; }
+  if (kind == PageStateKind.Error) { return "Error"; }
+  return "Offline";
+}

@@ -1,0 +1,38 @@
+namespace Osysharp.Look;
+
+/// A page or panel while it loads: its title (20/700) and each heading (15/700) with two skeleton lines under it, and
+/// at its foot what it is still loading (13 Ink 2). Busy, so a screen reader is told; in a test it is the region
+/// "Loading <what>".
+[Composable]
+component LoadingPanel(string what, string title, List<string> headings, string still = "") {
+  render {
+    Box(h: "100%", role: UiRole.Status, label: "Loading " + what) {
+      StateCard(StateKind.Loading) {
+        Text(title, fontSize: FontSize.Heading, fontWeight: FontWeight.Heavy, color: Colors.OnSurface);
+        SkeletonLine("90%", "12px", true);
+        foreach (var heading in headings) {
+          Text(heading, fontSize: FontSize.Summary, fontWeight: FontWeight.Heavy, color: Colors.OnSurface);
+          SkeletonLine("80%", "14px", true);
+          SkeletonLine("60%", "10px", false);
+        }
+        if (still != "") {
+          Text(still, fontSize: FontSize.Label, color: Colors.Ink2, mt: "6px");
+        }
+      }
+    }
+  }
+}
+
+/// One skeleton line: `w` wide, `h` tall, radius 6 — the stronger grey for a line of words, Line 2 for a quieter one.
+[Composable]
+component SkeletonLine(string w, string h, bool strong) {
+  variants {
+    base {
+      Display = Display.Block;
+      Rounded = Radius.Chip;
+      Bg = Colors.Line2;
+    }
+    strong { Bg = Colors.SkeletonInk; }
+  }
+  render { Box(w: w, h: h, decorative: true); }
+}

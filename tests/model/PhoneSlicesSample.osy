@@ -1,0 +1,32 @@
+namespace OsyrinLookTests;
+
+using Osysharp.Look;
+
+/// A plain `TableCard` of slices as a phone reads it (L1): the first cell (key and title) at full width, the state and
+/// the tokens under their heads, and one row's amber note under it all.
+[Composable]
+component PhoneSlicesSample() {
+  string Cols() => "minmax(0, 1fr) 130px 80px";
+  List<string> Heads() => new List<string> { "Slice", "State", "Tokens" };
+  render {
+    TableCard("Slices of 2.4", Cols(), Heads(), sub: "3 slices · 1 done", aligns: [TextAlign.Left, TextAlign.Left, TextAlign.Right]) {
+      foreach (var key in ["UPKEEP-41", "UPKEEP-44", "UPKEEP-45"]) {
+        CardTableRow(Cols(), label: key, heads: Heads()) {
+          Stack(gap: "2px", minW: "0", role: UiRole.GridCell) {
+            KeyLink(key, "/dev/components");
+            Text(key == "UPKEEP-41" ? "Round claim totals half-up in the summary" : "Show the rounding rule beside each total, on every claim screen",
+                 fontSize: FontSize.Label, color: Colors.Ink2);
+          }
+          TableCell { StatusChip(key == "UPKEEP-41" ? "Done" : (key == "UPKEEP-44" ? "Building" : "Waiting on UPKEEP-44"),
+                                 key == "UPKEEP-41" ? StatusTone.Ok : (key == "UPKEEP-44" ? StatusTone.Run : StatusTone.You)); }
+          Text(key == "UPKEEP-41" ? "41k" : "—", textAlign: TextAlign.Right, color: Colors.Ink2, role: UiRole.GridCell);
+          slot under {
+            if (key == "UPKEEP-45") {
+              AmberNote("Will merge after UPKEEP-44, which changes the same summary screen.");
+            }
+          }
+        }
+      }
+    }
+  }
+}

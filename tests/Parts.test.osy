@@ -1,0 +1,116 @@
+// The look's parts that org-policy's first page missed (P2.D14b): the full-page states, the meter, the floor chip's
+// lock, the dashed note, the legend, the area card, PageColumn in a column of fixed height, and the permission note in
+// words — each looked at as a person would, held inside a phone's 390, and photographed light and dark.
+
+using Osysharp.Look;
+using OsyrinLookTests;
+
+[Test]
+void A_page_that_is_only_a_state_sits_centred_and_offers_its_one_action() {
+  Ui.Viewport(1440);
+  Ui.Visit("/dev/parts/not-found");
+  Assert.Visible("Not found");
+  Assert.Visible("There is no release 2.9 in Patient Portal");
+  Assert.Inside("Open Patient Portal's releases", "There is no release 2.9 in Patient Portal");
+  Assert.Filled("Open Patient Portal's releases", true);
+  Ui.Shot("page-state-not-found-1440");
+  Ui.Visit("/dev/parts/forbidden");
+  Assert.Visible("No access");
+  Assert.Filled("Ask Jonas for access", false);
+  Ui.Shot("page-state-forbidden-1440");
+  Ui.Visit("/dev/parts/error");
+  Assert.Visible("Error");
+  Assert.Visible("The organisation's policy service did not answer in 10 seconds. Nothing you saved is lost.");
+  Ui.Click("Try again");
+  Assert.Visible("Still no answer after 1 more tries. Nothing you saved is lost.");
+  Ui.Shot("page-state-error-1440");
+  Ui.Visit("/dev/parts/offline");
+  Assert.Visible("You are offline");
+  Ui.Viewport(390);
+  Ui.Visit("/dev/parts/not-found");
+  Assert.NoOverflow();
+  Assert.Clickable("Open Patient Portal's releases");
+  Ui.Shot("page-state-not-found-390");
+  Ui.Theme("dark");
+  Ui.Visit("/dev/parts/error");
+  Assert.Readable("The policies could not load");
+  Ui.Shot("page-state-error-dark");
+  Ui.Theme("light");
+}
+
+[Test]
+void A_meter_reads_its_share_and_turns_past_its_threshold() {
+  Ui.Viewport(1440);
+  Ui.Visit("/dev/parts/look");
+  Assert.Visible("312 of 500 GB");
+  Assert.Visible("7 of 8 · near the cap");
+  Assert.Visible("1.9M of 2M · over 90 %");
+  Assert.Visible("2 of 6");
+  Assert.Inside("Disk", "Meters");
+  Ui.Shot("meters-1440", within: "Meters");
+  Ui.Viewport(390);
+  Ui.Visit("/dev/parts/look");
+  Assert.NoOverflow();
+  Ui.Shot("look-parts-390");
+}
+
+[Test]
+void The_floor_chip_draws_the_lock_and_the_other_chips_their_dot() {
+  Ui.Viewport(1440);
+  Ui.Visit("/dev/parts/look");
+  Assert.Visible("v4 in force");
+  Assert.Readable("v4 in force");
+  Ui.Shot("floor-chip-1440", within: "Floor chips");
+  Ui.Theme("dark");
+  Ui.Visit("/dev/parts/look");
+  Assert.Readable("v4 in force");
+  Ui.Shot("look-parts-dark");
+  Ui.Theme("light");
+}
+
+[Test]
+void The_dashed_note_the_legend_and_the_area_card_hold_their_words() {
+  Ui.Viewport(1440);
+  Ui.Visit("/dev/parts/look");
+  Assert.Inside("Hard boundary", "What the chips mean");
+  Assert.Inside("How policies are defined ›", "What the chips mean");
+  Assert.Inside("2 policies", "Network");
+  Assert.RightOf("2 policies", "Network");
+  Assert.Inside("Draft v15", "Data");
+  Assert.Inside("Retention", "Data");
+  Assert.Visible("Not yet governable");
+  Assert.Below("Not yet governable", "Data");
+  Ui.Shot("look-parts-1440");
+}
+
+[Test]
+void A_page_column_in_a_fixed_height_column_keeps_its_cards_whole() {
+  Ui.Viewport(1440);
+  Ui.Visit("/dev/parts/column");
+  Assert.Inside("Refused · from its .egress file", "Outbound hosts");
+  Assert.Inside("Internal packages", "Package sources");
+  Assert.Below("Package sources", "Outbound hosts");
+  Assert.Below("Package sources", "Refused · from its .egress file");
+  Ui.Shot("column-parent-1440");
+  Assert.Inside("Bundle v14 · Tue 10 Nov", "Who may change these");
+  Assert.Below("Not yet governable", "Who may change these");
+  Ui.Shot("column-parent-scrolled-1440", within: "Not yet governable");
+  Ui.Visit("/dev/parts/row");
+  Assert.Inside("Refused · from its .egress file", "Outbound hosts");
+  Assert.RightOf("Outbound hosts", "Rail");
+  Ui.Shot("row-parent-1440");
+  Ui.Viewport(390);
+  Ui.Visit("/dev/parts/column");
+  Assert.NoOverflow();
+  Assert.Inside("Refused · from its .egress file", "Outbound hosts");
+  Ui.Shot("column-parent-390");
+}
+
+[Test]
+void A_permission_note_says_the_permission_in_words_unless_it_is_a_code_name() {
+  Ui.Viewport(1440);
+  Ui.Visit("/dev/parts/look");
+  Assert.Visible("policy admin");
+  Assert.Visible("settings.write");
+  Assert.Readable("policy admin");
+}

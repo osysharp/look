@@ -1,0 +1,13 @@
+namespace Osysharp.Look;
+
+/// One entry of a `Legend`: the block (the chip or mark it explains) 8 px before its words; `strong`: the words in
+/// OnSurface at 700, as the board sets the one that matters most.
+[Composable]
+component LegendEntry(string text, bool strong = false) {
+  render {
+    Row(gap: "8px", align: Align.Center, minW: "0") {
+      Box(minW: "fit-content") { Slot; }
+      Text(text, color: strong ? Colors.OnSurface : Colors.Ink2, fontWeight: strong ? FontWeight.Heavy : FontWeight.Regular, minW: "0");
+    }
+  }
+}

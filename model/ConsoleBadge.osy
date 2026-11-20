@@ -1,0 +1,56 @@
+namespace Osysharp.Look;
+
+/// A console badge: 20 px high (22 on a phone), `0 7px` (`0 8px`), radius 4, 11.5/500 (12/500), on one line, with a
+/// 6 px dot before the words when `dot` (ok and warn have one; the others draw none). Its words say the state: the
+/// colour never says it alone. Never wider than what holds it: words longer than the cell end in "…" inside the badge
+/// (the whole words stay its name), never running into the next column. Beside other words in a row (a phone's tap row)
+/// it does not give way: the words beside it wrap.
+[Composable]
+component ConsoleBadge(string words, ConsoleTone tone = ConsoleTone.Neutral, bool dot = false) {
+  render {
+    ConsoleBadgeFace(tone, !Layout.AtLeast(Tablet)) {
+      if (dot && (tone == ConsoleTone.Ok || tone == ConsoleTone.Warn)) {
+        ConsoleDot(tone == ConsoleTone.Ok ? ConsoleDotTone.Ok : ConsoleDotTone.Warn);
+      }
+      Text(words, minW: "0", overflow: Overflow.Hidden, textOverflow: TextOverflow.Ellipsis, whiteSpace: WhiteSpace.Nowrap);
+    }
+  }
+}
+
+/// A badge's box in its tone; `phone` the 22 px, 12 px badge.
+[Composable, Part]
+component ConsoleBadgeFace(ConsoleTone tone, bool phone = false) {
+  variants {
+    base {
+      Display = Display.InlineFlex;
+      AlignItems = Align.Center;
+      Gap = "5px";
+      H = "20px";
+      Px = "7px";
+      Rounded = Radius.ConsoleBadgeCorner;
+      FontFamily = Font.ConsoleSans;
+      FontSize = FontSize.ConsoleBadge;
+      FontWeight = 500;
+      LineHeight = "1";
+      WhiteSpace = WhiteSpace.Nowrap;
+      MaxW = "100%";
+      MinW = "0";
+      Shrink = 0;
+    }
+    tone {
+      Ok { Bg = Colors.ConsoleOkBg; Color = Colors.ConsoleOkInk; }
+      Warn { Bg = Colors.ConsoleWarnBg; Color = Colors.ConsoleWarnInk; }
+      Neutral { Bg = Colors.ConsoleNeutralBg; Color = Colors.ConsoleNeutralInk; }
+      Outline { BorderW = 1; BorderStyle = BorderStyle.Solid; Border = Colors.ConsoleControlLine; Color = Colors.ConsoleOutlineInk; Bg = Colors.ConsoleSurface; }
+      Solid { Bg = Colors.ConsoleText; Color = Colors.ConsoleSurface; }
+    }
+    phone {
+      H = "22px";
+      Px = "8px";
+      FontSize = FontSize.ConsoleSmall;
+    }
+  }
+  render {
+    Box { Slot; }
+  }
+}

@@ -1,0 +1,37 @@
+namespace Osysharp.Look;
+
+/// A table row that opens its item (the owner's rule for every list): the row's whole area is ONE link to `to`, read as
+/// `label`, with the item's name inside it and a chevron in a 44 px track at the right. The cells hold words only, never a
+/// second link or a button; what a person does to the item lives on the item's page. The row is named `rowLabel` for a
+/// test to look inside. Sits on `columns`' tracks (the table's `opens` adds the chevron's head), `row-rule` above it,
+/// `attention` on the needs-somebody tint, the sunken ground on hover and the ring on keyboard focus. `current`: the row
+/// whose item is open on this page (its link says `aria-current`, on the accent's soft ground) — for a list whose rows
+/// open their item under themselves, as the policy's Versions do.
+[Composable]
+component ConsoleRowLink(List<ConsoleColumn> columns, string to, string label, string rowLabel = "", bool attention = false, bool current = false) {
+  variants {
+    base {
+      Display = Display.Block;
+      Color = Colors.ConsoleText;
+      Bg = Colors.ConsoleSurface;
+      TextDecoration = TextDecoration.None;
+      Hover { Bg = Colors.ConsoleSunken; }
+      Focus { Shadow = Shadow.Ring; }
+    }
+    attention {
+      Bg = Colors.ConsoleAttention;
+    }
+    current {
+      Bg = Colors.ConsoleAccentSoft;
+    }
+  }
+  render {
+    Link(to, label: label, current: current) {
+      Box(display: Display.Grid, cols: ConsoleTracks(columns) + " 44px", alignItems: Align.Center, borderTW: 1,
+          border: Colors.ConsoleRowRule, role: UiRole.Row, label: rowLabel) {
+        Slot;
+        Box(color: Colors.ConsoleText3, display: Display.Flex, justify: Justify.Center, decorative: true) { Icon(Icons.ChevronRight, size: 16); }
+      }
+    }
+  }
+}

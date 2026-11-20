@@ -1,0 +1,53 @@
+namespace Osysharp.Look;
+
+// A share against a limit (disk used of its quota, sessions of a cap, tokens of a budget): one quantity, one limit,
+// and a tone that turns when it passes a threshold. `ProgressShares` is a group's parts in three states; this is a
+// single gauge. On no board as such; drawn in their language (the progress pill, the tone dots, 12 px words).
+
+/// A small labelled gauge: the label (13/600) and the amount right ("312 of 500 GB", 12 tabular Ink 2) over a 6 px
+/// pill on Line 2 filled to `value` of `max` in the tone's dot colour; at or past `threshold` (0: none) the fill and a
+/// dot before the amount take `pastTone`, and `pastWords` follows the amount. `amount` replaces "value of max".
+/// The words are what a reader and a test read ("Disk: 312 of 500 GB"); the pill is decorative.
+[Composable]
+component Meter(string label, int value, int max, LookTone tone = LookTone.Run, int threshold = 0, LookTone pastTone = LookTone.You,
+                string amount = "", string pastWords = "") {
+  render {
+    var past = threshold > 0 && value >= threshold;
+    var shown = past ? pastTone : tone;
+    var words = amount != "" ? amount : value + " of " + max;
+    var said = past && pastWords != "" ? words + " · " + pastWords : words;
+    Stack(gap: "6px", minW: "0", label: label + ": " + said) {
+      Row(justify: Justify.Between, align: Align.Baseline, gap: "4px 12px", wrap: Wrapping.Wrap, lineHeight: "normal") {
+        Text(label, fontSize: FontSize.Label, fontWeight: FontWeight.Semibold, color: Colors.OnSurface);
+        Row(gap: "6px", align: Align.Center) {
+          if (past) {
+            LookToneDot(shown);
+          }
+          Text(said, fontSize: FontSize.Caption, fontWeight: past ? FontWeight.Semibold : FontWeight.Regular, fontVariant: FontVariant.TabularNums,
+               color: !past ? Colors.Ink2 : (shown == LookTone.Ok ? Colors.OkInk : (shown == LookTone.Run ? Colors.RunInk : (shown == LookTone.Wait
+                   ? Colors.WaitInk : (shown == LookTone.You ? Colors.YouInk : (shown == LookTone.Bad ? Colors.BadInk : Colors.FloorInk))))));
+        }
+      }
+      Row(h: "6px", rounded: Radius.Pill, overflow: Overflow.Hidden, bg: Colors.Line2, decorative: true) {
+        MeterFill(shown, MeterWidth(value, max));
+      }
+    }
+  }
+}
+
+/// The filled share of a meter, in its tone's dot colour.
+[Composable]
+component MeterFill(LookTone tone, string width) {
+  variants {
+    base { H = "6px"; }
+    tone {
+      Ok { Bg = Colors.OkDot; }
+      Run { Bg = Colors.RunDot; }
+      Wait { Bg = Colors.WaitDot; }
+      You { Bg = Colors.YouDot; }
+      Bad { Bg = Colors.BadDot; }
+      Neutral { Bg = Colors.FloorDot; }
+    }
+  }
+  render { Box(w: width, h: "6px"); }
+}

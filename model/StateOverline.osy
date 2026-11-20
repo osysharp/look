@@ -1,0 +1,10 @@
+namespace Osysharp.Look;
+
+/// A state's overline: 12/600 uppercase at 0.06em, Ink 4 (the bad ink on an error).
+[Composable]
+component StateOverline(string text, bool bad = false) {
+  render {
+    Text(text, fontSize: FontSize.Caption, fontWeight: FontWeight.Semibold, letterSpacing: "0.06em", textTransform: TextTransform.Uppercase,
+         color: bad ? Colors.BadInk : Colors.Ink4);
+  }
+}

@@ -1,0 +1,65 @@
+namespace OsyrinLookTests;
+
+using Osysharp.Look;
+
+// The look's button as a control plane needs it: a button that reflects a server policy (drawn disabled, its reason
+// its description), one with a leading glyph, and one that fills its row. In the gallery after the stat tiles, and
+// alone at /dev/controls/buttons.
+
+/// The gallery's "Buttons that reflect a policy" section.
+[Composable]
+component GalleryButtons() {
+  render {
+    Stack(gap: "16px", label: "Buttons that reflect a policy") {
+      H2("Buttons that reflect a policy");
+      Caption("A button bound to a function's CanCall: where the policy says no it is drawn disabled and says why. A leading glyph; a button as wide as its row.");
+      ButtonSample();
+    }
+  }
+}
+
+/// Three rows of buttons and a count of presses, so a test can press the ones that may be pressed.
+[Composable]
+component ButtonSample() {
+  int pressed = 0;
+  action Press() { pressed = pressed + 1; }
+  render {
+    Stack(gap: "14px", minW: "0") {
+      Row(gap: "8px", wrap: Wrapping.Wrap, align: Align.Center) {
+        LookButton("Approve 2.4", Press, kind: ButtonKind.Primary, canPress: false, whenDenied: "Only a release manager approves a release.");
+        LookButton("Add host", Press) { Text("+", fontSize: "16px", lineHeight: "1", decorative: true); }
+        LookButton("Retire host", Press, kind: ButtonKind.Danger, canPress: false, whenDenied: "A host with running lanes cannot be retired.");
+        LookButton("Edit", Press, kind: ButtonKind.Inline, canPress: false, whenDenied: "Editing needs settings.write.");
+      }
+      Box(w: "360px", maxW: "100%") {
+        LookButton("Continue with email", Press, kind: ButtonKind.Primary, wide: true) { Text("✉", fontSize: "16px", lineHeight: "1", decorative: true); }
+      }
+      Box(w: "360px", maxW: "100%") {
+        LookButton("Use a passkey", Press, wide: true);
+      }
+      Text("Pressed " + pressed + (pressed == 1 ? " time" : " times"), fontSize: FontSize.Label, color: Colors.Ink3, role: UiRole.Status);
+    }
+  }
+}
+
+/// A frame as wide as the window for one control sample, so it can be read at a phone's width.
+[Composable]
+component ControlsFrame(string title) {
+  render {
+    Box(p: "24px", bg: Colors.Bg, color: Colors.OnSurface, fontSize: "16px", lineHeight: "normal", fontFamily: Font.Sans, minH: "100vh") {
+      Stack(gap: "16px", minW: "0", label: title) {
+        AreaTitle(title);
+        Slot;
+      }
+    }
+  }
+}
+
+/// The buttons alone.
+[Route("/dev/controls/buttons")]
+[AllowAnonymous]
+[Title("Buttons")]
+[Render(CSR)]
+component ButtonsPage() {
+  render { ControlsFrame("Buttons") { ButtonSample(); } }
+}

@@ -1,0 +1,60 @@
+namespace Osysharp.Look;
+
+// The Plan board's release chip that is itself the control ("Next · 2.4", outlined in Ink 2): pressing it opens a
+// small menu of where the row can go. The page holds whether it is open, so choosing an item can close it.
+
+/// A chip that opens a menu: the chip (`ChipFace`) and, while `open`, its items (`MenuAction`s, the block) — on a
+/// tablet and wider in `MoreMenu`'s card under the chip (6 below, its left edge on the chip's, 240 wide, radius 10, the
+/// drawer's lift). With `popover: false` (a phone: the page decides, as `Layout` here measures the chip's cell) it draws only the chip, open, and the page draws the items in a `MenuSheet` at its own level
+/// (a sheet drawn inside a card would stay inside it). `name` is the chip's
+/// accessible name ("Release of BOOK-SLOTS: Next · 2.4. Change it"), its words first.
+/// In a test: `Ui.Click(name)`, then the item by its words.
+[Composable]
+component ChipMenu(string words, bool open, Action onToggle, string name = "", string menuLabel = "Choose", bool popover = true) {
+  render {
+    Box(position: Position.Relative, display: Display.InlineFlex) {
+      ChipFace(words, onToggle, name != "" ? name : words, open);
+      if (open && popover) {
+        Stack(gap: 0, position: Position.Absolute, top: "38px", left: "0", z: ZIndex.Popover, w: "240px", p: "6px", bg: Colors.Surface,
+              borderW: 1, border: Colors.Border, rounded: Radius.Banner, shadow: Shadow.DrawerLift, role: UiRole.Menu, label: menuLabel,
+              onEscape: onToggle) {
+          Slot;
+        }
+      }
+    }
+  }
+}
+
+/// The chip as a button: 600 12 Ink on Line 2 in the Ink 2 line, radius 6, `5px 10px`, at least 32 high, on one line;
+/// open, the accent line.
+[Composable, Part]
+component ChipFace(string words, Action onPress, string name, bool open) {
+  variants {
+    base {
+      Display = Display.InlineFlex;
+      MinH = "32px";
+      Py = "5px";
+      Px = "10px";
+      Rounded = Radius.Tag;
+      BorderW = 1;
+      BorderStyle = BorderStyle.Solid;
+      Border = Colors.Ink2;
+      Bg = Colors.Line2;
+      Color = Colors.OnSurface;
+      FontFamily = Font.Sans;
+      FontSize = FontSize.Caption;
+      FontWeight = FontWeight.Semibold;
+      LineHeight = "normal";
+      WhiteSpace = WhiteSpace.Nowrap;
+      Cursor = Cursor.Pointer;
+      Hover { Bg = Colors.Wash; }
+      Focus { Shadow = Shadow.Ring; }
+    }
+    open {
+      Border = Colors.Primary;
+    }
+  }
+  render {
+    Pressable(onClick: onPress, label: name, align: Align.Center, justify: Justify.Center, expanded: open) { Text(words); }
+  }
+}

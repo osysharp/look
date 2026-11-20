@@ -1,0 +1,12 @@
+namespace OsyrinLookTests;
+
+using Osysharp.Look;
+
+/// Row menus, card actions and empty cards alone, as wide as the window.
+[Route("/dev/controls/row-menus")]
+[AllowAnonymous]
+[Title("Row menus and card actions")]
+[Render(CSR)]
+component RowMenusPage() {
+  render { ControlsFrame("Row menus and card actions") { RowMenuSamples(); } }
+}

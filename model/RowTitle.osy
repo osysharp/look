@@ -1,0 +1,17 @@
+namespace Osysharp.Look;
+
+/// A ranked row's title that opens its item (ProductPlan "Show free slots"): 16/600 Ink, no underline until hovered.
+[Composable]
+component RowTitle(string title, string to) {
+  variants {
+    base {
+      FontSize = FontSize.Subhead;
+      FontWeight = FontWeight.Semibold;
+      Color = Colors.OnSurface;
+      TextDecoration = TextDecoration.None;
+      LineHeight = "normal";
+      Hover { TextDecoration = TextDecoration.Underline; }
+    }
+  }
+  render { Link(to, label: title) { Text(title); } }
+}

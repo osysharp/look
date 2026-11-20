@@ -1,0 +1,163 @@
+namespace OsyrinLookTests;
+
+using Osysharp.Look;
+
+// The design surface (docs/designs/foundry/designer.dc.html) drawn with the look's parts, under the mock-up's frame:
+// the band, then the three panes — the outline, the conversation, the summary — from the band's foot to the window's.
+// On a phone the conversation alone, the outline and the summary opening as sheets from the band's buttons (/dev/panes).
+
+/// The design page's band: the trail, the title, the status line; on a phone, the buttons that open the side panes.
+[Composable]
+component DesignSampleBand(Action<string> onSheet) {
+  render {
+    PageBand("Reminders before a visit", [new Crumb { Label = "Patient Portal", To = "/dev/band" }, new Crumb { Label = "Designs", To = "/dev/band" }],
+             situation: "Shaping · 3 of 7 things have a goal and outcomes") {
+      if (!Layout.AtLeast(Tablet)) {
+        PaneSheetButtons("Outline", "Summary", onSheet);
+      }
+    }
+  }
+}
+
+/// The board's outline: a saga, its arcs and their slices, one row depending on something planned.
+public List<OutlineEntry> DesignSampleOutline() => [
+  new OutlineEntry { Id = "book", Depth = 0, Level = PartLevel.Saga, Title = "Booking and visits" },
+  new OutlineEntry { Id = "online", Depth = 1, Level = PartLevel.Arc, Title = "Book online" },
+  new OutlineEntry { Id = "online-1", Depth = 2, Level = PartLevel.Slice, Title = "Show free slots" },
+  new OutlineEntry { Id = "wait", Depth = 1, Level = PartLevel.Arc, Title = "Waiting list", Fresh = true },
+  new OutlineEntry { Id = "offer", Depth = 2, Level = PartLevel.Slice, Title = "Offer a freed slot to the next patient", Fresh = true,
+                     DependsOn = "Depends on BOOK-19 Free-slot search, done" },
+  new OutlineEntry { Id = "expire", Depth = 2, Level = PartLevel.Slice, Title = "Expire an offer after two hours", Fresh = true },
+  new OutlineEntry { Id = "remind", Depth = 1, Level = PartLevel.Arc, Title = "Reminders before a visit", Fresh = true },
+  new OutlineEntry { Id = "send", Depth = 2, Level = PartLevel.Slice, Title = "Send the reminder by text", Fresh = true,
+                     DependsOn = "Depends on CARE-31 Care Companion's sender, planned" },
+  new OutlineEntry { Id = "night", Depth = 3, Level = PartLevel.Bit, Title = "No text between 21:00 and 08:00" },
+  new OutlineEntry { Id = "cancel", Depth = 2, Level = PartLevel.Slice, Title = "Cancel from the reminder link", Fresh = true },
+  new OutlineEntry { Id = "records", Depth = 0, Level = PartLevel.Saga, Title = "Patient records" },
+  new OutlineEntry { Id = "records-1", Depth = 1, Level = PartLevel.Arc, Title = "See past visits" } ];
+
+/// Three panes under a band.
+[Route("/dev/panes")]
+[AllowAnonymous]
+[Title("Test")]
+[Render(CSR)]
+component PanesGalleryPage() {
+  string sheet = "";
+  string selected = "wait";
+  string said = "";
+  action Show(string name) { sheet = name; }
+  action Select(string id) { selected = id; said = "Talking about " + id; }
+  action Chose(string id, string words) { said = words + " on " + id; }
+  action AskedAt(string id) { said = "open question on " + id; }
+  string draft = "";
+  string about = "Waiting list";
+  action Send() { said = "Sent: " + draft; draft = ""; }
+  action ClearAbout() { about = ""; }
+  bool editingGoal = false;
+  action EditGoal() { editingGoal = true; }
+  render {
+    MockupFrame() {
+      DesignSampleBand(Show);
+      PaneLayout("Design of Patient Portal", "Outline", "Conversation", "Summary", secondTitled: false, measure: "680px", sheet: sheet, onSheet: Show) {
+        slot first {
+          OutlineTree("Outline of the design", DesignSampleOutline(), selected, Select,
+                      menu: ["New conversation about this", "Conversations about this · 1", "Rename"], onMenu: Chose);
+          if (said != "") { Box(px: "20px", py: "8px") { Text(said, fontSize: FontSize.Label, color: Colors.Ink3); } }
+        }
+        slot firstFoot {
+          OpenQuestions([
+            new OpenQuestion { Id = "q1", Text = "Does giving a number count as agreeing to texts?", RowTitle = "Send the reminder by text", Choice = true },
+            new OpenQuestion { Id = "q2", Text = "A shorter offer time for same-day slots?", RowTitle = "Expire an offer after two hours" } ],
+            AskedAt);
+          OutlineLegend();
+        }
+        slot secondTools {
+          Box(fontSize: FontSize.Body, color: Colors.Ink2, minW: "0", lineHeight: "1.4", pl: Viewport.AtLeast(Tablet) ? "28px" : "0") {
+            Text("Session 3", fontWeight: FontWeight.Semibold, color: Colors.OnSurface);
+            Text(" · about ", whiteSpace: WhiteSpace.PreWrap);
+            LevelRef(PartLevel.Arc, "Reminders before a visit");
+            Text(" · today", whiteSpace: WhiteSpace.PreWrap);
+          }
+          LookButton("New session", () => Chose("session", "New session"), kind: ButtonKind.Quiet, small: true);
+        }
+        DesignSampleTalk(Chose);
+        slot secondFoot {
+          Box(pt: "16px", px: Viewport.AtLeast(Tablet) ? "48px" : "16px", pb: "20px", borderTW: 1, border: Colors.SoftLine) {
+            TalkComposer("Talk about " + (about != "" ? about : "the whole design"), draft, Send, about: about, aboutLevel: PartLevel.Arc,
+                         onClearAbout: ClearAbout, placeholder: "Say what you have in mind — high level is fine");
+          }
+        }
+        slot third {
+          Stack(gap: "22px", py: "24px", px: "20px", minW: "0") {
+            Stack(gap: "4px", minW: "0") {
+              Text("The talk is on", fontSize: FontSize.Label, color: Colors.Ink3);
+              Box(fontSize: FontSize.Label) { LevelMark(PartLevel.Arc, word: true); }
+              Text("Waiting list", fontSize: FontSize.Heading, fontWeight: FontWeight.Heavy, lineHeight: "1.3");
+              Text("An arc carries a goal, the outcomes that say it is done, and its slices.", fontSize: FontSize.Label, color: Colors.Ink3, lineHeight: "1.5");
+            }
+            SummaryBlock("Goal") {
+              SummaryEntry("A slot freed by a cancellation is **filled the same day**, without the clinic phoning round.", "Goal of Waiting list",
+                           editing: editingGoal, onEdit: EditGoal) {
+                Text("The platform's markdown editor stands here.", fontSize: FontSize.Body);
+              }
+            }
+            SummaryBlock("Desired outcomes") {
+              SummaryEntry("The next patient on the list is offered the slot **by text, within minutes**.", "Outcome 1", onEdit: EditGoal);
+              SummaryEntry("An offer not taken in two hours goes to the next patient.", "Outcome 2", suggested: true, onEdit: EditGoal);
+              SummaryEntry("The clinic sees:\n\n- who took the slot\n- who let it pass", "Outcome 3", suggested: true, onEdit: EditGoal);
+            }
+          }
+        }
+      }
+    }
+  }
+}
+
+/// The board's conversation: turns, the capture lines under the designer's answers, and the choice in v3's template.
+/// `onDo` is told what was pressed and on what.
+[Composable]
+component DesignSampleTalk(Action<string, string> onDo) {
+  action Answered(string key) { onDo(key, "Answered"); }
+  render {
+    Stack(gap: "24px", pt: "24px", pb: "24px", px: Viewport.AtLeast(Tablet) ? "48px" : "16px", minW: "0", role: UiRole.Region, label: "Conversation of session 3") {
+      TalkTurn("You", new DateTime(2026, 11, 12, 9, 2, 0), "Let's do reminders before a visit. People forget, and no-shows cost the clinics a lot. A text the day before, mostly.",
+               now: GalleryNow());
+      TalkTurn("Designer", new DateTime(2026, 11, 12, 9, 3, 0),
+               "Then the goal is fewer missed visits, and the text is the first way to get there. Care Companion already sends texts under one sender name, so the portal can send through it rather than having its own. I assumed one text 24 hours before, none at night — say if not.",
+               now: GalleryNow()) {
+        CaptureLine("Added Send the reminder by text", onMove: () => onDo("send", "Move"), onUndo: () => onDo("send", "Undo")) {
+          Text("Added under ", whiteSpace: WhiteSpace.PreWrap);
+          LevelRef(PartLevel.Arc, "Reminders before a visit");
+          Text(": ", whiteSpace: WhiteSpace.PreWrap);
+          LevelRef(PartLevel.Slice, "Send the reminder by text", () => onDo("send", "Open"));
+          Text(", with a goal and three outcomes", whiteSpace: WhiteSpace.PreWrap);
+        }
+      }
+      TalkTurn("You", new DateTime(2026, 11, 12, 9, 10, 0), "Fine. Back to the texts — what about people who don't want them?", now: GalleryNow());
+      TalkTurn("Designer", new DateTime(2026, 11, 12, 9, 11, 0),
+               "That one I can't settle for you: it decides who gets a reminder at all, and the clinics' messaging policy has a say in it.",
+               now: GalleryNow()) {
+        DecisionCard("Does giving a mobile number count as agreeing to reminder texts?", [
+          new ChoiceOption { Key = "opt-in", Label = "No, the patient says yes to texts", Recommended = true,
+                             WhatHappens = "Texts go only to patients who said yes when they gave their number. A new thing is added: the patient chooses mail, text or both.",
+                             For = "matches the clinics' messaging policy.", Against = "fewer patients get the reminder at first." },
+          new ChoiceOption { Key = "number", Label = "Yes, a given number is enough",
+                             WhatHappens = "Every patient with a mobile number gets texts until they answer STOP.",
+                             For = "reaches everyone from day one.", Against = "needs an exception to the messaging policy." } ],
+          Answered, onTalk: () => onDo("choice", "Talk it through"),
+          whoActs: "the designer adds or leaves out the opt-in, and writes the answer into the outcomes of Send the reminder by text.");
+      }
+      TalkTurn("You", new DateTime(2026, 11, 12, 9, 20, 0), "Let me think about that one. On the waiting list — an offer shouldn't hang forever.", now: GalleryNow());
+      TalkTurn("Designer", new DateTime(2026, 11, 12, 9, 21, 0),
+               "I assumed **two hours**: if the patient has not taken the slot by then, it goes to the next one on the list, and the clinic sees who took it. Say if a shorter time suits same-day slots.",
+               now: GalleryNow()) {
+        CaptureLine("Added Expire an offer after two hours", onMove: () => onDo("expire", "Move"), onUndo: () => onDo("expire", "Undo")) {
+          Text("Added under ", whiteSpace: WhiteSpace.PreWrap);
+          LevelRef(PartLevel.Arc, "Waiting list");
+          Text(": ", whiteSpace: WhiteSpace.PreWrap);
+          LevelRef(PartLevel.Slice, "Expire an offer after two hours", () => onDo("expire", "Open"));
+        }
+      }
+    }
+  }
+}

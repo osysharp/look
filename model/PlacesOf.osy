@@ -1,0 +1,9 @@
+namespace Osysharp.Look;
+
+/// The places 0 … count − 1, for a part that draws a list by place (`StageStrip`): a plain class has no identity to
+/// find its own place by, and an int stamps its own.
+public List<int> PlacesOf(int count) {
+  var places = new List<int>();
+  for (var i = 0; i < count; i++) { places.Add(i); }
+  return places;
+}

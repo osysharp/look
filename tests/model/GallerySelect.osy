@@ -1,0 +1,120 @@
+namespace OsyrinLookTests;
+
+using Osysharp.Look;
+
+// The look's enum select: one in a form column, one in a field row, one held disabled; open, it shows the board's
+// list. In the gallery and alone at /dev/controls/select.
+
+/// When a check runs — the sample enum, worded by its labels.
+public enum CheckCadence {
+  [Label("Every slice")] EverySlice,
+  [Label("Slices that touch the docs")] DocsOnly,
+  [Label("Before a release")] BeforeRelease,
+  [Label("Never")] Never
+}
+
+/// How a host takes new work — the second sample.
+public enum HostIntake {
+  [Label("Open")] Open,
+  [Label("Draining")] Draining,
+  [Label("Frozen")] Frozen
+}
+
+/// The gallery's "Enum select" section.
+[Composable]
+component GallerySelect() {
+  render {
+    Stack(gap: "16px", label: "Enum select") {
+      H2("Enum select");
+      Caption("A select bound to an enum, drawn as §22's dropdown: the field closed, the list open under it, the chosen row ticked.");
+      SelectSample();
+      H2("Text select and row picker");
+      Caption("The same dropdown over strings (LookSelect), and over one page of an entity's rows with a search the page's query answers (LookRefPicker).");
+      TextSelectSample();
+      RowPickerSample();
+    }
+  }
+}
+
+/// A form column with two selects and a card row with one.
+[Composable]
+component SelectSample() {
+  CheckCadence cadence = CheckCadence.EverySlice;
+  HostIntake intake = HostIntake.Open;
+  int changes = 0;
+  action Changed() { changes = changes + 1; }
+  render {
+    Stack(gap: "16px", maxW: "720px", minW: "0") {
+      Stack(gap: "16px", w: "460px", maxW: "100%") {
+        LookEnumSelect("Runs when", cadence, help: "Which slices the check runs on.", onChanged: Changed);
+        LookEnumSelect("Intake on a frozen host", intake, disabled: true);
+      }
+      Stack(gap: 0, bg: Colors.Surface, borderW: 1, border: Colors.CardLine, rounded: Radius.Panel, label: "Host intake") {
+        FieldRow("Intake", help: "Whether the host takes new lanes.") {
+          LookEnumSelect("Intake", intake, inRow: true);
+        }
+      }
+      Text("Runs when: " + cadence.Label + " · intake: " + intake.Label + " · " + changes + " changed", fontSize: FontSize.Label, color: Colors.Ink3,
+           role: UiRole.Status);
+    }
+  }
+}
+
+/// The selects alone.
+[Route("/dev/controls/select")]
+[AllowAnonymous]
+[Title("Enum select")]
+[Render(CSR)]
+component SelectPage() {
+  render { ControlsFrame("Enum select") { SelectSample(); } }
+}
+
+/// A line the gallery's text select offers: the slug stored, the words shown.
+public string LineWords(string slug) {
+  if (slug == "main") { return "Main → Public"; }
+  if (slug == "preview") { return "Preview"; }
+  return slug;
+}
+
+/// LookSelect over strings: one worded from slugs with a placeholder, one refused with its message.
+[Composable]
+component TextSelectSample() {
+  string line = "";
+  string severity = "Should";
+  render {
+    Stack(gap: "16px", w: "460px", maxW: "100%") {
+      LookSelect("Release line", line, ["main", "preview"], words: LineWords, placeholder: "Choose a line", help: "Where the release goes first.");
+      LookSelect("Severity", severity, ["Must", "Should", "May"], state: FieldState.Refused, message: "A Must needs an owner.");
+      Text("Line: " + (line == "" ? "none" : LineWords(line)) + " · severity: " + severity, fontSize: FontSize.Label, color: Colors.Ink3, role: UiRole.Status);
+    }
+  }
+}
+
+/// A host the gallery's row picker chooses from — the sample entity.
+entity GalleryHost {
+  [Required, MaxLength(80)] string Name;
+  security { allow read, create when IsAnonymous || IsAuthenticated; }
+}
+
+/// LookRefPicker over one page of hosts, searched by the page's own query.
+[Composable]
+component RowPickerSample() {
+  string find = "";
+  GalleryHost? host = null;
+  live var hosts = GalleryHost.Where(h => h.Name.Contains(find)).OrderBy(h => h.Name).Take(20).ToList();
+  render {
+    Stack(gap: "16px", w: "460px", maxW: "100%") {
+      LookRefPicker("Host", host, find, hosts, h => h.Name, placeholder: "Choose a host", help: "The host the lane runs on.");
+      Text("Host: " + (host == null ? "none" : host.Name), fontSize: FontSize.Label, color: Colors.Ink3, role: UiRole.Status);
+    }
+  }
+}
+
+/// The row picker alone.
+[Route("/dev/controls/row-picker")]
+[AllowAnonymous]
+[Title("Row picker")]
+[Render(CSR)]
+component RowPickerPage() {
+  render { ControlsFrame("Row picker") { TextSelectSample(); RowPickerSample(); } }
+}

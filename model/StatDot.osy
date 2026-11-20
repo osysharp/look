@@ -1,0 +1,25 @@
+namespace Osysharp.Look;
+
+/// A tile's or a strip cell's dot, 7 px round in its tone's dot colour (as the status chip's). Decorative: the label
+/// says it.
+[Composable]
+component StatDot(StatTone tone) {
+  variants {
+    base {
+      W = "7px";
+      H = "7px";
+      MinW = "7px";
+      Rounded = Radius.Pill;
+    }
+    tone {
+      None { }
+      Ok { Bg = Colors.OkDot; }
+      Run { Bg = Colors.RunDot; }
+      Wait { Bg = Colors.WaitDot; }
+      You { Bg = Colors.YouDot; }
+      Bad { Bg = Colors.BadDot; }
+      Neutral { Bg = Colors.FloorDot; }
+    }
+  }
+  render { Box(decorative: true); }
+}

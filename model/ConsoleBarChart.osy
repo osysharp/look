@@ -1,0 +1,122 @@
+namespace Osysharp.Look;
+
+/// Bars over time with their scale (MS2b, the owner: "bars don't really say anything" without one). At the left a value
+/// axis of round ticks from 0 (`ChartTicks`; 0–100% for `unit` "%"), each said in the unit (`ChartValueSaid`: "50%",
+/// "$2", "2 h", "150k"), the top one with the unit's word when it is a word ("6 builds", "200k tokens"), over light
+/// gridlines and a firmer base line. A bar per point and series, side by side, or one on another (`stacked`), in the
+/// series colours `ChartSeriesNumber` gives (as `ConsoleChartCard`'s legend). The value stands above each bar when
+/// there is room for every one, and above the latest bar with a value always. A point with no value is a gap: a faint
+/// dashed column, the gridlines showing through, with "no data" when there is room, never a bar of 0; a real 0 is a
+/// thin line on the base. Under the plot the points' labels on a sparse subset that does not collide, the last always,
+/// said `last` when given ("today") and marked. The scale, gridlines and time axis are the parts `ConsoleLineChart`
+/// shares (`ChartScaleColumn`, `ChartGridLines`, `ChartTimeAxis`, MS2c). With `references` (HT1) thresholds are drawn
+/// across the plot as dashed rules with their names (`ChartReferenceLines`), and the scale reaches the highest of them.
+/// In a test the axis is the group "<label> scale", the time labels "<label> time".
+[Composable]
+component ConsoleBarChart(List<ConsoleBarPoint> points, string unit = "", bool stacked = false, string last = "", int height = 96, string label = "Chart",
+                           List<ChartReferenceLine> references = null) {
+  bool Percent() => unit == "%";
+
+  bool Whole() => unit != "%" && unit != "$" && unit != "h" && unit != "tokens";
+
+  double Top(ConsoleBarPoint point) {
+    var known = point.Values.Where(v => v != null).Select(v => v!.Value).ToList();
+    return known.Count == 0 ? 0 : stacked ? known.Sum() : known.Max();
+  }
+
+  bool Gap(ConsoleBarPoint point) => point.Values.All(v => v == null);
+
+  List<ChartReferenceLine> Lines() => references ?? new List<ChartReferenceLine>();
+
+  double Most() => Math.Max(points.Count == 0 ? 0 : points.Max(p => Top(p)), Lines().Count == 0 ? 0 : Lines().Max(r => r.Value));
+
+  List<double> Ticks() => ChartTicks(Most(), Percent(), Whole());
+
+  double Ceiling() => Ticks()[Ticks().Count - 1];
+
+  string Px(double value) => Math.Round(value).ToString("0") + "px";
+
+  string Height(double value) => value <= 0 ? "2px" : Px(Math.Max(3, height * Math.Min(value, Ceiling()) / Ceiling()));
+
+  int Series() => points.Count == 0 ? 0 : points.Max(p => p.Values.Count);
+
+  // Every bar's value when the bars are few enough for their words (`wide`: a tablet or wider), else only the latest bar's.
+  bool Roomy(bool wide) => points.Count * (stacked ? 1 : Math.Max(1, Series())) <= (wide ? 16 : 6);
+
+  Color Fill(int series) {
+    var number = ChartSeriesNumber(series);
+    return number == 1 ? Colors.Series1 : number == 2 ? Colors.Series2 : number == 3 ? Colors.Series3 : number == 4 ? Colors.Series4
+      : number == 5 ? Colors.Series5 : number == 6 ? Colors.Series6 : Colors.Series7;
+  }
+
+  int Latest() {
+    for (var index = points.Count - 1; index >= 0; index--) {
+      if (!Gap(points[index])) {
+        return index;
+      }
+    }
+    return -1;
+  }
+
+  bool Said(int index, bool wide) => Roomy(wide) || index == Latest();
+
+  string Gaps() => points.Count > 20 ? "2px" : "6px";
+
+  render {
+    var wide = Layout.AtLeast(Tablet);
+    Row(gap: "8px", align: Align.Start, pt: "18px", minW: "0") {
+      ChartScaleColumn(Ticks(), unit, height, label);
+      Stack(gap: 0, grow: 1, basis: "0", minW: "0") {
+        Box(h: Px(height), position: Position.Relative, minW: "0") {
+          ChartGridLines(Ticks(), height);
+          Row(h: Px(height), gap: Gaps(), align: Align.End, minW: "0", position: Position.Relative, decorative: true) {
+            foreach (var index in Enumerable.Range(0, points.Count).ToList()) {
+              if (Gap(points[index])) {
+                Stack(grow: 1, basis: "0", minW: "0", h: Px(height), justify: Justify.End, align: Align.Center,
+                      borderW: 1, borderStyle: BorderStyle.Dashed, border: Colors.ConsoleBorderInner, rounded: "2px 2px 0 0") {
+                  if (Roomy(wide)) {
+                    Text("no data", fontSize: FontSize.ConsoleBadge, color: Colors.ConsoleText3, whiteSpace: WhiteSpace.Nowrap, pb: "4px");
+                  }
+                }
+              } else if (stacked) {
+                Stack(grow: 1, basis: "0", gap: 0, justify: Justify.End, align: Align.Stretch, h: Px(height), minW: "0") {
+                  if (Said(index, wide)) {
+                    Text(ChartValueSaid(Top(points[index]), unit), fontSize: FontSize.ConsoleBadge, color: Colors.ConsoleText, whiteSpace: WhiteSpace.Nowrap,
+                         textAlign: TextAlign.Center, lineHeight: "14px", fontVariant: FontVariant.TabularNums);
+                  }
+                  foreach (var series in Enumerable.Range(0, points[index].Values.Count).Reverse().ToList()) {
+                    if (points[index].Values[series] != null && points[index].Values[series]!.Value > 0) {
+                      Box(h: Height(points[index].Values[series]!.Value), bg: Fill(series), shrink: 0);
+                    }
+                  }
+                  if (Top(points[index]) <= 0) {
+                    Box(h: "2px", bg: Colors.ConsoleText3, shrink: 0);
+                  }
+                }
+              } else {
+                Row(grow: 1, basis: "0", gap: "1px", align: Align.End, h: Px(height), minW: "0") {
+                  foreach (var series in Enumerable.Range(0, points[index].Values.Count).ToList()) {
+                    Stack(grow: 1, basis: "0", gap: 0, justify: Justify.End, align: Align.Stretch, h: Px(height), minW: "0") {
+                      if (points[index].Values[series] != null) {
+                        if (Said(index, wide)) {
+                          Text(ChartValueSaid(points[index].Values[series]!.Value, unit), fontSize: FontSize.ConsoleBadge, color: Colors.ConsoleText,
+                               whiteSpace: WhiteSpace.Nowrap, textAlign: TextAlign.Center, lineHeight: "14px", fontVariant: FontVariant.TabularNums);
+                        }
+                        Box(h: Height(points[index].Values[series]!.Value), shrink: 0, rounded: "2px 2px 0 0",
+                            bg: points[index].Values[series]!.Value <= 0 ? Colors.ConsoleText3 : Fill(series));
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+          if (Lines().Count > 0) {
+            ChartReferenceLines(Lines(), Ticks(), height, unit, label);
+          }
+        }
+        ChartTimeAxis(points.Select(p => p.Label).ToList(), last, wide, Gaps(), label);
+      }
+    }
+  }
+}

@@ -1,0 +1,179 @@
+namespace Osysharp.Look;
+
+// The board's buttons (Components §3 "Buttons"). The kit's `Button` is painted only through its tone and size, and
+// draws a 38 px button on the Border hairline, a filled danger and a half-faded disabled one; the board draws each of
+// these otherwise, so the button is drawn here on the `Pressable` atom with the board's values.
+
+/// What a button is for: the one primary action, a secondary one (outlined), a quiet link-like one, a destructive one
+/// (outlined in the bad tone, never filled: a destructive trigger is quiet), or an inline one — a quiet action inside a
+/// table row or a card's text, with no box, so the row keeps its height (Release's "Take out", the cards' "Edit"), or a
+/// card's own action drawn as its link (Release's "Open Notes ›": 14/600, the accent, no box).
+public enum ButtonKind { Primary, Secondary, Quiet, Danger, Inline, CardLink }
+
+/// A button as the page boards draw it: 14/600, radius 8, at least 44 high. Primary white on the accent `10px 16px`
+/// (its hover the accent's deep ink); secondary Ink on white in the control line `10px 14px`; quiet the accent on
+/// nothing `10px 12px`; danger the bad ink on white in the bad line, `10px 14px`. Disabled is Ink 4 on Line 2 inside the
+/// Line hairline. `small`: 13/600 `7px 12px`, at least 36 high (in a band).
+/// The paddings are the page boards': ProductPlan, Release and Slice draw every outlined header and summary-row button
+/// `10px 14px` and every primary one `10px 16px`. Components §3 draws its outlined row `10px 16px`; the pages are what
+/// gets built, so the button follows them and §3's outlined buttons measure 4 px narrower each.
+/// In a test it is pressed by its words: `Ui.Click("Approve 2.4")`. `announce` (default: its words) is its announced
+/// name in place of its words — for a button repeated on every row, its words and the row: `LookButton("Resolve",
+/// Resolve, kind: ButtonKind.Inline, announce: "Resolve " + alert.Title)` shows "Resolve" and is read, and pressed by a
+/// test, as "Resolve Disk full on host-3". Begin it with the words, so what is seen is what is said (voice control).
+/// `name` is the older spelling of the same thing; `announce` wins where both are given.
+/// `canPress` reflects a server policy, as the kit button's does: bind a function's `CanCall` (`canPress:
+/// Approve.CanCall(release)`), and where it says no the button is drawn disabled and `whenDenied` is its accessible
+/// description, the sentence saying why (`Assert.DisabledBecause("Approve 2.4", "Only a release manager approves.")`).
+/// The block is a leading glyph, 8 px before the words in the button's ink (`LookButton("Add host", Add) { Icon(Icons.Plus,
+/// size: 16); }`). `wide`: the button fills its row (a form's or a signed-out page's one action).
+/// While its action runs the button says so, with nothing written by the page (L3): it is off, it shows `busyLabel`
+/// ("Saving…"; "Working…" without one) in place of its words, and the label is said once through a polite live region.
+/// The spinner is the platform's own, which a press that waits on the server for more than 200 ms gets (`osy docs
+/// ui-pending`); the button draws none of its own, so a slow press shows one busy mark. Its name stays its words, so a test and voice
+/// control still find it by them. `busy` marks it so from outside too (an action the page runs some other way).
+[Composable]
+component LookButton(string label, Action onPress, ButtonKind kind = ButtonKind.Secondary, bool small = false, bool disabled = false,
+                     string name = "", bool canPress = true, string whenDenied = "", bool wide = false, string announce = "",
+                     bool busy = false, string busyLabel = "") {
+  // The press is the button's own action handing on to the page's, so the button knows, with nothing from the page,
+  // that what it started is still running: it was pressed and something is in flight. The page's action runs after
+  // the hand-on (a page's actions run one at a time), so the press itself ends first; `pressed` ends when nothing is in
+  // flight any more.
+  bool pressed = false;
+  action Press() {
+    pressed = true;
+    onPress();
+  }
+  on change {
+    if (!Pending.Any) {
+      pressed = false;
+    }
+  }
+  render {
+    LookButtonFace((busy || pressed && Pending.Any) ? BusySaid(busyLabel) : label, Press, kind, small, disabled || !canPress || (busy || pressed && Pending.Any),
+                   announce != "" ? announce : (name != "" ? name : label), (busy || pressed && Pending.Any) && !disabled && canPress ? BusySaid(busyLabel) : whenDenied,
+                   wide, (busy || pressed && Pending.Any), disabled || !canPress) {
+      if (!(busy || pressed && Pending.Any)) {
+        Slot;
+      }
+    }
+  }
+}
+
+/// The button's own box: `LookButton`'s values, `off` drawn disabled (by `disabled` or by a policy that says no).
+[Composable, Part]
+component LookButtonFace(string label, Action onPress, ButtonKind kind, bool small, bool off, string name, string whenDenied, bool wide,
+                          bool busy = false, bool plain = false) {
+  variants {
+    base {
+      Display = Display.InlineFlex;
+      MinH = "44px";
+      Py = "10px";
+      Px = "14px";
+      Rounded = Radius.Control;
+      BorderW = 1;
+      BorderStyle = BorderStyle.Solid;
+      FontFamily = Font.Sans;
+      FontSize = FontSize.Body;
+      FontWeight = FontWeight.Semibold;
+      LineHeight = "normal";
+      WhiteSpace = WhiteSpace.Nowrap;
+      Cursor = Cursor.Pointer;
+      Focus { Shadow = Shadow.Ring; }
+    }
+    kind {
+      Primary {
+        Px = "16px";
+        Bg = Colors.Primary;
+        Border = Colors.Primary;
+        Color = Colors.OnPrimary;
+        Hover {
+          Bg = Colors.AccentInk;
+          Border = Colors.AccentInk;
+        }
+      }
+      Secondary {
+        Bg = Colors.Surface;
+        Border = Colors.ControlLine;
+        Color = Colors.OnSurface;
+        Hover { Bg = Colors.Wash; }
+      }
+      Quiet {
+        Px = "12px";
+        Bg = Colors.Transparent;
+        Border = Colors.Transparent;
+        Color = Colors.Primary;
+        Hover { Color = Colors.AccentInk; }
+      }
+      Danger {
+        Bg = Colors.Surface;
+        Border = Colors.BadLine;
+        Color = Colors.BadInk;
+        Hover { Bg = Colors.BadWash; }
+      }
+      Inline {
+        MinH = "0";
+        Py = "0";
+        Px = "0";
+        BorderW = 0;
+        FontSize = FontSize.Label;
+        Bg = Colors.Transparent;
+        Color = Colors.Primary;
+        Hover {
+          Color = Colors.AccentInk;
+          TextDecoration = TextDecoration.Underline;
+        }
+      }
+      CardLink {
+        MinH = "0";
+        Py = "0";
+        Px = "0";
+        BorderW = 0;
+        Bg = Colors.Transparent;
+        Color = Colors.Primary;
+        Hover {
+          Color = Colors.AccentInk;
+          TextDecoration = TextDecoration.Underline;
+        }
+      }
+    }
+    small {
+      MinH = "36px";
+      Py = "7px";
+      Px = "12px";
+      FontSize = FontSize.Label;
+    }
+    wide {
+      Display = Display.Flex;
+      W = "100%";
+    }
+    busy {
+      Opacity = "0.85";
+      Cursor = Cursor.Default;
+      Disabled { Opacity = "0.85"; }
+    }
+    plain {
+      Bg = Colors.Line2;
+      Border = Colors.Border;
+      Color = Colors.Ink4;
+      Cursor = Cursor.Default;
+      Hover {
+        Bg = Colors.Line2;
+        Border = Colors.Border;
+        Color = Colors.Ink4;
+        TextDecoration = TextDecoration.None;
+      }
+    }
+  }
+  render {
+    Pressable(onClick: onPress, disabled: off, whenDenied: whenDenied, label: name != "" ? name : label, align: Align.Center,
+              justify: Justify.Center, gap: "8px") {
+      Slot;
+      Text(label);
+      if (busy) {
+        BusyAnnounce(label);
+      }
+    }
+  }
+}

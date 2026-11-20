@@ -1,0 +1,28 @@
+namespace Osysharp.Look;
+
+// One row of the look's open dropdown list (Components §22), shared by LookEnumSelect, LookSelect and LookRefPicker.
+
+/// One row of the open list: its words, the ✓ when it is the chosen one, Line 2 under the pointer or the keyboard.
+[Composable, Part]
+component LookSelectRow(string label, bool chosen, bool lit) {
+  variants {
+    base {
+      Display = Display.Flex;
+      W = "100%";
+      P = "8px";
+      Rounded = Radius.Tag;
+      FontSize = FontSize.Body;
+      FontWeight = FontWeight.Regular;
+      LineHeight = "normal";
+      Color = Colors.OnSurface;
+      Hover { Bg = Colors.Line2; }
+    }
+    lit { Bg = Colors.Line2; }
+  }
+  render {
+    Row(role: UiRole.Option, selected: chosen, gap: "8px", align: Align.Center, label: label) {
+      Text(label, grow: 1, textAlign: TextAlign.Left);
+      if (chosen) { Text("✓", color: Colors.AccentInk, decorative: true); }
+    }
+  }
+}

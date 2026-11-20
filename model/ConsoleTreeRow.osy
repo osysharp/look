@@ -1,0 +1,145 @@
+namespace Osysharp.Look;
+
+/// One row of a nested list (the plan's items on a product's Home), and what lies under it. The row: an arrow where it
+/// has children (22 px, pressing it opens or closes them; a blank of that width otherwise; the one control besides
+/// opening the item), then ONE link to the item (`ConsoleTreeRowLink`) holding the key as a chip in its level's colours
+/// (`ConsoleKeyChip`, the owner 18 Nov: the key is the chip, no separate level badge; `ConsoleTypeKey` explains them), the
+/// title, its status badge, its `count` at the right and a chevron; 44 high, indented 24 px for each `depth`. A row
+/// of `depth` 0 starts open and the rest closed; the arrow flips that. The default slot holds the children, drawn
+/// only while the row is open. On a phone the badge and key lead, the title under them, the status at the right, the
+/// count under the title, then the arrow at the row's end (no chevron beside it); it starts 12 px in and indents 8 px a level.
+/// The key keeps one line ("FOUNDRY-176" never breaks after its dash): the chip is as wide as its key needs.
+/// `muted`: the title in the quiet ink, for a row shown only because something under it is (a filtered tree).
+/// `note` (with `noteKey`, `noteTo` and `noteRest`): a line under the row, "Waits on FOUNDRY-10" or "Blocked: …", set
+/// in the small grey under the badge. It sits outside the row's link (a link holds no link), so its key is a link of
+/// its own, to the item it names, with its own focus stop; a click on the line's words opens the row's item, as the
+/// row does.
+[Composable]
+component ConsoleTreeRow(int depth, bool hasChildren, ConsoleTypeKind kind, string level, string key, string title, string to, string status,
+                         ConsoleTone statusTone, string count, bool muted = false, string note = "", string noteKey = "", string noteTo = "",
+                         string noteRest = "") {
+  bool flipped = false;
+
+  action Flip() {
+    flipped = !flipped;
+  }
+
+  action OpenItem() {
+    Navigation.Go(to);
+  }
+
+  render {
+    var wide = Layout.AtLeast(Tablet);
+    var open = (depth == 0) != flipped;
+    Stack(gap: 0, minW: "0", label: key + " " + title) {
+      if (wide) {
+        Row(gap: "10px", align: Align.Center, minH: "44px", pl: (16 + 24 * depth) + "px", pr: "16px", borderBW: note == "" ? 1 : 0, border: Colors.ConsoleBorderInner, minW: "0") {
+          ConsoleTreeArrow(hasChildren, open, key, Flip);
+          ConsoleTreeRowLink(to, title) {
+            ConsoleKeyChip(key, kind, level);
+            Text(title, fontWeight: depth == 0 ? 600 : 500, wordBreak: WordBreak.BreakWord, color: muted ? Colors.ConsoleText3 : Colors.ConsoleText);
+            ConsoleBadge(status, statusTone, dot: true);
+            Text(count, ml: "auto", fontSize: FontSize.ConsoleSmall, color: Colors.ConsoleText2, whiteSpace: WhiteSpace.Nowrap);
+            Box(color: Colors.ConsoleText3, display: Display.Flex, decorative: true) { Icon(Icons.ChevronRight, size: 16); }
+          }
+        }
+      } else {
+        // The owner (14 Nov): on a phone the tree barely indents (8 px a level), starts near the edge, and the arrow sits at
+        // the right of the first line, so no row loses its left side to it.
+        Row(gap: "8px", align: Align.Start, minH: "44px", py: "10px", pl: (12 + 8 * depth) + "px", pr: "12px", borderBW: note == "" ? 1 : 0, border: Colors.ConsoleBorderInner,
+            minW: "0") {
+          ConsoleTreeRowLink(to, title) {
+            Stack(gap: 0, grow: 1, minW: "0") {
+              Row(gap: "8px", align: Align.Center, h: "24px") {
+                ConsoleKeyChip(key, kind, level);
+                Box(ml: "auto") { ConsoleBadge(status, statusTone, dot: true); }
+              }
+              Text(title, fontWeight: depth == 0 ? 600 : 500, wordBreak: WordBreak.BreakWord, color: muted ? Colors.ConsoleText3 : Colors.ConsoleText);
+              if (count != "") {
+                Text(count, fontSize: FontSize.ConsoleSmall, color: Colors.ConsoleText2);
+              }
+            }
+          }
+          // Every row keeps the arrow's place (a blank where it has no children), so the statuses end on one edge.
+          ConsoleTreeArrow(hasChildren, open, key, Flip);
+        }
+      }
+      if (note != "") {
+        // Under the badge: past the arrow (22) and its gap (10) on a wide screen; at the row's own start on a phone.
+        Row(gap: "0 6px", wrap: Wrapping.Wrap, align: Align.Baseline, pl: wide ? (48 + 24 * depth) + "px" : (12 + 8 * depth) + "px", pr: "16px", pt: "2px",
+            pb: "10px", mt: "-6px", borderBW: 1, border: Colors.ConsoleBorderInner, fontSize: FontSize.ConsoleSmall,
+            color: Colors.ConsoleText2, minW: "0", wordBreak: WordBreak.BreakWord, onClick: OpenItem, cursor: Cursor.Pointer,
+            label: "Note of " + key) {
+          NoteWords(note, noteKey, noteTo, noteRest);
+        }
+      }
+      if (open) {
+        Slot;
+      }
+    }
+  }
+}
+
+/// A row's arrow: the console's disclosure chevron (`ConsoleDisclosureButton`), down while its children show; a blank of
+/// its 22 px for a row without any.
+[Composable, Part]
+component ConsoleTreeArrow(bool hasChildren, bool open, string key, Action flip) {
+  render {
+    if (hasChildren) {
+      ConsoleDisclosureButton(open, (open ? "Collapse " : "Expand ") + key, flip);
+    } else {
+      Box(w: "22px", minW: "22px", h: "22px");
+    }
+  }
+}
+
+/// A key in a line of words that opens the item it names: mono, the console's accent, one line; underlined on hover.
+/// In a test it is pressed by the key: `Ui.Click("FOUNDRY-10")`.
+[Composable]
+component ConsoleKeyLink(string key, string to) {
+  variants {
+    base {
+      FontFamily = Font.ConsoleMono;
+      Color = Colors.ConsoleAccent;
+      TextDecoration = TextDecoration.None;
+      WhiteSpace = WhiteSpace.Nowrap;
+      Hover { Color = Colors.ConsoleAccentHover; TextDecoration = TextDecoration.Underline; }
+      Focus { Shadow = Shadow.Ring; }
+    }
+  }
+  render { Link(to, label: key) { Text(key); } }
+}
+
+/// The words of a row's note ("Waits on FOUNDRY-10", "Blocked: Needs the dates of FOUNDRY-8 first"): the words before
+/// the key, the key as a link to the item it names (`ConsoleKeyLink`; plain where `to` is empty) and the words after it, each part only when it is
+/// there. The line around it (its size, colour and place) is the caller's: under a tree row (`ConsoleTreeRow`) or as a
+/// row's quiet line (`NoteLine`).
+[Composable]
+component NoteWords(string words, string key = "", string to = "", string rest = "") {
+  render {
+    if (words != "") {
+      Text(words);
+    }
+    if (key != "" && to != "") {
+      ConsoleKeyLink(key, to);
+    }
+    if (key != "" && to == "") {
+      Text(key, fontFamily: Font.ConsoleMono, whiteSpace: WhiteSpace.Nowrap);
+    }
+    if (rest != "") {
+      Text(rest, minW: "0");
+    }
+  }
+}
+
+/// A note under a row, on its own line, in the small quiet ink (the plan's neutral, never the amber of a warning):
+/// `NoteWords`, wrapping between words. In a test it is the region "Note of KEY", `of` being the row's key.
+[Composable]
+component NoteLine(string of, string words, string key = "", string to = "", string rest = "") {
+  render {
+    Row(gap: "0 6px", wrap: Wrapping.Wrap, align: Align.Baseline, fontSize: FontSize.ConsoleSmall, color: Colors.ConsoleText2, minW: "0",
+        wordBreak: WordBreak.BreakWord, label: "Note of " + of) {
+      NoteWords(words, key, to, rest);
+    }
+  }
+}

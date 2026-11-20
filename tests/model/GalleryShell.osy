@@ -1,0 +1,143 @@
+namespace OsyrinLookTests;
+
+using Osysharp.Look;
+
+// The app frame, drawn with the Navigation board's own content ("One rail for areas"): Northwind Health's eleven
+// rows in two sections, three of them badged, Jonas Lindqvist at the foot. `/dev/shell/long` is the same frame with
+// a rail too long for a window, whose sections all stand open with their counts (the rows scroll).
+// `/dev/shell/nested` is a short rail whose first row has a row under it. `/dev/shell/groups` is the frame whose switcher lists its
+// places under two headings, as the platform's Admin draws it.
+
+/// The rows the Navigation board draws.
+NavItem[] BoardRail() {
+  return [
+    new NavItem { Label = "Overview", To = "/dev/shell", Icon = Icons.Home, Exact = true },
+    new NavItem { Label = "Inbox", To = "/dev/shell/area/inbox", Icon = Icons.Bell, Badge = "5" },
+    new NavItem { Kind = NavKind.Section, Label = "Work", Children = [
+      new NavItem { Label = "Products", To = "/dev/shell/area/products", Icon = Icons.Folder },
+      new NavItem { Label = "Planning", To = "/dev/shell/area/planning", Icon = Icons.Check },
+      new NavItem { Label = "Releases", To = "/dev/shell/area/releases", Icon = Icons.Tag, Badge = "1 to approve", BadgeTone = Tone.Warning } ] },
+    new NavItem { Kind = NavKind.Section, Label = "Run", Children = [
+      new NavItem { Label = "Hosts", To = "/dev/shell/area/hosts", Icon = Icons.Building, Badge = "1 frozen", BadgeTone = Tone.Danger },
+      new NavItem { Label = "Capacity", To = "/dev/shell/area/capacity", Icon = Icons.Chart },
+      new NavItem { Label = "Incidents", To = "/dev/shell/area/incidents", Icon = Icons.Eye } ] }
+  ];
+}
+
+/// A rail of thirty rows in three sections: longer than a 900 px window holds. "Run 2" counts four waiting.
+NavItem[] LongRail() {
+  List<NavItem> all = [ new NavItem { Label = "Overview", To = "/dev/shell", Icon = Icons.Home, Exact = true } ];
+  foreach (var name in ["Work", "Run", "Money"]) {
+    List<NavItem> rows = [];
+    foreach (var n in [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]) {
+      var label = name + " " + n;
+      rows.Add(new NavItem { Label = label, To = "/dev/shell/area/" + Text.Lower(name) + "-" + n, Icon = Icons.Folder,
+                             Badge = label == "Run 2" ? "4 waiting" : "", BadgeTone = Tone.Warning });
+    }
+    all.Add(new NavItem { Kind = NavKind.Section, Label = name, Children = rows.ToArray() });
+  }
+  all.Add(new NavItem { Kind = NavKind.Section, Label = "Here", Children = [
+    new NavItem { Label = "This page", To = "/dev/shell/long", Icon = Icons.Check, Exact = true } ] });
+  return all.ToArray();
+}
+
+/// A short rail whose first row, the page in view, has a row under it (Admin's "Overview" over "Platform status").
+NavItem[] NestedRail() {
+  return [
+    new NavItem { Label = "Overview", To = "/dev/shell/nested", Icon = Icons.Home, Exact = true, Children = [
+      new NavItem { Label = "Platform status", To = "/dev/shell/area/status", Icon = Icons.Eye } ] },
+    new NavItem { Kind = NavKind.Section, Label = "Customers", Children = [
+      new NavItem { Label = "Organisations", To = "/dev/shell/area/organisations", Icon = Icons.Building, Badge = "2" } ] }
+  ];
+}
+
+/// The places the brand block switches between: the sample's two, or none where the switcher lists them in groups.
+AppLink[] SampleApps(List<LookSwitcherGroup> switcher) {
+  if (switcher != null) { return []; }
+  return [ new AppLink { Label = "Northwind Health", To = "/dev/shell", Icon = Icons.Building, Current = true },
+           new AppLink { Label = "Claims Desk", To = "/dev/shell/long", Icon = Icons.Building } ];
+}
+
+/// The switcher in two headed groups: the platform's own place, then the reader's organisations.
+List<LookSwitcherGroup> SampleGroups() {
+  return [
+    new LookSwitcherGroup { Label = "Platform", Apps = [
+      new AppLink { Label = "Platform console", To = "/dev/shell/area/platform", Icon = Icons.Gear } ] },
+    new LookSwitcherGroup { Label = "Your organisations", Apps = [
+      new AppLink { Label = "Northwind Health", To = "/dev/shell/groups", Icon = Icons.Building, Current = true },
+      new AppLink { Label = "Claims Desk", To = "/dev/shell/long", Icon = Icons.Building } ] }
+  ];
+}
+
+[Composable]
+component ShellSample(NavItem[] rows, string title = "Overview", List<LookSwitcherGroup> switcher = null) {
+  string said = "";
+  action Account() { said = "Account opened"; }
+  action SwitchTheme() { Theme.Toggle(); }
+  action SignOut() { said = "Signed out"; }
+  render {
+    LookShell(new AppChrome {
+      Product = "Northwind Health",
+      Tagline = "Factory 1.1.0",
+      Nav = rows,
+      FootNav = [ new NavItem { Label = "Settings", To = "/dev/shell/area/settings", Icon = Icons.Gear },
+                  new NavItem { Label = "People", To = "/dev/shell/area/people", Icon = Icons.Users } ],
+      Apps = SampleApps(switcher),
+      User = new ShellUser { Name = "Jonas Lindqvist", Secondary = "Org admin", Initials = "JL",
+        Menu = [ new MenuAction { Label = "Your account", OnPress = Account, Icon = Icons.User },
+                 new MenuAction { Label = "Light or dark", OnPress = SwitchTheme, Icon = Icons.Eye, Divided = true },
+                 new MenuAction { Label = "Sign out", OnPress = SignOut, Divided = true } ] }
+    }, switcher: switcher) {
+      Stack(gap: "18px") {
+        AreaTitle(title);
+        SummaryText("The page stands here, 24 px beside the rail. There is no top bar: the title, the situation line and the actions are the page's own.");
+        if (said != "") { Text(said); }
+      }
+    }
+  }
+}
+
+/// The app frame as the Navigation board draws it.
+[Route("/dev/shell")]
+[AllowAnonymous]
+[Title("Overview")]
+[Render(CSR)]
+component ShellGalleryPage() {
+  render { ShellSample(BoardRail()); }
+}
+
+/// The app frame with a rail longer than the window.
+[Route("/dev/shell/long")]
+[AllowAnonymous]
+[Title("A long rail")]
+[Render(CSR)]
+component ShellLongGalleryPage() {
+  render { ShellSample(LongRail()); }
+}
+
+/// The app frame with a short rail whose row in view has a row under it.
+[Route("/dev/shell/nested")]
+[AllowAnonymous]
+[Title("Overview")]
+[Render(CSR)]
+component ShellNestedGalleryPage() {
+  render { ShellSample(NestedRail()); }
+}
+
+/// Any other row of the sample rail: the same frame, the row in view lit.
+[Route("/dev/shell/area/{name}")]
+[AllowAnonymous]
+[Title("An area")]
+[Render(CSR)]
+component ShellAreaGalleryPage(string name) {
+  render { ShellSample(BoardRail(), name); }
+}
+
+/// The app frame whose switcher lists its places under two headings.
+[Route("/dev/shell/groups")]
+[AllowAnonymous]
+[Title("Overview")]
+[Render(CSR)]
+component ShellGroupsGalleryPage() {
+  render { ShellSample(BoardRail(), switcher: SampleGroups()); }
+}

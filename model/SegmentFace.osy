@@ -1,0 +1,38 @@
+namespace Osysharp.Look;
+
+/// The inside of one `SegmentedFilter` segment: its words and, when it has one, its count pill; `on` the chosen one.
+[Composable, Part]
+component SegmentFace(string words, string count, bool on) {
+  variants {
+    base {
+      Display = Display.Flex;
+      MinH = "40px";
+      Py = "8px";
+      Px = "14px";
+      Bg = Colors.Surface;
+      Color = Colors.Ink2;
+      FontFamily = Font.Sans;
+      FontSize = FontSize.Body;
+      FontWeight = FontWeight.Medium;
+      LineHeight = "normal";
+      WhiteSpace = WhiteSpace.Nowrap;
+      Cursor = Cursor.Pointer;
+      Hover { Bg = Colors.Wash; }
+    }
+    on {
+      Bg = Colors.AccentTint;
+      Color = Colors.AccentInk;
+      FontWeight = FontWeight.Semibold;
+      Hover { Bg = Colors.AccentTint; }
+    }
+  }
+  render {
+    Row(gap: "6px", align: Align.Center, justify: Justify.Center) {
+      Text(words);
+      if (count != "") {
+        Text(count, fontSize: FontSize.Caption, fontWeight: FontWeight.Semibold, py: "1px", px: "7px", rounded: "999px",
+             bg: on ? Colors.Surface : Colors.Line2, color: on ? Colors.AccentInk : Colors.Ink3);
+      }
+    }
+  }
+}

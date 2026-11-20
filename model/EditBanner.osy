@@ -1,0 +1,35 @@
+namespace Osysharp.Look;
+
+/// The banner a draft carries, with a second line (canvas4/PolicyFloorEdit "Editing draft v5 · revision 2, not saved ·
+/// 2 changes against v4" over "Saving voids Erik Sund's signature on revision 1"; orgsettings/EditData): the kit's
+/// `EditingBanner` takes one `text`, so the look draws it — the accent's deep ink, radius 10, `12px 16px`, `text`
+/// 14/600 white over `second` 13/400, Discard (outlined in the banner line) and the save (white, accent-ink words) on
+/// the right, 13/600 `8px 12px`, at least 36 high. Without `second` it is the kit's banner, line for line. An empty
+/// `discard` draws the save alone — for a form whose parts keep themselves as they are typed, where a Discard would
+/// promise what it cannot do.
+/// In a test it is the region "Unsaved changes": `Ui.Click("Review and save", within: "Unsaved changes")`.
+/// e.g. `EditBanner("Editing draft v6 · revision 4, not saved", second: "Saving clears Olive's approval on revision 3", onDiscard: Discard, onSave: Review)`
+[Composable]
+component EditBanner(string text, Action onDiscard, Action onSave, string second = "", string discard = "Discard", string save = "Review and save") {
+  render {
+    Row(gap: "8px", wrap: Wrapping.Wrap, align: Align.Center, justify: Justify.Between, py: "12px", px: "16px", rounded: Radius.Inner, bg: Colors.BannerBg,
+        color: Colors.OnBanner, lineHeight: "normal", role: UiRole.Region, label: "Unsaved changes") {
+      Stack(gap: "2px", minW: "0") {
+        Text(text, fontSize: FontSize.Body, fontWeight: FontWeight.Semibold);
+        if (second != "") {
+          Text(second, fontSize: FontSize.Label);
+        }
+      }
+      Row(gap: "8px") {
+        if (discard != "") {
+          Pressable(onClick: onDiscard, label: discard, minH: "36px", py: "8px", px: "12px", rounded: Radius.Control, borderW: 1, border: Colors.BannerLine,
+                    bg: Colors.Transparent, color: Colors.OnBanner, fontFamily: Font.Sans, fontSize: FontSize.Label, fontWeight: FontWeight.Semibold,
+                    cursor: Cursor.Pointer, align: Align.Center) { Text(discard); }
+        }
+        Pressable(onClick: onSave, label: save, minH: "36px", py: "8px", px: "12px", rounded: Radius.Control, borderW: 0, bg: Colors.OnBanner,
+                  color: Colors.BannerBg, fontFamily: Font.Sans, fontSize: FontSize.Label, fontWeight: FontWeight.Semibold, cursor: Cursor.Pointer,
+                  align: Align.Center) { Text(save); }
+      }
+    }
+  }
+}

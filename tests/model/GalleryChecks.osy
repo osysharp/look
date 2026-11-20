@@ -1,0 +1,61 @@
+namespace OsyrinLookTests;
+
+using Osysharp.Look;
+
+// The look's checkbox (controlled and bound) and switch, in a settings card's rows as canvas4 lays them. In the gallery
+// and alone at /dev/controls/checks.
+
+/// The gallery's "Checkbox and switch" section.
+[Composable]
+component GalleryChecks() {
+  render {
+    Stack(gap: "16px", label: "Checkbox and switch") {
+      H2("Checkbox and switch");
+      Caption("A checkbox in a form that is saved; a switch for a setting that takes effect at once.");
+      CheckSample();
+    }
+  }
+}
+
+/// A card of checks and a switch, each with what it holds now.
+[Composable]
+component CheckSample() {
+  bool docs = true;
+  bool outside = false;
+  bool email = false;
+  bool live = true;
+  action FlipDocs() { docs = !docs; }
+  action FlipOutside() { outside = !outside; }
+  action FlipLive() { live = !live; }
+  action Nothing() { }
+  render {
+    Stack(gap: 0, maxW: "720px", bg: Colors.Surface, borderW: 1, border: Colors.CardLine, rounded: Radius.Panel, overflow: Overflow.Hidden,
+          label: "Sandbox checks") {
+      FieldGroupHead("What the sandbox may do", first: true);
+      Stack(gap: "4px", px: "20px", py: "12px") {
+        LookCheckbox("Run docs checks", docs, FlipDocs);
+        LookCheckbox("Write outside the docs paths", outside, FlipOutside,
+                     help: "Agents may then change source files; every change still goes through review.");
+        LookCheckboxBound("Email me when a check fails", email);
+        LookCheckbox("Use the shared cache", true, Nothing, help: "Set by the organisation's policy.", disabled: true);
+      }
+      FieldRow("Live updates", help: "Takes effect at once, for everyone on this page.") {
+        LookSwitch("Live updates", live, FlipLive, inRow: true);
+      }
+      Box(px: "20px", py: "12px", borderTW: 1, border: Colors.Line2) {
+        LookSwitch("Night builds", false, Nothing, help: "Off while the host is frozen.", disabled: true);
+      }
+      Text("Docs " + (docs ? "on" : "off") + " · outside " + (outside ? "on" : "off") + " · email " + (email ? "on" : "off") + " · live " + (live ? "on" : "off"),
+           px: "20px", py: "10px", fontSize: FontSize.Label, color: Colors.Ink3, bg: Colors.Wash, role: UiRole.Status);
+    }
+  }
+}
+
+/// The checks alone.
+[Route("/dev/controls/checks")]
+[AllowAnonymous]
+[Title("Checkbox and switch")]
+[Render(CSR)]
+component ChecksPage() {
+  render { ControlsFrame("Checkbox and switch") { CheckSample(); } }
+}

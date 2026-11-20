@@ -1,0 +1,101 @@
+namespace Osysharp.Look;
+
+/// THE CONSOLE SHELL, the window a `[Layout]` keeps while its pages change: the 232 px dark rail (`slot rail`, sticky,
+/// scrolling on its own when taller than the window), the top bar's right cluster at the top right of the work column
+/// (`slot bar`: search, the chrome's badge, the avatar), an optional `slot strip` across the top of the work column, and
+/// the work column holding the default slot. Below a tablet: the 56 px rail-coloured bar (the menu button, then
+/// `slot bar`: the switcher, search, avatar) and the rail as a drawer, which closes when the address changes. The drawer
+/// stands over a scrim, so it is a modal dialog: the keyboard moves into it and stays there until it closes, and the
+/// platform leaves its window height alone (a non-modal dialog is fitted like a popover, and a 100vh one was held to 120 px).
+///
+/// The shell itself takes no data, so nothing above its default slot waits on a read: a `[Layout]` puts its `Outlet`
+/// there safely, and the reads of the rail and the bar wait beside it, each in its own slot (NAV1: under a part that
+/// reads, an outlet is not in the page when the router looks for it, and the page says "This page couldn't load").
+/// The page draws its own head (`ConsolePageHead`: the breadcrumb on the top bar's left, the header band) and its
+/// working area (`ConsoleWork`). `ConsoleFrame` is this shell with a head and a working area, for a page on its own.
+///
+/// e.g. in a layout:
+///   ConsoleShell {
+///     slot rail { ConsoleShellRail(Chrome()); }
+///     slot bar { ConsoleShellBar(Chrome(), searchText, found); }
+///     ConsolePageHead(Trail(), Title(), tabs: Tabs(), current: Current()) { slot primary { … } }
+///     ConsoleWork("Product page") { Outlet; }
+///   }
+/// In a test: the rail is "Rail" (its scrolling part "Rail rows"), the cluster "Top bar", the phone's drawer "Menu" (`Ui.Click("Open menu")`).
+[Composable]
+component ConsoleShell() {
+  bool menuOpen = false;
+  string openedOn = "";
+  live var path = Navigation.CurrentPath ?? "";
+
+  action OpenMenu() {
+    menuOpen = true;
+    openedOn = path;
+  }
+
+  action CloseMenu() {
+    menuOpen = false;
+  }
+
+  /// The drawer stays open only on the address it was opened on: following a row in it closes it.
+  bool DrawerOpen() => menuOpen && openedOn == path;
+
+  render {
+    var wide = Viewport.AtLeast(Tablet);
+    Box(minH: "100vh", bg: Colors.ConsolePaper, color: Colors.ConsoleText, fontFamily: Font.ConsoleSans, fontSize: wide ? FontSize.ConsoleBody : FontSize.ConsoleBodyPhone,
+        lineHeight: "1.5", fontFeatureSettings: ConsoleFeatures(), minW: "0") {
+      // One tree at every width, so the page in the default slot keeps its place when the window crosses Tablet: the
+      // rail and the phone's bar come and go around it, the work column and its grid cell stay. Moved into another
+      // parent, the page's parts kept measuring the one they left (`Layout.AtLeast` answered for the wide column at 390).
+      Row(gap: 0, align: Align.Stretch, minH: "100vh", minW: "0") {
+        if (wide) {
+          Box(w: "232px", minW: "232px", shrink: 0, bg: Colors.ConsoleRail, py: "12px", px: "10px", label: "Rail") {
+            Box(position: Position.Sticky, top: "12px", maxH: "calc(100vh - 24px)", overflowY: Overflow.Auto, minW: "0", label: "Rail rows") {
+              Slot("rail");
+            }
+          }
+        }
+        Stack(gap: 0, grow: 1, minW: "0") {
+          if (!wide) {
+            Row(h: "56px", minH: "56px", gap: "4px", align: Align.Center, px: "6px", bg: Colors.ConsoleRail, color: Colors.ConsoleRailInk, minW: "0",
+                label: "Top bar") {
+              ConsoleIconButton("Open menu", OpenMenu) { ConsoleMenuGlyph(); }
+              Slot("bar");
+            }
+          }
+          Slot("strip");
+          // On a tablet and wider, the right cluster over the top bar the page's head draws: 52 high (its 1 px foot kept
+          // clear), 16 in. Both stand in one grid cell, the cluster raised over the page; nothing here is positioned, so
+          // the search dialog and the avatar's menu still place themselves against the window.
+          Box(display: Display.Grid, cols: "minmax(0, 1fr)", minW: "0") {
+            if (wide) {
+              Row(gridArea: "1 / 1", justifySelf: "end", alignSelf: AlignSelf.Start, z: 1, h: "52px", mr: "16px", borderBW: 1, border: Colors.Transparent,
+                  gap: "10px", align: Align.Center, label: "Top bar") { Slot("bar"); }
+            }
+            Stack(gridArea: "1 / 1", gap: 0, minW: "0") { Slot; }
+          }
+        }
+      }
+      if (!wide) {
+        if (DrawerOpen()) {
+          // The drawer is MODAL (`UiRole.ModalDialog`): over the dim it is the only thing to press, the keyboard goes into it
+          // and back to "Open menu" as it closes, and the page behind holds still. A non-modal `UiRole.Dialog` is the
+          // platform's popover, which it fits under its trigger as it opens (keep-in-view): a window-tall drawer has no
+          // trigger, so it was cut to 120 px (Chromium) or moved above the window (iPhone Safari, where 100vh is taller
+          // than the window), and only the dim showed (FOUNDRY-227). Top and bottom 0, not 100vh, so it is the window's
+          // height on a phone whose toolbars come and go.
+          Box {
+            Scrim(CloseMenu);
+            Box(position: Position.Fixed, top: "0", bottom: "0", left: "0", w: "280px", maxW: "85vw", z: ZIndex.Modal, bg: Colors.ConsoleRail,
+                py: "6px", px: "10px", overflowY: Overflow.Auto, role: UiRole.ModalDialog, label: "Menu", onEscape: CloseMenu) {
+              Row(justify: Justify.End, minW: "0") {
+                ConsoleIconButton("Close menu", CloseMenu) { Icon(Icons.Close, size: 20); }
+              }
+              Slot("rail");
+            }
+          }
+        }
+      }
+    }
+  }
+}

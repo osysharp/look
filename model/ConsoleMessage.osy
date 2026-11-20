@@ -1,0 +1,38 @@
+namespace Osysharp.Look;
+
+/// An inline message in a page or a panel, after a save or a refused action (spec tokens; the shape of `ConsoleNote`):
+/// radius 6, `10px 14px`, a 14 px icon, the `lead` bold, the `words` after it, wrapping, and the default slot after
+/// them (a `ConsoleLink`: "Undo", "Open the run"). Info: the accent's soft ground and ink, an "i". Success: the ok
+/// ground and ink, a check. Error: the critical ground, line and ink, a warning sign, and it is an alert; the other two
+/// are a polite status. In a test it is named by `lead`, else `words`.
+[Composable]
+component ConsoleMessage(ConsoleMessageKind kind, string words, string lead = "") {
+  variants {
+    base {
+      BorderW = 1;
+      BorderStyle = BorderStyle.Solid;
+      Rounded = Radius.ConsoleCorner;
+      FontFamily = Font.ConsoleSans;
+      FontSize = FontSize.ConsoleBody;
+    }
+    kind {
+      Info { Bg = Colors.ConsoleAccentSoft; Border = Colors.ConsoleAccentSoft; Color = Colors.ConsoleAccentSoftInk; }
+      Success { Bg = Colors.ConsoleOkBg; Border = Colors.ConsoleOkBg; Color = Colors.ConsoleOkInk; }
+      Error { Bg = Colors.ConsoleCriticalBg; Border = Colors.ConsoleCriticalLine; Color = Colors.ConsoleCriticalInk; }
+    }
+  }
+  render {
+    Row(gap: "6px", align: Align.Center, wrap: Wrapping.Wrap, py: "10px", px: "14px", minW: "0",
+        role: kind == ConsoleMessageKind.Error ? UiRole.Alert : UiRole.Status, label: lead != "" ? lead : words) {
+      Box(display: Display.Flex, mr: "2px", decorative: true,
+          color: kind == ConsoleMessageKind.Error ? Colors.ConsoleCriticalIcon : (kind == ConsoleMessageKind.Success ? Colors.ConsoleOkDot : Colors.ConsoleAccent)) {
+        Icon(kind == ConsoleMessageKind.Error ? Icons.Warning : (kind == ConsoleMessageKind.Success ? Icons.Check : Icons.Info), size: 14);
+      }
+      if (lead != "") {
+        Text(lead, fontWeight: 600);
+      }
+      Text(words, minW: "0", wordBreak: WordBreak.BreakWord);
+      Slot;
+    }
+  }
+}

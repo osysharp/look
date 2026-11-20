@@ -1,0 +1,15 @@
+namespace Osysharp.Look;
+
+/// The working area under a page's head: on paper, the full width, `16px 16px 40px` (the owner's 16 px beside the rail,
+/// 14 Nov, not the boards' 24 / 28 and 1240 px cap), its parts 16 apart (the spec's "gap between panels 16–20px",
+/// B-Organizations' 16; 16 in and 14 apart on a phone), the page's main region named `label`.
+[Composable, Part]
+component ConsoleWork(string label) {
+  render {
+    if (Viewport.AtLeast(Tablet)) {
+      Stack(gap: "16px", pt: "16px", px: "16px", pb: "40px", w: "100%", minW: "0", role: UiRole.Main, label: label) { Slot; }
+    } else {
+      Stack(gap: "14px", p: "16px", minW: "0", role: UiRole.Main, label: label) { Slot; }
+    }
+  }
+}

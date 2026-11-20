@@ -1,0 +1,22 @@
+namespace Osysharp.Look;
+
+/// A dashed placeholder strip: a glyph (16, text-2) and 12 apart before the sentence, white, a 1 px dashed line, radius 6, `10px 12px 10px 16px`, the sentence taking the room
+/// (at least 200 wide) and the default slot (a primary action) at its right; under the sentence on a phone.
+/// The glyph says what the strip is: an info mark for a statement (a gap to read, nothing to do), the up arrow only when
+/// `action` is true, i.e. the strip offers something to do (its slot holds the action). Explicit, not inferred: a slot
+/// cannot be asked whether it is filled, and a statement is the safe default.
+[Composable]
+component ConsoleDashedStrip(string sentence, string label = "", bool action = false) {
+  render {
+    var wide = Layout.AtLeast(Tablet);
+    Row(gap: wide ? "12px" : "10px", align: Align.Center, wrap: Wrapping.Wrap, py: wide ? "10px" : "12px", pl: "16px", pr: wide ? "12px" : "16px",
+        bg: Colors.ConsoleSurface, borderW: 1, borderStyle: BorderStyle.Dashed, border: Colors.ConsoleControlLine, rounded: Radius.ConsoleCorner,
+        minW: "0", label: label != "" ? label : sentence) {
+      Row(gap: "12px", align: Align.Center, grow: 1, minW: wide ? "200px" : "100%") {
+        Box(color: Colors.ConsoleText2, display: Display.Flex, decorative: true) { Icon(action ? Icons.ArrowUp : Icons.Info, size: 16); }
+        Text(sentence, grow: 1, minW: "0", color: Colors.ConsoleOutlineInk);
+      }
+      Box(w: wide ? "auto" : "100%") { Slot; }
+    }
+  }
+}

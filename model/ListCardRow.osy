@@ -1,0 +1,19 @@
+namespace Osysharp.Look;
+
+/// One row of a `ListCard`, under a Line 2 rule, `12px 20px`: on the left the title link (`RowTitle`, 16/600) over its
+/// 13 px metadata line (`MetaLine`, 2 px down) and the `under` slot (a row of chips: a person, a count pill), on the
+/// right the `side` slot (a `StatusChip`), centred, 16 px off. In a test it is the region of its title.
+[Composable]
+component ListCardRow(string title, string to, List<string> facts) {
+  render {
+    Box(display: Display.Grid, cols: "minmax(0, 1fr) auto", gap: "4px 16px", align: Align.Center, py: "12px", px: "20px", borderTW: 1,
+        border: Colors.Line2, label: title) {
+      Stack(gap: "2px", minW: "0", wordBreak: WordBreak.BreakWord) {
+        RowTitle(title, to);
+        MetaLine(facts);
+        Slot("under");
+      }
+      Box { Slot("side"); }
+    }
+  }
+}

@@ -1,0 +1,15 @@
+namespace Osysharp.Look;
+
+/// A panel's foot (spec "Tokens": panel footers on the sunken ground): the last thing in a `ConsolePanel`'s body, a
+/// `border-inner` rule over it, `10px 16px`, 12.5 text-2, the panel's bottom corners; its content in a row, spread to
+/// both ends ("View all organizations ›" at the left, a legend at the right), wrapping on a phone.
+[Composable]
+component ConsolePanelFoot() {
+  render {
+    Row(justify: Justify.Between, align: Align.Center, wrap: Wrapping.Wrap, gap: "8px 16px", py: "10px", px: "16px", minW: "0",
+        bg: Colors.ConsoleSunken, borderTW: 1, border: Colors.ConsoleBorderInner, rounded: Radius.ConsolePanelFoot,
+        fontFamily: Font.ConsoleSans, fontSize: FontSize.ConsoleControl, color: Colors.ConsoleText2) {
+      Slot;
+    }
+  }
+}

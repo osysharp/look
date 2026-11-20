@@ -1,0 +1,14 @@
+namespace Osysharp.Look;
+
+/// The board's lock (v3 PolicyFloor "v4 in force", PolicyFloorEffective "floor v4"): 12 × 12, a shackle 4 wide over an
+/// 8 × 5 body, 1.3 px strokes in the floor ink. Drawn as two outlined boxes, not as an SVG, because a package's SVG
+/// does not reach the app that uses it (the platform gap the look records). Decorative: the chip's words say it.
+[Composable]
+component LockMark() {
+  render {
+    Stack(w: "12px", h: "12px", minW: "12px", align: Align.Center, gap: 0, pt: "1.35px", decorative: true) {
+      Box(w: "5.3px", h: "4.15px", borderW: "1.3px", borderBW: 0, border: Colors.FloorInk, rounded: "2.65px 2.65px 0 0");
+      Box(w: "9.3px", h: "6.3px", mt: "-0.65px", borderW: "1.3px", border: Colors.FloorInk, rounded: "1.65px");
+    }
+  }
+}

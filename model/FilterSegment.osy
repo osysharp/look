@@ -1,0 +1,10 @@
+namespace Osysharp.Look;
+
+/// One segment of a `SegmentedFilter`: `Key` what the page filters by, `Label` its words, `Count` the pill after them
+/// ("" for none), `To` its own address (a reload or a shared link keeps it; "" = a press hands `Key` to the page).
+public class FilterSegment {
+  public string Key = "";
+  public string Label = "";
+  public string Count = "";
+  public string To = "";
+}

@@ -1,0 +1,7 @@
+namespace Osysharp.Look;
+
+/// An item's place in a ranked list: 15/700 Ink 2 in a 34 px column (ProductPlan's rank).
+[Composable]
+component RankNumber(int rank) {
+  render { Text(rank + "", w: "34px", minW: "34px", fontSize: FontSize.Summary, fontWeight: FontWeight.Heavy, color: Colors.Ink2); }
+}

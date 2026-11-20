@@ -1,0 +1,26 @@
+namespace Osysharp.Look;
+
+/// A proposal or notice band (ProductPlan's "The planner proposes …"): the accent's second tint inside the accent line,
+/// radius 12, `12px 16px`, its parts wrapping `8px 16px` apart. Its sentence is 14/1.5 from a 480 px basis: the lead 600
+/// in Ink, the rest Ink 2; `mark`: the planner's mark before it, 10 apart. The block holds its small buttons
+/// (`LookButton(small: true)`). The kit's `PendingChange` is the dashed one. In a test it is the region of its lead.
+[Composable]
+component CalloutBand(string lead, string rest = "", bool mark = false) {
+  render {
+    Row(gap: "8px 16px", wrap: Wrapping.Wrap, align: Align.Center, justify: Justify.Between, py: "12px", px: "16px", bg: Colors.AccentTint2, borderW: 1,
+        border: Colors.AccentLine, rounded: "12px", label: lead) {
+      Row(gap: "10px", align: Align.Start, fontSize: FontSize.Body, lineHeight: "1.5", grow: 1, basis: "480px", minW: "0") {
+        if (mark) {
+          PlannerMark();
+        }
+        Box {
+          Text(lead, fontWeight: FontWeight.Semibold, color: Colors.OnSurface);
+          if (rest != "") {
+            Text(" " + rest, color: Colors.Ink2, whiteSpace: WhiteSpace.PreWrap);
+          }
+        }
+      }
+      Row(gap: "8px", align: Align.Center, wrap: Wrapping.Wrap) { Slot; }
+    }
+  }
+}

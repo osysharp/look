@@ -1,0 +1,135 @@
+// The console look (direction B) at /dev/console: the stat strip's empty value, the badge kinds, the frame at 1440 and
+// at a phone's 390 (the rail a drawer, the table rows), photographed.
+
+using Osysharp.Look;
+using OsyrinLookTests;
+
+[Test]
+void A_console_stat_without_a_value_shows_a_dash_and_its_line() {
+  Ui.Viewport(1440);
+  Ui.Visit("/dev/console");
+  Assert.Visible("Nothing yet", within: "This month: Nothing yet");
+  Assert.Visible("no cost imported yet", within: "This month: Nothing yet");
+  Assert.Visible("0.19.11", within: "Platform release: 0.19.11");
+  Assert.Inside("This month: Nothing yet", "Platform now");
+  Ui.Viewport(390);
+  Ui.Visit("/dev/console");
+  Assert.Visible("no cost imported yet", within: "This month: Nothing yet");
+  Assert.Inside("This month: Nothing yet", "Platform now");
+  Assert.NoOverflow();
+}
+
+[Test]
+void The_console_badges_come_in_five_kinds() {
+  Ui.Viewport(1440);
+  Ui.Visit("/dev/console");
+  Ui.Within("Badge kinds") {
+    Assert.Visible("Active");
+    Assert.Visible("No members");
+    Assert.Visible("No applications");
+    Assert.Visible("Internal · unlimited");
+    Assert.Visible("Hard boundary");
+  }
+  Assert.Token("Colors.ConsoleOkBg", "#E8F2E9");
+  Assert.Token("Colors.ConsoleWarnBg", "#FBEEE2");
+  Assert.Token("Colors.ConsoleNeutralBg", "#EEEDE9");
+  Assert.Token("Colors.ConsoleControlLine", "#D6D3CB");
+  Assert.Token("Radius.ConsoleBadgeCorner", "4px");
+  Assert.Font("JetBrains Mono");
+}
+
+[Test]
+void The_search_dialog_opens_with_the_shortcut_finds_as_you_type_and_closes_with_escape() {
+  Ui.Viewport(1440);
+  Ui.Visit("/dev/console");
+  Assert.Hidden("Search Foundry");
+  Ui.Press("Mod+K");
+  Assert.Visible("Type at least two characters.", within: "Search");
+  Ui.Fill("Search Foundry", "jav");
+  Assert.Visible("Javier's Org", within: "Organizations");
+  Ui.Shot("C2-search-look-1440");
+  Ui.Press("Escape");
+  Assert.Hidden("Search Foundry");
+  Ui.Click("Search", within: "Top bar");
+  Assert.Visible("Type at least two characters.", within: "Search");
+  Ui.Press("Escape");
+  Assert.Hidden("Search Foundry");
+}
+
+[Test]
+void A_table_row_is_one_link_that_opens_its_item_and_holds_no_other_control() {
+  Ui.Viewport(1440);
+  Ui.Visit("/dev/console");
+  Assert.Visible("No members", within: "Osyrin Preview row");
+  Assert.Hidden("Go to");
+  Assert.Hidden("Users of Osyrin Preview");
+  Assert.Hidden("Applications of Osyrin Preview");
+  Ui.Click("Osyrin Preview", within: "Organizations table");
+  Assert.OnPage("/dev/components");
+}
+
+[Test]
+void The_console_frame_holds_its_rail_bar_band_and_table_and_becomes_a_drawer_on_a_phone() {
+  Ui.Viewport(1440);
+  Ui.Visit("/dev/console");
+  Assert.Visible("Organizations", within: "Rail");
+  Assert.Clickable("People");
+  Assert.Visible("Beta approved", within: "Top bar");
+  Assert.Clickable("Account menu for ops@osyrin.test");
+  Assert.Visible("1 of 2 organizations needs somebody: held, suspended or without members.", within: "Organizations header");
+  Assert.Visible("Active", within: "Organizations table");
+  Assert.Visible("Saving…", within: "Buttons");
+  Assert.NoOverflow();
+  Ui.Shot("console-1440");
+  Ui.Viewport(390);
+  Ui.Visit("/dev/console");
+  Assert.Hidden("Organizations table");
+  Assert.Clickable("Osyrin Preview");
+  Assert.NoOverflow();
+  Ui.Shot("console-390");
+  Ui.Click("Open menu");
+  Assert.Visible("People", within: "Menu");
+  Ui.Shot("console-390-menu");
+  Ui.Click("Close menu");
+  Assert.Hidden("Menu");
+}
+
+// LK7 in the console: the strip's cells take the desk's `16px 20px` at 1440 (each cell is narrower than a tablet, so a
+// cell that asked its own room took the phone's `14px 16px`), and the phone's two columns at 390.
+[Test]
+void The_console_stat_strip_lays_its_cells_out_by_the_window() {
+  Ui.Viewport(1440);
+  Ui.Visit("/dev/console");
+  Assert.LeftOf("Zones: 1", "People: 8");
+  Assert.SameHeight("Zones: 1", "This month: Nothing yet");
+  Ui.Shot("console-strip-1440", within: "Platform now");
+  Ui.Viewport(390);
+  Ui.Visit("/dev/console");
+  Assert.LeftOf("Organizations: 6", "Zones: 1");
+  Assert.Above("Zones: 1", "People: 8");
+  Assert.NoOverflow();
+  Ui.Shot("console-strip-390", within: "Platform now");
+}
+
+// LK10 in the console: ruled account facts, and a note after a panel's title over a trend's numberless axis.
+[Test]
+void The_console_account_facts_are_ruled_and_a_trend_panel_has_a_note_and_a_numberless_axis() {
+  Ui.Viewport(1440);
+  Ui.Visit("/dev/console");
+  Assert.LeftOf("Plan", "Slug");
+  Assert.LeftOf("Slug", "Created");
+  Assert.SameHeight("Plan", "Created");
+  Assert.Visible("northwind-health", within: "Slug");
+  Assert.RightOf("newest 20 builds", "Size over time");
+  Assert.LeftOf("20 builds ago", "newest");
+  Ui.Shot("console-account-1440", within: "Account");
+  Ui.Shot("console-trend-1440", within: "Size over time");
+  Ui.Viewport(390);
+  Ui.Visit("/dev/console");
+  Assert.LeftOf("Plan", "Slug");
+  Assert.Above("Plan", "Created");
+  Assert.LeftOf("20 builds ago", "newest");
+  Assert.NoOverflow();
+  Ui.Shot("console-account-390", within: "Account");
+  Ui.Shot("console-trend-390", within: "Size over time");
+}

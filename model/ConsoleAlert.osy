@@ -1,0 +1,45 @@
+namespace Osysharp.Look;
+
+/// The console's alert banner (spec "Components", Alert banner), above the stat strip: the critical tint, its line, a
+/// radius of 6, `10px 14px`; a warning triangle, the `headline` bold, the `detail` after it, and the link at the right
+/// (`linkWords` to `to`). On a phone the whole banner is the link, the detail under the headline, a chevron at the end.
+[Composable]
+component ConsoleAlert(string headline, string detail = "", string linkWords = "", string to = "") {
+  render {
+    if (Layout.AtLeast(Tablet)) {
+      Row(gap: "12px", align: Align.Center, wrap: Wrapping.Wrap, py: "10px", px: "14px", bg: Colors.ConsoleCriticalBg, borderW: 1,
+          border: Colors.ConsoleCriticalLine, rounded: Radius.ConsoleCorner, color: Colors.ConsoleCriticalInk, role: UiRole.Alert, label: headline) {
+        Box(color: Colors.ConsoleCriticalIcon, display: Display.Flex, decorative: true) { Icon(Icons.Warning, size: 16); }
+        Text(headline, fontWeight: 600);
+        if (detail != "") { Text(detail, color: Colors.ConsoleCriticalInk2); }
+        if (to != "") {
+          Box(ml: "auto") {
+            Link(to, label: linkWords) { Text(linkWords, color: Colors.ConsoleCriticalLink, fontWeight: 500); }
+          }
+        }
+      }
+    } else if (to != "") {
+      Link(to, label: headline) { ConsoleAlertPhone(headline, detail, true); }
+    } else {
+      ConsoleAlertPhone(headline, detail, false);
+    }
+  }
+}
+
+/// The alert on a phone: the icon, the headline with the detail under it, and a chevron at the end when the banner is a link.
+[Composable, Part]
+component ConsoleAlertPhone(string headline, string detail, bool linked) {
+  render {
+    Row(gap: "10px", align: Align.Center, py: "12px", px: "14px", bg: Colors.ConsoleCriticalBg, borderW: 1, border: Colors.ConsoleCriticalLine,
+        rounded: Radius.ConsoleCorner, color: Colors.ConsoleCriticalInk, role: UiRole.Alert, label: linked ? "" : headline) {
+      Box(color: Colors.ConsoleCriticalIcon, display: Display.Flex, decorative: true) { Icon(Icons.Warning, size: 18); }
+      Stack(gap: 0, grow: 1, minW: "0") {
+        Text(headline, fontWeight: 600);
+        if (detail != "") { Text(detail, fontSize: FontSize.ConsoleControl, color: Colors.ConsoleCriticalInk2); }
+      }
+      if (linked) {
+        Box(color: Colors.ConsoleCriticalLink, display: Display.Flex, decorative: true) { Icon(Icons.ChevronRight, size: 16); }
+      }
+    }
+  }
+}

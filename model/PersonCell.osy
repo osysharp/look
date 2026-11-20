@@ -1,0 +1,45 @@
+namespace Osysharp.Look;
+
+/// A person in a table cell: their picture (`photo`, a 28 px circle) or their initials in one (`initials`, by default
+/// `InitialsOf(name)`; 11/700 run ink on the run tint, as `PersonChip`'s), then their `name` (13/600) over their `address`
+/// (12, Ink 3), each cut with an ellipsis when the column is narrow — the whole of both is still read. With `to` the name
+/// and address are one link to the person, named by the name. It IS the cell (`role: UiRole.GridCell`): put it straight
+/// in a `CardTableRow`. On no board as a cell; it is `PersonChip`'s circle, grown to sit beside two lines.
+[Composable]
+component PersonCell(string name, string address = "", string initials = "", string photo = "", string to = "", bool cell = true) {
+  string Shown() => initials != "" ? initials : InitialsOf(name);
+  render {
+    Row(gap: "8px", align: Align.Center, minW: "0", role: cell ? UiRole.GridCell : null) {
+      if (photo != "") {
+        Image(photo, alt: "", w: "28px", h: "28px", minW: "28px", rounded: Radius.Pill, objectFit: ObjectFit.Cover, decorative: true);
+      } else {
+        Row(w: "28px", h: "28px", minW: "28px", rounded: Radius.Pill, bg: Colors.RunTint, color: Colors.RunInk, align: Align.Center,
+            justify: Justify.Center, fontSize: "11px", fontWeight: 700, lineHeight: "normal", decorative: true) {
+          Text(Shown());
+        }
+      }
+      if (to != "") {
+        Link(to, label: name, minW: "0", color: Colors.OnSurface, textDecoration: TextDecoration.None) {
+          PersonCellLines(name, address);
+        }
+      } else {
+        PersonCellLines(name, address);
+      }
+    }
+  }
+}
+
+/// The name over the address, each one line cut with an ellipsis.
+[Composable, Part]
+component PersonCellLines(string name, string address) {
+  render {
+    Stack(gap: "1px", minW: "0", lineHeight: "1.3") {
+      Text(name, fontSize: FontSize.Label, fontWeight: FontWeight.Semibold, minW: "0", overflow: Overflow.Hidden, textOverflow: TextOverflow.Ellipsis,
+           whiteSpace: WhiteSpace.Nowrap);
+      if (address != "") {
+        Text(address, fontSize: FontSize.Caption, color: Colors.Ink3, minW: "0", overflow: Overflow.Hidden, textOverflow: TextOverflow.Ellipsis,
+             whiteSpace: WhiteSpace.Nowrap);
+      }
+    }
+  }
+}

@@ -1,0 +1,46 @@
+namespace Osysharp.Look;
+
+/// A small tree of proposed parts — an arc and its slices, a slice and its criteria — inside a change, a version or a
+/// card (canvas2/Brief "Place as work": "Create arc … with three first slices"). Not a `CardTable`: it has levels, not
+/// columns, and lives in a 350 px change block where a table's head and columns do not fit. Rows `6px 0` under a soft
+/// rule, set in 18 px a level behind a Line 2 guide; each a line of the kind chip (11/600 `1px 6px` radius 5 on its
+/// tone's tint — the board's Discovery accent, Slice run), the key (mono 12/600, a `KeyLink` with `To`) and the title
+/// 14, wrapping; under it `Line` 12 Ink 3. A list named `label`, each row a list item at its level (`aria-level`
+/// level + 1), named "<kind> <key> <title>".
+/// In a test: `Assert.Visible("waits on BOOK-14", within: "Slice BOOK-26 Add to calendar")` (rows of a plain class with
+/// no `Id`: `Assert.Items` does not count them).
+/// e.g. `PartTree("Proposed parts", [new TreePart { Kind = "Arc", KindTone = ChipTone.Accent, Key = "TRIAGE-DUAL", Title = "Two
+/// reviewers" }, new TreePart { Level = 1, Kind = "Slice", Title = "Second reviewer", Line = "140k of 160k" }])`
+[Composable]
+component PartTree(string label, List<TreePart> parts) {
+  render {
+    Stack(gap: 0, minW: "0", role: UiRole.List, label: label) {
+      foreach (var part in parts) {
+        Row(gap: 0, minW: "0", ml: (part.Level * 18) + "px", borderLW: part.Level > 0 ? 2 : 0, borderTW: 1, border: Colors.SoftLine,
+            role: UiRole.ListItem, level: part.Level + 1, label: part.Kind + " " + (part.Key != "" ? part.Key + " " : "") + part.Title) {
+          Stack(gap: "2px", py: "6px", pl: part.Level > 0 ? "10px" : "0", minW: "0") {
+            Row(gap: "4px 6px", align: Align.Baseline, wrap: Wrapping.Wrap, minW: "0", fontSize: FontSize.Body, lineHeight: "1.4") {
+              Text(part.Kind, fontSize: FontSize.Overline, fontWeight: FontWeight.Semibold, py: "1px", px: "6px", rounded: "5px", whiteSpace: WhiteSpace.Nowrap,
+                   lineHeight: "normal",
+                   bg: part.KindTone == ChipTone.Ok ? Colors.OkTint : part.KindTone == ChipTone.Run ? Colors.RunTint : part.KindTone == ChipTone.Wait ? Colors.WaitTint
+                     : part.KindTone == ChipTone.You ? Colors.YouTint : part.KindTone == ChipTone.Bad ? Colors.BadTint : part.KindTone == ChipTone.Floor ? Colors.FloorTint : Colors.AccentTint,
+                   color: part.KindTone == ChipTone.Ok ? Colors.OkInk : part.KindTone == ChipTone.Run ? Colors.RunInk : part.KindTone == ChipTone.Wait ? Colors.WaitInk
+                     : part.KindTone == ChipTone.You ? Colors.YouInk : part.KindTone == ChipTone.Bad ? Colors.BadInk : part.KindTone == ChipTone.Floor ? Colors.FloorInk : Colors.AccentInk);
+              if (part.Key != "") {
+                if (part.To != "") {
+                  KeyLink(part.Key, part.To, small: true);
+                } else {
+                  Text(part.Key, fontFamily: Font.KeyFace, fontSize: FontSize.Caption, fontWeight: FontWeight.Semibold);
+                }
+              }
+              Text(part.Title, color: Colors.OnSurface, minW: "0");
+            }
+            if (part.Line != "") {
+              Text(part.Line, fontSize: FontSize.Caption, color: Colors.Ink3, lineHeight: "1.4");
+            }
+          }
+        }
+      }
+    }
+  }
+}

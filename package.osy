@@ -1,0 +1,30 @@
+// Osyrin's v3 look: an abstract base theme with the drawn boards' tokens, the type scale, and the parts every v3 page
+// is built from. It names no app: an app derives its own theme from `OsyrinV3` and keeps only the tokens that are its own.
+// The platform owns it (the split, 19 Nov 2026): this directory is its only source; a product's own parts live in that
+// product's package on top of it. How a consumer proposes a change: README.md, "Who owns it".
+// The floor is the first release after v0.19.15: the parts use [Section] (33ae66d8ae), which v0.19.15 lacks.
+package Osysharp.Look {
+  version "0.5.0";
+  minPlatform "0.23.0";
+  summary "The Osyrin v3 look: base theme, type scale, chips, headers, cards, tables and states, over the Ui kit.";
+  layout "Osysharp.Look";
+  model "model/**/*.osy";
+  tests "tests";
+  // The pictures the look carries (the signed-out artwork); they reach a consumer's `Textures` as a package's icons do.
+  textures "textures/*.jpg";
+  // Every part is drawn with the Ui kit's atoms and controls, and themes the kit's own controls to the boards.
+  use Osysharp.Ui;
+  // The parts this kit draws instead of others' (README "What it replaces"): an app on the look that draws one of these
+  // in its own pages hears `osy lint`'s `ui-kit-replaces-this-part`, naming the look's part.
+  replaces "Select" {
+    use "LookSelect";
+    why "the browser's own select cannot be drawn as the boards' §22 dropdown, and looks different in every browser";
+  }
+  replaces "SelectField" {
+    use "LookSelect";
+    unless "detail";
+    why "its plain face is the browser's own select; over an enum draw `LookEnumSelect`, over rows `LookRefPicker`";
+  }
+  // A conversation turn is Markdown, drawn by the platform's renderer (START-HERE rule 15).
+  use Osysharp.Markdown;
+}

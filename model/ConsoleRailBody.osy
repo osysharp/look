@@ -1,0 +1,291 @@
+namespace Osysharp.Look;
+
+/// The rail's contents (spec "Layout shell", Rail): the context switcher, then each group — the first with no heading
+/// 14 px under the switcher, the others under an 11/600 uppercase heading (`18px 10px 6px`, +0.06em, rail-muted) — its
+/// rows 1 px apart, the row the address lights marked (`ConsoleLitRow`). `phone`: in the menu drawer, every row 44 high. `onNavigated` closes the drawer.
+/// `onAsk` (the shell's leave guard, `ConsoleShellRail`): while the page holds unsaved edits a row, the switcher and a
+/// place in its list are buttons handing their address to it, which asks before leaving; without it they stay links.
+[Composable]
+component ConsoleRailBody(ConsoleChrome chrome, string path, Action onNavigated, bool phone = false, Action<string> onAsk = null) {
+  render {
+    var lit = ConsoleLitRow(chrome.Groups, path);
+    Stack(gap: 0, minW: "0") {
+      if (chrome.Switcher.Count() > 0) {
+        ConsoleSwitcherMenu(chrome, phone, onAsk);
+      } else {
+        ConsoleSwitcher(chrome, phone, onAsk);
+      }
+      foreach (var group in chrome.Groups) {
+        if (group.Label != "") {
+          Text(group.Label, pt: "18px", px: "10px", pb: "6px", fontSize: FontSize.ConsoleRailHeading,
+               fontWeight: 600, letterSpacing: "0.06em", textTransform: TextTransform.Uppercase, color: Colors.ConsoleRailMuted, lineHeight: "1.5");
+        }
+        Stack(gap: "1px", mt: group.Label == "" ? "14px" : "0", role: UiRole.Navigation, label: group.Label != "" ? group.Label : "Main") {
+          foreach (var item in group.Items) {
+            ConsoleNavRow(item, lit != "" && lit == ConsoleRowKey(item), onNavigated, phone, onAsk);
+          }
+        }
+      }
+    }
+  }
+}
+
+/// The context switcher: `6px 8px` on the raised rail in its line, radius 6; the 24 px tile (radius 5, paper, the mark in
+/// rail ink), the product 12.5/600 over the context 11.5 rail-text-2, the up/down chevron at the right. It leads to the
+/// app's Home; the chevron is a mark only, because there is no other context to switch to. (With `chrome.Switcher`, the
+/// rail draws `ConsoleSwitcherMenu` in its place.)
+[Composable, Part]
+component ConsoleSwitcher(ConsoleChrome chrome, bool phone = false, Action<string> onAsk = null) {
+  variants {
+    base {
+      Display = Display.Flex;
+      AlignItems = Align.Center;
+      Gap = "10px";
+      Py = "6px";
+      Px = "8px";
+      BorderW = 1;
+      BorderStyle = BorderStyle.Solid;
+      Border = Colors.ConsoleRailRaisedLine;
+      Bg = Colors.ConsoleRailRaised;
+      Rounded = Radius.ConsoleCorner;
+      Color = Colors.ConsoleRailInk;
+      TextDecoration = TextDecoration.None;
+      W = "100%";
+      TextAlign = TextAlign.Left;
+      Cursor = Cursor.Pointer;
+      FontSize = FontSize.ConsoleBody;
+      Hover { Bg = Colors.ConsoleRailHover; }
+    }
+    phone {
+      MinH = "44px";
+    }
+  }
+  render {
+    if (onAsk != null && Navigation.IsDirty) {
+      Pressable(onClick: () => onAsk(chrome.Home), label: chrome.Product + ", " + chrome.Context) { ConsoleSwitcherFace(chrome); }
+    } else {
+      Link(chrome.Home, label: chrome.Product + ", " + chrome.Context) { ConsoleSwitcherFace(chrome); }
+    }
+  }
+}
+
+/// The switcher's face: the tile, the product over the context, the up/down chevron.
+[Composable, Part]
+component ConsoleSwitcherFace(ConsoleChrome chrome) {
+  render {
+    ConsoleMarkTile(chrome);
+    Stack(gap: 0, grow: 1, minW: "0", lineHeight: "1.25") {
+      Text(chrome.Product, fontWeight: 600, fontSize: FontSize.ConsoleControl);
+      if (chrome.Context != "") {
+        Text(chrome.Context, fontSize: FontSize.ConsoleBadge, color: Colors.ConsoleRailText2);
+      }
+    }
+    Stack(gap: 0, shrink: 0, color: Colors.ConsoleRailMuted, decorative: true) {
+      Icon(Icons.ChevronUp, size: 10);
+      Icon(Icons.ChevronDown, size: 10);
+    }
+  }
+}
+
+/// The context switcher when the chrome lists places to switch to (`chrome.Switcher`, LA3's `LookSwitcherGroup`s): the
+/// switcher's face as a button named "<Product>, switch", which opens the list under it, 4 below, on the raised rail in
+/// its line, radius 6, `4px`: each group under its 11/600 uppercase heading (rail-muted, `10px 8px 4px`), its places as
+/// 30 px rows (44 in the drawer) in rail-text, the current one on rail-active in white with a check at the right and
+/// `aria-current`. Choosing a place, Escape, or the button again closes it.
+/// e.g. `Switcher = [ new LookSwitcherGroup { Label = "Platform", Apps = [ new AppLink { Label = "Osyrin platform", To = "/",
+/// Current = true } ] }, … ]`; in a test: `Ui.Click("Osyrin, switch")`, then `Ui.Click("Northwind", within: "Switch to")`.
+[Composable, Part]
+component ConsoleSwitcherMenu(ConsoleChrome chrome, bool phone = false, Action<string> onAsk = null) {
+  bool open = false;
+
+  action Toggle() {
+    open = !open;
+  }
+
+  action Close() {
+    open = false;
+  }
+
+  render {
+    Stack(gap: "4px", minW: "0") {
+      ConsoleSwitcherButton(chrome, open, Toggle, phone);
+      if (open) {
+        Stack(gap: 0, p: "4px", bg: Colors.ConsoleRailRaised, borderW: 1, border: Colors.ConsoleRailRaisedLine, rounded: Radius.ConsoleCorner, minW: "0",
+              role: UiRole.Navigation, label: "Switch to", onEscape: Close) {
+          foreach (var group in chrome.Switcher) {
+            Stack(gap: "1px", minW: "0", role: UiRole.Group, label: group.Label != "" ? group.Label : "Places") {
+              if (group.Label != "") {
+                Text(group.Label, pt: "10px", px: "8px", pb: "4px", fontSize: FontSize.ConsoleRailHeading, fontWeight: 600, letterSpacing: "0.06em",
+                     textTransform: TextTransform.Uppercase, color: Colors.ConsoleRailMuted, lineHeight: "1.5", decorative: true);
+              }
+              foreach (var place in group.Apps) {
+                ConsoleSwitcherRow(place, place.Current, Close, phone, onAsk);
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}
+
+/// The switcher's face as a button: as `ConsoleSwitcher`'s, the chevrons marking that it opens a list.
+[Composable, Part]
+component ConsoleSwitcherButton(ConsoleChrome chrome, bool open, Action onToggle, bool phone = false) {
+  variants {
+    base {
+      Display = Display.Flex;
+      AlignItems = Align.Center;
+      Gap = "10px";
+      W = "100%";
+      Py = "6px";
+      Px = "8px";
+      BorderW = 1;
+      BorderStyle = BorderStyle.Solid;
+      Border = Colors.ConsoleRailRaisedLine;
+      Bg = Colors.ConsoleRailRaised;
+      Rounded = Radius.ConsoleCorner;
+      Color = Colors.ConsoleRailInk;
+      TextAlign = TextAlign.Left;
+      Cursor = Cursor.Pointer;
+      Hover { Bg = Colors.ConsoleRailHover; }
+      Focus { Shadow = Shadow.Ring; }
+    }
+    phone {
+      MinH = "44px";
+    }
+  }
+  render {
+    Pressable(onClick: onToggle, expanded: open, label: chrome.Product + ", switch") {
+      ConsoleMarkTile(chrome);
+      Stack(gap: 0, grow: 1, minW: "0", lineHeight: "1.25") {
+        Text(chrome.Product, fontWeight: 600, fontSize: FontSize.ConsoleControl);
+        if (chrome.Context != "") {
+          Text(chrome.Context, fontSize: FontSize.ConsoleBadge, color: Colors.ConsoleRailText2);
+        }
+      }
+      Stack(gap: 0, shrink: 0, color: Colors.ConsoleRailMuted, decorative: true) {
+        Icon(Icons.ChevronUp, size: 10);
+        Icon(Icons.ChevronDown, size: 10);
+      }
+    }
+  }
+}
+
+/// One place in the switcher's list: 30 high (44 in the drawer), `0 8px`, radius 5, its label 500 in rail-text; the
+/// current place on rail-active in white, a check at the right, `aria-current`.
+[Composable, Part]
+component ConsoleSwitcherRow(AppLink place, bool on, Action onPick, bool phone = false, Action<string> onAsk = null) {
+  action Ask() {
+    onPick();
+    onAsk(place.To);
+  }
+
+  variants {
+    base {
+      Display = Display.Flex;
+      AlignItems = Align.Center;
+      Gap = "8px";
+      H = "30px";
+      Px = "8px";
+      Rounded = Radius.ConsoleButtonCorner;
+      Color = Colors.ConsoleRailText;
+      FontWeight = 500;
+      TextDecoration = TextDecoration.None;
+      // The same face when the leave guard draws it as a button.
+      W = "100%";
+      BorderW = 0;
+      Bg = Colors.Transparent;
+      TextAlign = TextAlign.Left;
+      Cursor = Cursor.Pointer;
+      FontSize = FontSize.ConsoleBody;
+      Hover { Bg = Colors.ConsoleRailHover; Color = Colors.ConsoleRailInk; }
+    }
+    on {
+      Bg = Colors.ConsoleRailActive;
+      Color = Colors.ConsoleRailInk;
+      Hover { Bg = Colors.ConsoleRailActive; }
+    }
+    phone {
+      H = "44px";
+    }
+  }
+  render {
+    if (onAsk != null && Navigation.IsDirty) {
+      Pressable(onClick: Ask, label: place.Label, current: on) { ConsoleSwitcherRowFace(place, on); }
+    } else {
+      Link(href: place.To, label: place.Label, current: on, onClick: onPick) { ConsoleSwitcherRowFace(place, on); }
+    }
+  }
+}
+
+/// A switcher place's words, and the check on the current one.
+[Composable, Part]
+component ConsoleSwitcherRowFace(AppLink place, bool on) {
+  render {
+    Text(place.Label, grow: 1, minW: "0", overflow: Overflow.Hidden, textOverflow: TextOverflow.Ellipsis, whiteSpace: WhiteSpace.Nowrap);
+    if (on) {
+      Box(color: Colors.ConsoleRailIconActive, display: Display.Flex, decorative: true) { Icon(Icons.Check, size: 14); }
+    }
+  }
+}
+
+/// One rail row: 30 high (44 in the drawer), `0 10px`, radius 5, 10 apart: its icon in rail-muted (its dot, 5 px either
+/// side), the label 500 in rail-text, the count at the right 11.5/400 rail-muted. Hovered on rail-hover in white; the
+/// page in view on rail-active in white, its icon rail-icon-active, `aria-current`.
+[Composable, Part]
+component ConsoleNavRow(ConsoleNavItem item, bool on, Action onNavigated, bool phone = false, Action<string> onAsk = null) {
+  variants {
+    base {
+      Display = Display.Flex;
+      AlignItems = Align.Center;
+      Gap = "10px";
+      H = "30px";
+      Px = "10px";
+      Rounded = Radius.ConsoleButtonCorner;
+      Color = Colors.ConsoleRailText;
+      FontWeight = 500;
+      TextDecoration = TextDecoration.None;
+      // The same face when the leave guard draws it as a button.
+      W = "100%";
+      BorderW = 0;
+      Bg = Colors.Transparent;
+      TextAlign = TextAlign.Left;
+      Cursor = Cursor.Pointer;
+      FontSize = FontSize.ConsoleBody;
+      Hover { Bg = Colors.ConsoleRailHover; Color = Colors.ConsoleRailInk; }
+    }
+    on {
+      Bg = Colors.ConsoleRailActive;
+      Color = Colors.ConsoleRailInk;
+      Hover { Bg = Colors.ConsoleRailActive; }
+    }
+    phone {
+      H = "44px";
+      FontSize = FontSize.ConsoleBodyPhone;
+    }
+  }
+  render {
+    if (onAsk != null && Navigation.IsDirty) {
+      Pressable(onClick: () => onAsk(item.To), label: item.Label, current: on) { ConsoleNavRowFace(item, on); }
+    } else {
+      Link(href: item.To, label: item.Label, current: on, onClick: onNavigated) { ConsoleNavRowFace(item, on); }
+    }
+  }
+}
+
+/// A rail row's icon (or dot), words and count.
+[Composable, Part]
+component ConsoleNavRowFace(ConsoleNavItem item, bool on) {
+  render {
+    if (item.Dot) {
+      Box(mx: "5px", display: Display.Flex) { ConsoleDot(item.DotTone); }
+    } else {
+      Box(color: on ? Colors.ConsoleRailIconActive : Colors.ConsoleRailMuted, display: Display.Flex, decorative: true) { Icon(item.Icon, size: 16); }
+    }
+    Text(item.Label, minW: "0", overflow: Overflow.Hidden, textOverflow: TextOverflow.Ellipsis, whiteSpace: WhiteSpace.Nowrap);
+    if (item.Count != "") {
+      Text(item.Count, ml: "auto", fontSize: FontSize.ConsoleBadge, fontWeight: 400, color: Colors.ConsoleRailMuted, decorative: true);
+    }
+  }
+}

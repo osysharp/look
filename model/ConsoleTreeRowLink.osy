@@ -1,0 +1,24 @@
+namespace Osysharp.Look;
+
+/// The part of a tree row that opens its item: one link to `to`, read as `label`, filling the row's width beside the
+/// open/close arrow (the one control a tree row may keep besides opening its item). The ground goes sunken on hover and
+/// the ring shows on keyboard focus. Its content is the default slot.
+[Composable]
+component ConsoleTreeRowLink(string to, string label) {
+  variants {
+    base {
+      Display = Display.Flex;
+      AlignItems = Align.Center;
+      Gap = "10px";
+      Grow = 1;
+      MinW = "0";
+      Color = Colors.ConsoleText;
+      TextDecoration = TextDecoration.None;
+      Hover { Bg = Colors.ConsoleSunken; }
+      Focus { Shadow = Shadow.Ring; }
+    }
+  }
+  render {
+    Link(to, label: label) { Slot; }
+  }
+}

@@ -1,0 +1,12 @@
+namespace Osysharp.Look;
+
+/// One area: `Key` what the page knows it by, `Label` its name, `Done` agreed, `Count` an optional quiet line under the
+/// name ("2 of 3 taken").
+public class AreaTab {
+  public string Key = "";
+  public string Label = "";
+  public bool Done = false;
+  public string Count = "";
+  /// Agreed once and changed since: its dot is the warn dot.
+  public bool AsksAgain = false;
+}

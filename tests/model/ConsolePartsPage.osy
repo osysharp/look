@@ -1,0 +1,192 @@
+namespace OsyrinLookTests;
+
+using Osysharp.Look;
+
+/// The console parts LC2 added, on the console's paper in its working area: the button kinds and the link button, a
+/// form (its dropdown the console's control), the panel states, the inline messages, the meters, a panel with a foot, and a chart card full and empty.
+[Route("/dev/console-parts")]
+[AllowAnonymous]
+[Title("Console parts")]
+[Render(CSR)]
+component ConsolePartsPage() {
+  int presses = 0;
+  string slug = "northwind";
+  string name = "";
+  string reason = "";
+
+  string filter = "firing";
+  CheckCadence runs = CheckCadence.EverySlice;
+  DateOnly? from = null;
+  int days = 7;
+  int copies = 2;
+  decimal cap = 25m;
+  decimal weekly = 150m;
+
+  action Press() {
+    presses = presses + 1;
+  }
+
+  action Pick(string key) {
+    filter = key;
+  }
+
+  render {
+    Box(minH: "100vh", bg: Colors.ConsolePaper, color: Colors.ConsoleText, fontFamily: Font.ConsoleSans) {
+      ConsoleWork("Console parts") {
+        ConsolePanel("Buttons", label: "Button kinds") {
+          Row(gap: "8px", wrap: Wrapping.Wrap, p: "16px") {
+            ConsoleButton("Save", Press, primary: true);
+            ConsoleButton("Cancel", Press);
+            ConsoleButton("Revoke…", Press, danger: true);
+            ConsoleButton("Give up the zone", Press, primary: true, danger: true);
+            ConsoleButton("Rename", Press, canPress: false, whenDenied: "Only an owner renames it.");
+            // Refused while something else is busy: the refusal wins — the reader never could press it, so it keeps its name and reason.
+            ConsoleButton("Archive", Press, busy: true, busyLabel: "Archiving…", canPress: false, whenDenied: "Only an owner archives it.");
+            ConsoleLinkButton("New organization", "/dev/console", primary: true) { Icon(Icons.Plus, size: 14); }
+            ConsoleLinkButton("Open the plan", "/dev/console");
+          }
+          Row(gap: "8px", wrap: Wrapping.Wrap, align: Align.Center, px: "16px", pb: "16px") {
+            SegmentedFilter("Show", [
+              new FilterSegment { Key = "firing", Label = "Firing", Count = "4" },
+              new FilterSegment { Key = "resolved", Label = "Resolved" }], filter, Pick, console: true);
+            Box(w: "120px", role: UiRole.Group, label: "Narrow cell") {
+              ConsoleBadge("Internal organisation (unlimited)", ConsoleTone.Outline);
+            }
+            Row(w: "220px", gap: "8px", align: Align.Center, role: UiRole.Group, label: "Tight row") {
+              Text("Zone US East (demo) is down and has not reported", grow: 1, minW: "0");
+              ConsoleBadge("Acknowledged", ConsoleTone.Warn, dot: true);
+            }
+          }
+        }
+        ConsolePanel("Organization details", label: "Form") {
+          Stack(gap: "14px", p: "16px", maxW: "480px") {
+            ConsoleInput("Slug", slug, help: "Lower-case letters, digits and dashes.", mono: true);
+            ConsoleInput("Display name", name, error: "A name is required.", placeholder: "Northwind Health");
+            LookEnumSelect("Runs when", runs, w: "240px", help: "A dropdown in a console form is the console's control.", console: true);
+            Row(gap: "12px", wrap: Wrapping.Wrap, align: Align.End) {
+              LookDate("Starts on", from, w: "200px", clearable: true, placeholder: "As soon as saved", console: true);
+              LookNumberInput("Keep for", days, min: 1, unit: "days", w: "140px", console: true);
+              // The number's own box, measured by a test (a size check finds an input by its label's words).
+              Box(role: UiRole.Group, label: "A console number's box", w: "120px") {
+                LookNumberInput("Copies", copies, min: 1, inRow: true, console: true);
+              }
+            }
+            ConsoleDecimalInput("Daily cap", cap, min: 0m, max: 100m, prefix: "$", unit: "a day", w: "200px", help: "An amount: a decimal, its unit inside the box.");
+            // The amount's own box, measured by a test (a size check finds an input by its label's words, and the field's label is one).
+            Box(role: UiRole.Group, label: "A console amount's box", w: "160px") {
+              ConsoleDecimalInput("Weekly cap", weekly, min: 0m, unit: "tokens", inRow: true);
+            }
+            ConsoleTextArea("Why", reason, help: "Shown to the organization's owners.");
+          }
+        }
+        ConsolePanel("Releases", label: "Empty panel") {
+          ConsoleEmpty("No releases yet", "A release appears here when the first build of a line is published.") {
+            ConsoleLinkButton("Open the lines", "/dev/console");
+          }
+        }
+        Box(w: "700px", maxW: "100%") {
+          ConsolePanel("Causes", label: "Narrow table") {
+            ConsoleTable("Causes table", [
+              new ConsoleColumn { Label = "Incident" },
+              new ConsoleColumn { Label = "Stage", Width = "140px" },
+              new ConsoleColumn { Label = "Occurrences", Width = "130px", Right = true },
+              new ConsoleColumn { Label = "Open", Width = "90px" },
+              new ConsoleColumn { Label = "Last seen", Width = "110px" },
+              new ConsoleColumn { Label = "Trend", Width = "130px" }], opens: true) {
+              ConsoleRowLink([
+                new ConsoleColumn { Label = "Incident" }, new ConsoleColumn { Width = "140px" }, new ConsoleColumn { Width = "130px", Right = true },
+                new ConsoleColumn { Width = "90px" }, new ConsoleColumn { Width = "110px" }, new ConsoleColumn { Width = "130px" }],
+                "/dev/console", "Open the cause") {
+                ConsoleCell(wraps: true) {
+                  Stack(gap: "2px", minW: "0") {
+                    Text("An application reached its mail ceiling", fontWeight: 500);
+                    Text("MailSendCeilingReached · 1 occurrence", fontSize: FontSize.ConsoleSmall, color: Colors.ConsoleText2);
+                  }
+                }
+                ConsoleCell { ConsoleBadge("Reported", ConsoleTone.Warn, dot: true); }
+                ConsoleCell(right: true) { Text("1 occurrence"); }
+                ConsoleCell { ConsoleBadge("1 open", ConsoleTone.Warn, dot: true); }
+                ConsoleCell { Text("16m ago"); }
+                ConsoleCell { Text("steady"); }
+              }
+            }
+          }
+        }
+        ConsolePanel("Hosts", label: "Loading panel") { ConsoleLoading("hosts"); }
+        ConsolePanel("Lanes", label: "Error panel") {
+          ConsoleError("Could not load the lanes on nw-mini-ios", "The host has not answered for 4 minutes. The lanes it reported last are kept.") {
+            ConsoleLink("Try again", "/dev/console-parts");
+            ConsoleLink("Open the host", "/dev/console");
+          }
+        }
+        ConsoleReadOnly("You can view this policy. To change it, ask an org admin.") { ConsoleLink("Who are the admins?", "/dev/console"); }
+        Stack(gap: "8px", role: UiRole.Group, label: "Messages") {
+          ConsoleMessage(ConsoleMessageKind.Success, "The plan is saved.", lead: "Saved") { ConsoleLink("Undo", "/dev/console-parts"); }
+          ConsoleMessage(ConsoleMessageKind.Info, "Changes take effect on the next build.");
+          ConsoleMessage(ConsoleMessageKind.Error, "Another owner changed the plan while you edited it.", lead: "Not saved");
+        }
+        ConsolePanel("Usage", label: "Meters") {
+          Stack(gap: "16px", p: "16px") {
+            ConsoleMeter("Storage", 312, 500, threshold: 400, amount: "312 of 500 GB");
+            ConsoleMeter("Builds this month", 430, 500, threshold: 400, pastWords: "over the warning line");
+            ConsoleMeter("Seats", 12, 12);
+            Row(gap: "10px", align: Align.Center) {
+              Text("4 of 7 slices done", fontSize: FontSize.ConsoleSmall, color: Colors.ConsoleText2, shrink: 0);
+              ConsoleShareBar(4, 7, w: "120px");
+            }
+          }
+        }
+        ConsolePanel("2 organizations", label: "Panel with a foot") {
+          Stack(gap: 0, py: "12px", px: "16px") { Text("Northwind Health"); Text("Osyrin Preview"); }
+          ConsolePanelFoot() {
+            ConsoleLink("View all organizations ›", "/dev/console");
+            Text("Sorted by name");
+          }
+        }
+        ConsoleChartCard("Size over time", count: "newest 20 builds", legend: [ "Bundle", "Assets" ], from: "20 builds ago", to: "newest") {
+          Row(h: "48px", gap: "3px", align: Align.End, minW: "0", decorative: true) {
+            foreach (var h in [20, 22, 21, 25, 27, 26, 28, 27, 30, 32, 31, 34, 33, 36, 38, 37, 40, 43, 42, 46]) {
+              Box(grow: 1, basis: "0", h: h + "px", bg: Colors.Series1, rounded: "2px 2px 0 0");
+            }
+          }
+        }
+        ConsoleChartCard("Cost by day", emptyTitle: "No costs imported yet", emptyBody: "Costs appear the day after the first invoice is imported.");
+        // The Ui kit's own controls on the bridged tokens (SH1), beside a console button: a kit's page reads as the console.
+        ConsolePanel("Kit controls", label: "Kit controls") {
+          Row(gap: "8px", wrap: Wrapping.Wrap, align: Align.Center, p: "16px") {
+            Button("Invite someone", onPress: Press, tone: Tone.Primary);
+            Button("Kit cancel", onPress: Press);
+            ConsoleButton("Console twin", Press);
+          }
+        }
+        // A plan's keys as level chips (WS1): a saga's white on the accent, an arc's on the soft accent, in a tree row and alone.
+        ConsolePanel("Plan keys", label: "Plan keys") {
+          ConsoleTreeRow(0, false, ConsoleTypeKind.Saga, "Saga", "FOUNDRY-1", "Plan and release", "/dev/console-parts", "In progress",
+                         ConsoleTone.Neutral, "3 arcs");
+          Row(gap: "8px", align: Align.Center, p: "16px") {
+            ConsoleKeyChip("FOUNDRY-2", ConsoleTypeKind.Arc, "Arc");
+            ConsoleKeyChip("FOUNDRY-3", ConsoleTypeKind.Slice, "Slice");
+          }
+        }
+      }
+    }
+  }
+}
+
+/// A whole-page state in the console's working area.
+[Route("/dev/console-parts/missing")]
+[AllowAnonymous]
+[Title("Not found")]
+[Render(CSR)]
+component ConsolePartsMissingPage() {
+  render {
+    Box(minH: "100vh", bg: Colors.ConsolePaper, fontFamily: Font.ConsoleSans) {
+      ConsoleWork("Page state") {
+        ConsolePageState(PageStateKind.NotFound, "There is no organization called acme",
+                         "It may have been renamed or closed. Every organization you can see is in the list.") {
+          ConsoleLinkButton("All organizations", "/dev/console", primary: true);
+        }
+      }
+    }
+  }
+}

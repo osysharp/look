@@ -1,0 +1,72 @@
+namespace Osysharp.Look;
+
+// What the designer filed, said in one line under its answer (designer.dc.html `.cap`; P3.11 "What moves where": "Added
+// under Waiting list: Offer a freed slot to the next patient · Move · Undo"), every part named with its level.
+
+/// The capture line: a 6 px accent dot, then one sentence 13/1.5 Ink 3 — the block, written with `Text` and `LevelRef`
+/// ("Added under ", `LevelRef(Arc, "Reminders before a visit")`, ": ", `LevelRef(Slice, "Send the reminder by text", onOpen)`)
+/// — and after it " · Move" (with `onMove`), " · Show" (with `onShow`, which lights what it changed) and " · Undo" (with
+/// `onUndo`), 600 in the accent. `label` names it for a test and a screen reader ("Added Send the reminder by text"); its
+/// actions are "Move: <label>", "Show: <label>" and "Undo: <label>".
+[Composable]
+component CaptureLine(string label, Action? onMove = null, Action? onUndo = null, Action? onShow = null) {
+  render {
+    Row(gap: "8px", align: Align.Baseline, minW: "0", mt: "2px", role: UiRole.Group, label: label) {
+      Box(w: "6px", h: "6px", minW: "6px", rounded: Radius.Pill, bg: Colors.BannerLine, alignSelf: AlignSelf.Start, mt: "7px", decorative: true);
+      Box(minW: "0", fontSize: FontSize.Label, lineHeight: "1.5", color: Colors.Ink3) {
+        Slot;
+        if (onMove != null) {
+          Text(" · ", whiteSpace: WhiteSpace.PreWrap);
+          SentenceAction("Move", onMove!, "Move: " + label);
+        }
+        if (onShow != null) {
+          Text(" · ", whiteSpace: WhiteSpace.PreWrap);
+          SentenceAction("Show", onShow!, "Show: " + label);
+        }
+        if (onUndo != null) {
+          Text(" · ", whiteSpace: WhiteSpace.PreWrap);
+          SentenceAction("Undo", onUndo!, "Undo: " + label);
+        }
+      }
+    }
+  }
+}
+
+/// An action inside a sentence: its words 600 in the accent, no frame, underlined when hovered; `name` what it is called.
+[Composable]
+component SentenceAction(string words, Action onPress, string name = "") {
+  variants {
+    base {
+      Display = Display.InlineFlex;
+      P = "0";
+      BorderW = 0;
+      Bg = Colors.Transparent;
+      Color = Colors.Primary;
+      FontFamily = Font.Sans;
+      FontSize = "inherit";
+      FontWeight = FontWeight.Semibold;
+      LineHeight = "inherit";
+      Cursor = Cursor.Pointer;
+      Hover { Color = Colors.AccentInk; TextDecoration = TextDecoration.Underline; }
+      Focus { Shadow = Shadow.Ring; }
+    }
+  }
+  render {
+    Pressable(onClick: onPress, label: name != "" ? name : words) { Text(words); }
+  }
+}
+
+/// A part named in a sentence with its level: the level's mark and word (`LevelMark(level, word: true)`), then its title —
+/// in the sentence's ink, or with `onOpen` an action in the accent named by its title.
+[Composable]
+component LevelRef(PartLevel level, string title, Action? onOpen = null) {
+  render {
+    LevelMark(level, word: true);
+    Text(" ", whiteSpace: WhiteSpace.PreWrap);
+    if (onOpen != null) {
+      SentenceAction(title, onOpen!);
+    } else {
+      Text(title);
+    }
+  }
+}

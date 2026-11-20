@@ -1,0 +1,21 @@
+namespace Osysharp.Look;
+
+/// The tab bar of an area or an object: the kit's link strip, one tab per view, `current` the address in view (lit,
+/// `aria-current="page"`), a count as the kit's count pill in its tone. `label` names the nav. Each tab keeps its
+/// words' width, so a strip wider than a phone scrolls instead of squeezing.
+/// In a test: `Ui.Click("Versions", within: "Accessible forms sections")`.
+[Composable]
+component TabBar(string label, List<TabItem> tabs, string current) {
+  render {
+    Tabs(label, links: true) {
+      foreach (var tab in tabs) {
+        Tab(tab.Label, to: tab.To, selected: IsCurrentTab(tab, current), disabled: !tab.Built, count: tab.Count, countTone: tab.CountTone, shrink: 0);
+      }
+    }
+  }
+}
+
+/// Whether `tab` is the view at `current`: its own address exactly, so a deeper view never also lights the first tab.
+public bool IsCurrentTab(TabItem tab, string current) {
+  return (current ?? "").TrimEnd('/') == (tab.To ?? "").TrimEnd('/');
+}

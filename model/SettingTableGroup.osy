@@ -1,0 +1,15 @@
+namespace Osysharp.Look;
+
+/// A group band of a settings table (canvas4/PolicyFloorEffective "MODELS", "OUTBOUND HOSTS"): on the wash, 12/600
+/// uppercase tracked Ink 4, `9px 20px 15px` under a Line 2 rule — 44 high, as the board draws it (its band is a row of
+/// the table's grid whose empty cells take a second line 10 below the label). Between `SettingTableRow`s. Not a table
+/// row (a heading between rows, as `TableGroupBand`): not counted, not read as data.
+[Composable]
+component SettingTableGroup(string label) {
+  render {
+    Box(pt: "9px", pb: "15px", px: "20px", borderTW: 1, border: Colors.Line2, bg: Colors.Wash, lineHeight: "normal") {
+      Text(label, role: UiRole.Heading, level: 4, fontSize: FontSize.Caption, fontWeight: FontWeight.Semibold, letterSpacing: "0.06em",
+           textTransform: TextTransform.Uppercase, color: Colors.Ink4);
+    }
+  }
+}

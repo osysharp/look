@@ -1,0 +1,23 @@
+namespace Osysharp.Look;
+
+/// The console's disclosure chevron (Foundry-Product's `.tw`): a 22 px button in text-2, its 14 px chevron pointing right
+/// while what it opens is shut and down while it shows, the neutral ground on hover and the ring on keyboard focus. It says
+/// `aria-expanded` either way and is read as `label`, which names what it opens ("Where it is enforced, Outbound hosts").
+/// A row of a nested list (`ConsoleTreeRow`) and a table row's detail (`ConsoleTableRow(detail:)`) open with it;
+/// `ConsoleDisclosure` is it with words.
+[Composable, Part]
+component ConsoleDisclosureButton(bool open, string label, Action toggle) {
+  variants {
+    base {
+      Hover { Bg = Colors.ConsoleNeutralBg; }
+      Focus { Shadow = Shadow.Ring; }
+    }
+  }
+  render {
+    Pressable(onClick: toggle, expanded: open, label: label, w: "22px", h: "22px", minW: "22px", display: Display.Flex, align: Align.Center,
+              justify: Justify.Center, rounded: Radius.ConsoleBadgeCorner, color: Colors.ConsoleText2, bg: Colors.Transparent, borderW: 0, p: 0,
+              cursor: Cursor.Pointer) {
+      Icon(open ? Icons.ChevronDown : Icons.ChevronRight, size: 14);
+    }
+  }
+}

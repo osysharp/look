@@ -1,0 +1,135 @@
+namespace OsyrinLookTests;
+
+using Osysharp.Look;
+
+// The plan surface (docs/designs/foundry/plan-part.dc.html) drawn with the look's parts: the plan's tree, one part with
+// its areas as tabs and "N of 6 areas agreed", the decisions as a trail with a superseded one, and the planner folded
+// (/dev/plan-part).
+
+/// The board's plan tree, with keys and status dots.
+public List<OutlineEntry> PlanSampleTree() => [
+  new OutlineEntry { Id = "book", Depth = 0, Level = PartLevel.Saga, Key = "BOOK", Title = "Booking and visits", Tone = StatTone.You, ToneWords = "Needs you" },
+  new OutlineEntry { Id = "onl", Depth = 1, Level = PartLevel.Arc, Key = "ONL", Title = "Book online", Tone = StatTone.Ok, ToneWords = "Ready" },
+  new OutlineEntry { Id = "remind", Depth = 1, Level = PartLevel.Arc, Key = "REMIND", Title = "Reminders before a visit", Tone = StatTone.You, ToneWords = "Needs you" },
+  new OutlineEntry { Id = "book-27", Depth = 2, Level = PartLevel.Slice, Key = "BOOK-27", Title = "Send the reminder by text", Tone = StatTone.You, ToneWords = "Needs you" },
+  new OutlineEntry { Id = "book-28", Depth = 2, Level = PartLevel.Slice, Key = "BOOK-28", Title = "Stop texts when the patient answers STOP", Tone = StatTone.Wait, ToneWords = "Not agreed yet" },
+  new OutlineEntry { Id = "book-21", Depth = 2, Level = PartLevel.Slice, Key = "BOOK-21", Title = "Cancel from the reminder link", Tone = StatTone.Ok, ToneWords = "Ready" },
+  new OutlineEntry { Id = "wait", Depth = 1, Level = PartLevel.Arc, Key = "WAIT", Title = "Waiting list", Tone = StatTone.Wait, ToneWords = "Not agreed yet" },
+  new OutlineEntry { Id = "rec", Depth = 0, Level = PartLevel.Saga, Key = "REC", Title = "Patient records", Tone = StatTone.Ok, ToneWords = "Ready" } ];
+
+/// The part's six areas, four agreed.
+public List<AreaTab> PlanSampleAreas() => [
+  new AreaTab { Key = "goal", Label = "Goal and outcomes", Done = true },
+  new AreaTab { Key = "acceptance", Label = "Acceptance", Done = true },
+  new AreaTab { Key = "decisions", Label = "Decisions", Count = "2 of 3 taken" },
+  new AreaTab { Key = "reviewers", Label = "Reviewers", Count = "2 of 3 kept" },
+  new AreaTab { Key = "references", Label = "References", Done = true },
+  new AreaTab { Key = "under", Label = "Under it", Done = true } ];
+
+[Route("/dev/plan-part")]
+[AllowAnonymous]
+[Title("Test")]
+[Render(CSR)]
+component PlanPartGalleryPage() {
+  string sheet = "";
+  string selected = "book-27";
+  string area = "decisions";
+  string said = "";
+  action Show(string name) { sheet = name; }
+  action Select(string id) { selected = id; }
+  action ShowArea(string key) { area = key; }
+  action Say(string words) { said = words; }
+
+  render {
+    MockupFrame() {
+      PageBand("Patient Portal", [new Crumb { Label = "Products", To = "/dev/band" }, new Crumb { Label = "Patient Portal" }],
+               tabs: [new TabItem { Label = "Overview", To = "/dev/band/home" }, new TabItem { Label = "Designs", To = "/dev/panes" },
+                      new TabItem { Label = "Plan", To = "/dev/plan-part" }, new TabItem { Label = "Releases", To = "/dev/band/releases" }],
+               current: "/dev/plan-part", tabsLabel: "Product sections") {
+        slot primary { LookButton("Open its design", () => Say("Opened its design")); }
+        if (!Layout.AtLeast(Tablet)) { PaneSheetButtons("The plan", "", Show); }
+      }
+      PaneLayout("Plan of Patient Portal", "The plan", "Send the reminder by text", "Ask the planner", secondTitled: false, secondWash: false, sheet: sheet, onSheet: Show,
+                 thirdStartsFolded: true, console: true, thirdTab: "strip") {
+        slot first {
+          OutlineTree("Plan tree", PlanSampleTree(), selected, Select, console: true);
+        }
+        slot firstFoot {
+          Stack(gap: "4px", pt: "12px", px: "20px", pb: "16px", borderTW: 1, border: Colors.SoftLine, fontSize: FontSize.Label, color: Colors.Ink3) {
+            Row(gap: "12px", align: Align.Center) {
+              Row(gap: "6px", align: Align.Center) { ToneDot(StatTone.Ok, ""); Text("Ready"); }
+              Row(gap: "6px", align: Align.Center) { ToneDot(StatTone.You, ""); Text("Needs you"); }
+            }
+            Row(gap: "6px", align: Align.Center) { ToneDot(StatTone.Wait, ""); Text("Not agreed yet"); }
+          }
+        }
+        slot secondTools {
+          Row(gap: "8px", align: Align.Center, minW: "0", fontSize: FontSize.Caption, fontWeight: FontWeight.Semibold, color: Colors.Ink4,
+              textTransform: TextTransform.Uppercase, letterSpacing: "0.06em", pl: Viewport.AtLeast(Tablet) ? "12px" : "0") {
+            LevelMark(PartLevel.Slice);
+            Text("Slice · BOOK-27 · in Reminders before a visit", minW: "0");
+          }
+          LookButton("Ready to build", () => Say("Ready"), small: true, disabled: true, whenDenied: "All six areas agreed first.");
+        }
+        Stack(gap: "8px", pt: "28px", px: "20px", pb: "24px", borderBW: 1, border: Colors.SoftLine, bg: Colors.Surface) {
+          Text("Send the reminder by text", role: UiRole.Heading, level: 2, fontSize: FontSize.Heading, fontWeight: FontWeight.Heavy, lineHeight: "1.3");
+          Box(fontSize: FontSize.Label, color: Colors.Ink3, lineHeight: "1.6") {
+            Text("From the design ", whiteSpace: WhiteSpace.PreWrap);
+            SentenceAction("Reminders before a visit", () => Say("Opened the design"));
+            Text(", taken to the plan 13 Nov by Anna Berg", whiteSpace: WhiteSpace.PreWrap);
+          }
+          Box(mt: "4px") { AreasAgreed(PlanSampleAreas()); }
+        }
+        if (Viewport.AtLeast(Tablet)) {
+          Row(gap: 0, align: Align.Stretch, minW: "0", grow: 1, bg: Colors.Surface) {
+            AreaTabs("Areas of BOOK-27", PlanSampleAreas(), area, ShowArea);
+            PlanSampleArea(area, Say);
+          }
+        } else {
+          Stack(gap: 0, minW: "0", bg: Colors.Surface) {
+            AreaTabs("Areas of BOOK-27", PlanSampleAreas(), area, ShowArea);
+            PlanSampleArea(area, Say);
+          }
+        }
+        if (said != "") { Box(px: "20px", py: "8px") { Text(said); } }
+        slot third {
+          Box(py: "16px", px: "20px") { Text("Ask the planner about BOOK-27."); }
+        }
+      }
+    }
+  }
+}
+
+/// The area shown: the decisions trail, or a line naming the area.
+[Composable]
+component PlanSampleArea(string area, Action<string> onSay) {
+  render {
+    Stack(gap: 0, minW: "0", grow: 1, basis: "0", maxW: "720px", pt: "24px", px: Viewport.AtLeast(Tablet) ? "32px" : "20px", pb: "24px",
+          role: UiRole.TabPanel, label: area) {
+      if (area == "decisions") {
+        TrailStep("What happens to a reminder when Care Companion cannot send?", false) {
+          Text("Waiting for Anna Berg since today · two options, one recommended", fontSize: FontSize.Label, color: Colors.Ink3, lineHeight: "1.5");
+          Box(mt: "2px", fontSize: FontSize.Body) { SentenceAction("Answer it ›", () => onSay("Answering")); }
+        }
+        TrailStep("Does giving a mobile number count as agreeing to reminder texts?", true) {
+          Box(fontSize: FontSize.Body, lineHeight: "1.55") {
+            Text("Chosen: ", whiteSpace: WhiteSpace.PreWrap);
+            Text("No, the patient says yes to texts.", fontWeight: FontWeight.Semibold);
+            Text(" Weighed against: a given number is enough (needs an exception to the messaging policy).", whiteSpace: WhiteSpace.PreWrap);
+          }
+          Text("Anna Berg, 13 Nov · from the design conversation, session 3", fontSize: FontSize.Label, color: Colors.Ink3, lineHeight: "1.5");
+        }
+        TrailStep("Which sender sends the text?", true, last: true) {
+          Box(fontSize: FontSize.Body, lineHeight: "1.55") {
+            Text("Chosen: ", whiteSpace: WhiteSpace.PreWrap);
+            Text("Care Companion's sender, under its one name.", fontWeight: FontWeight.Semibold);
+          }
+          Text("Jonas Lind, 12 Nov · from the design conversation, session 1", fontSize: FontSize.Label, color: Colors.Ink3, lineHeight: "1.5");
+          SupersededLine("10 Nov", "the portal gets its own sender", "Care Companion already sends texts to the same patients.");
+        }
+      } else {
+        Text("The " + area + " area.", fontSize: FontSize.Body);
+      }
+    }
+  }
+}

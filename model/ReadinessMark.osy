@@ -1,0 +1,9 @@
+namespace Osysharp.Look;
+
+/// One named check of a `ReadinessMarks` row: its name ("Tests named"), where it stands, and — when it failed — why
+/// ("Criterion 2 names no test.").
+public class ReadinessMark {
+  public string Name = "";
+  public MarkState State = MarkState.NotJudged;
+  public string Reason = "";
+}

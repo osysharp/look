@@ -1,0 +1,31 @@
+namespace Osysharp.Look;
+
+/// A console text input in its field: 30 px high on a desktop (44 on a phone), `0 10px`, radius 5, 13 px (14 on a
+/// phone), white in the control line, the kit's focus ring; refused (`error` given), the critical line and the
+/// message under it. `mono` sets the words in JetBrains Mono (a key, a slug). `onEnter` runs on Return. In a test it is
+/// filled by its label: `Ui.Fill("Slug", "northwind")`. Its help or refusal line is the input's description — what a screen reader hears
+/// after its name (`Assert.Described("Slug", …)`); the input draws it itself, since a handle does not cross into `ConsoleField`.
+[Composable]
+component ConsoleInput(string label, Binding<string> value, string help = "", string error = "", string placeholder = "", bool mono = false,
+                       string w = "100%", Action onEnter = null) {
+  render {
+    var phone = !Layout.AtLeast(Tablet);
+    ConsoleField(label) {
+      Stack(gap: "6px", minW: "0") {
+        Input(value: value, label: label, placeholder: placeholder, w: w, maxW: "100%", h: phone ? "44px" : "30px", px: "10px", py: "0",
+              fontSize: phone ? FontSize.ConsoleBodyPhone : FontSize.ConsoleBody, fontWeight: 400, fontFamily: mono ? Font.ConsoleMono : Font.ConsoleSans,
+              color: Colors.ConsoleText, bg: Colors.ConsoleSurface, rounded: Radius.ConsoleButtonCorner, borderW: 1, invalid: error != "",
+              border: error != "" ? Colors.ConsoleCriticalIcon : Colors.ConsoleControlLine, onEnter: onEnter, describedBy: note);
+        if (error != "" || help != "") {
+          Stack(id: note) {
+            if (error != "") {
+              Text(error, fontSize: FontSize.ConsoleSmall, color: Colors.ConsoleCriticalInk, lineHeight: "1.4", role: UiRole.Alert);
+            } else {
+              Text(help, fontSize: FontSize.ConsoleSmall, color: Colors.ConsoleText2, lineHeight: "1.4");
+            }
+          }
+        }
+      }
+    }
+  }
+}

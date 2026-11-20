@@ -1,0 +1,30 @@
+namespace Osysharp.Look;
+
+/// The field that adds a host (canvas4/PolicyFloorEdit "Add a host"): `label` 13/600 over a mono box (13 JetBrains Mono, at
+/// least 44 high, radius 8, `10px 12px` in the control line; refused: a 2 px bad-dot line, `9px 11px`) with the Add
+/// button beside it; under it `ceiling`, a 12 Ink 3 line saying what bounds it ("At most what Northwind Health's policy
+/// allows"), and the refused add as a `CheckSentence` (`problemLead` strong, `problem` after it).
+/// In a test it is filled by its label: `Ui.Fill("Add a host", "nuget.org")`, then `Ui.Click("Add")`.
+[Composable]
+component HostAddField(string label, Binding<string> value, Action onAdd, string placeholder = "host or *.domain", string ceiling = "",
+                       string problemLead = "", string problem = "", string add = "Add") {
+  render {
+    var refused = problem != "" || problemLead != "";
+    Stack(gap: "6px", minW: "0") {
+      Text(label, fontSize: FontSize.Label, fontWeight: FontWeight.Semibold, lineHeight: "normal", decorative: true);
+      Row(gap: "8px", align: Align.Center) {
+        Input(value: value, label: label, placeholder: placeholder, w: "100%", minW: "0", minH: "44px",
+              py: refused ? "9px" : "10px", px: refused ? "11px" : "12px", fontFamily: Font.KeyFace, fontSize: FontSize.Label,
+              color: Colors.OnSurface, bg: Colors.Surface, rounded: Radius.Control, borderW: refused ? 2 : 1,
+              border: refused ? Colors.BadDot : Colors.ControlLine);
+        LookButton(add, onAdd);
+      }
+      if (ceiling != "") {
+        Text(ceiling, fontSize: FontSize.Caption, color: Colors.Ink3, lineHeight: "normal");
+      }
+      if (refused) {
+        CheckSentence(problemLead, problem, ok: false);
+      }
+    }
+  }
+}

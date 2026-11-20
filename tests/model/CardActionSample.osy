@@ -1,0 +1,36 @@
+namespace OsyrinLookTests;
+
+using Osysharp.Look;
+
+/// A `TableCard` with its primary action in its head beside the link (L1), and readiness marks on every row: the LAST
+/// row's failed mark shows its reason as a hover title over the card's edge, whole.
+[Composable]
+component CardActionSample() {
+  string said = "";
+  action Add() {
+    said = "Adding a slice.";
+  }
+  string Cols() => "minmax(0, 1fr) minmax(0, 1.4fr)";
+  List<string> Heads() => new List<string> { "Slice", "Readiness" };
+  List<ReadinessMark> Marks(string key) => key == "BOOK-31"
+    ? new List<ReadinessMark> { new ReadinessMark { Name = "Outcome", State = MarkState.Passed },
+                                new ReadinessMark { Name = "Tests named", State = MarkState.Failed, Reason = "Criterion 2 names no test, and criterion 3 names one that does not exist yet." } }
+    : new List<ReadinessMark> { new ReadinessMark { Name = "Outcome", State = MarkState.Passed },
+                                new ReadinessMark { Name = "Tests named", State = MarkState.Passed } };
+  render {
+    Stack(gap: "12px", minW: "0") {
+      TableCard("Slices to place", Cols(), Heads(), sub: "Two ready, one not", linkLabel: "All slices ›", linkTo: "/dev/components", actions: true) {
+        slot actions { LookButton("Add a slice", Add, kind: ButtonKind.Primary, small: true); }
+        foreach (var key in ["BOOK-29", "BOOK-30", "BOOK-31"]) {
+          CardTableRow(Cols(), label: key, heads: Heads()) {
+            TableCell { KeyText(key); }
+            TableCell { ReadinessMarks(Marks(key), label: "Readiness of " + key, focusable: true); }
+          }
+        }
+      }
+      if (said != "") {
+        InlineMessage(said, LookTone.Ok);
+      }
+    }
+  }
+}

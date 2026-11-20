@@ -1,0 +1,26 @@
+namespace Osysharp.Look;
+
+// A trend card's axis without numbers (m11a's Builds card, "Size over time"): under a sparkline-style chart — the chart
+// kit's `Chart(chrome: ChartChrome.Bare)`, which draws no axes, grid or labels — the base line and only its two ends'
+// words, "20 builds ago" at the left and "newest" at the right. The shape is the point; the figures are in the card's
+// table or its hover, so the value axis's numbers are left out on purpose.
+
+/// A numberless axis under a trend: a Line 2 base line across the full width, and under it, 6 px down, `from` at the
+/// left and `to` at the right (12, Ink 3, tabular), `middle` centred between them when given. In a test it is the
+/// region "<from> to <to>": `Assert.LeftOf("20 builds ago", "newest")`. `console: true` draws it in the console's
+/// tokens (the divider line, 12 text-2), for a `ConsolePanel` (whose muted `count` is the note after its title).
+/// e.g. `SectionCard("Size over time", note: "newest 20 builds") { Chart(…, chrome: ChartChrome.Bare) { … } TrendAxis("20 builds ago", "newest"); }`
+[Composable]
+component TrendAxis(string from, string to, string middle = "", bool console = false) {
+  render {
+    Row(justify: Justify.Between, align: Align.Start, gap: "12px", pt: "6px", borderTW: 1, border: console ? Colors.ConsoleDivider : Colors.Line2,
+        fontSize: console ? FontSize.ConsoleSmall : FontSize.Caption, color: console ? Colors.ConsoleText2 : Colors.Ink3,
+        fontVariant: FontVariant.TabularNums, lineHeight: "normal", minW: "0", role: UiRole.Group, label: from + " to " + to) {
+      Text(from, minW: "0");
+      if (middle != "") {
+        Text(middle, minW: "0", textAlign: TextAlign.Center);
+      }
+      Text(to, minW: "0", textAlign: TextAlign.Right);
+    }
+  }
+}

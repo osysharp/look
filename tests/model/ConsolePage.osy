@@ -1,0 +1,134 @@
+namespace OsyrinLookTests;
+
+using Osysharp.Look;
+
+/// The console look (direction B) on its own: the frame with a rail of three groups, a top bar badge and tabs, and in
+/// its working area the alert banner, a stat strip with an empty value and an odd count of cells, a panel with every
+/// badge kind, a table and its phone rows, and the two buttons, one busy.
+[Route("/dev/console")]
+[AllowAnonymous]
+[Title("Console")]
+[Render(CSR)]
+component ConsolePage() {
+  int presses = 0;
+  string searchText = "";
+
+  /// The sample search finds the one organization whose name holds the typed words.
+  List<ConsoleSearchGroup> Found() {
+    var groups = new List<ConsoleSearchGroup>();
+    if (searchText.Trim().Length >= 2 && "javier's org".Contains(searchText.Trim().ToLower())) {
+      var result = new ConsoleSearchResult { Kind = "Organization", Key = "masoli", Title = "Javier's Org", To = "/dev/console/javier" };
+      groups.Add(new ConsoleSearchGroup { Label = "Organizations", Results = [ result ] });
+    }
+    return groups;
+  }
+
+  action Press() {
+    presses = presses + 1;
+  }
+
+  List<ConsoleColumn> Columns() => new List<ConsoleColumn> {
+    new ConsoleColumn { Label = "Organization", Width = "minmax(180px, 2fr)" },
+    new ConsoleColumn { Label = "State", Width = "minmax(120px, 1fr)" },
+    new ConsoleColumn { Label = "Apps", Width = "80px", Right = true },
+  };
+
+  ConsoleChrome Chrome() => new ConsoleChrome {
+    Product = "Osyrin",
+    Context = "Control plane",
+    Home = "/dev/console",
+    Address = "ops@osyrin.test",
+    Initials = "O",
+    Account = "/dev/console",
+    Badge = "Beta approved",
+    SearchLabel = "Search Foundry",
+    SearchPlaceholder = "Search products, plan items and hosts",
+    Groups = [
+      new ConsoleNavGroup { Items = [ new ConsoleNavItem { Label = "Organizations", To = "/dev/console", Icon = Icons.Home, Exact = true } ] },
+      new ConsoleNavGroup { Label = "Organization", Items = [
+        new ConsoleNavItem { Label = "Javier's Org", To = "/dev/console/javier", Dot = true, DotTone = ConsoleDotTone.RailOk },
+        new ConsoleNavItem { Label = "Osyrin Preview", To = "/dev/console/preview", Dot = true, DotTone = ConsoleDotTone.RailWarn },
+      ] },
+      new ConsoleNavGroup { Label = "Platform", Items = [ new ConsoleNavItem { Label = "People", To = "/dev/console/people", Icon = Icons.Users, Count = "5" } ] },
+    ],
+  };
+
+  render {
+    ConsoleFrame(Chrome(), [ new Crumb { Label = "Control plane" }, new Crumb { Label = "Organizations" } ], "Organizations",
+                 description: "1 of 2 organizations needs somebody: held, suspended or without members.",
+                 tabs: [ new TabItem { Label = "All", To = "/dev/console" }, new TabItem { Label = "Held", To = "/dev/console/held" } ], current: "/dev/console",
+                 searchText: searchText, searchGroups: Found()) {
+      slot primary { ConsoleButton("New organization", Press, primary: true, wide: true) { Icon(Icons.Plus, size: 14); } }
+      ConsoleAlert("1 critical alert open", "2 warning · 0 info", "Review alerts", "/dev/console");
+      ConsoleStatStrip("Platform now", [
+        new ConsoleStat { Label = "Organizations", Value = "6", Sub = "same as a week ago" },
+        new ConsoleStat { Label = "Zones", Value = "1", Sub = "all healthy", Dot = true },
+        new ConsoleStat { Label = "Platform release", Value = "0.19.11", Sub = "on all 5 environments", Dot = true, Mono = true },
+        new ConsoleStat { Label = "People", Value = "8", Sub = "5 a week ago" },
+        new ConsoleStat { Label = "This month", Value = "", Sub = "no cost imported yet" },
+      ]);
+      ConsolePanel("Badges") {
+        slot extras { ConsoleBadge("1 needs somebody", ConsoleTone.Warn, dot: true); }
+        Row(gap: "8px", wrap: Wrapping.Wrap, p: "16px", label: "Badge kinds") {
+          ConsoleBadge("Active", ConsoleTone.Ok, dot: true);
+          ConsoleBadge("No members", ConsoleTone.Warn, dot: true);
+          ConsoleBadge("No applications", ConsoleTone.Neutral);
+          ConsoleBadge("Internal · unlimited", ConsoleTone.Outline);
+          ConsoleBadge("Hard boundary", ConsoleTone.Solid);
+        }
+      }
+      // LK10 in the console's parts: an account panel's ruled facts, and a trend panel with a note after its title
+      // (the panel's muted count) over an axis without numbers.
+      ConsolePanel("Account") {
+        ConsoleFacts("Account facts", ruled: true) {
+          ConsoleFact("Plan", "Team", ruled: true);
+          ConsoleFact("Slug", "northwind-health", mono: true, ruled: true);
+          ConsoleFact("Apps", "3", ruled: true);
+          ConsoleFact("Created", "3 Mar 2026", ruled: true);
+        }
+      }
+      ConsolePanel("Size over time", count: "newest 20 builds") {
+        Stack(gap: "0", px: "16px", pt: "12px", pb: "14px", minW: "0") {
+          Row(h: "48px", gap: "3px", align: Align.End, minW: "0", decorative: true) {
+            foreach (var h in [20, 22, 21, 25, 27, 26, 28, 27, 30, 32, 31, 34, 33, 36, 38, 37, 40, 43, 42, 46]) {
+              Box(grow: 1, basis: "0", h: h + "px", bg: Colors.Series1, rounded: "2px 2px 0 0");
+            }
+          }
+          TrendAxis("20 builds ago", "newest", console: true);
+        }
+      }
+      ConsolePanel("2 organizations") {
+        if (Layout.AtLeast(Tablet)) {
+          ConsoleTable("Organizations table", Columns(), opens: true) {
+            ConsoleRowLink(Columns(), "/dev/console/javier", "Javier's Org", rowLabel: "Javier's Org row") {
+              ConsoleCell { ConsoleNamed("Javier's Org", "masoli"); }
+              ConsoleCell { ConsoleBadge("Active", ConsoleTone.Ok); }
+              ConsoleCell(right: true) { Text("2"); }
+            }
+            ConsoleRowLink(Columns(), "/dev/components", "Osyrin Preview", rowLabel: "Osyrin Preview row", attention: true) {
+              ConsoleCell { ConsoleNamed("Osyrin Preview", "osyrin-preview"); }
+              ConsoleCell { ConsoleBadge("No members", ConsoleTone.Warn, dot: true); }
+              ConsoleCell(right: true) { Text("0"); }
+            }
+          }
+        } else {
+          Stack(gap: 0, rounded: Radius.ConsolePanelFoot, overflow: Overflow.Hidden, label: "Organization rows") {
+            ConsoleTapRow("Javier's Org", "/dev/console", identifier: "masoli") {
+              slot state { ConsoleBadge("Active", ConsoleTone.Ok); }
+              slot meta { Text("2 apps"); }
+            }
+            ConsoleTapRow("Osyrin Preview", "/dev/console", identifier: "osyrin-preview", attention: true) {
+              slot state { ConsoleBadge("No members", ConsoleTone.Warn, dot: true); }
+              slot meta { Text("0 apps"); }
+            }
+          }
+        }
+      }
+      Row(gap: "8px", label: "Buttons") {
+        ConsoleButton("Secondary", Press);
+        ConsoleButton("Saving", Press, busy: true, busyLabel: "Saving…");
+        Text("Pressed " + presses);
+      }
+    }
+  }
+}

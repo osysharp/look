@@ -1,0 +1,79 @@
+namespace Osysharp.Look;
+
+/// A brief confirmation at the bottom centre of the window (on a phone, at the top, 8 px under the 56 px top bar: a toast
+/// at the foot covered the page's last panel or control, and the head holds nothing that has to be pressed while it
+/// shows; a reserved gap at the foot cannot be made from here, since the toast does not sit at the page's end) that goes by itself: white on the accent's deep ink (the
+/// editing banner's ground), 14/500, `10px 14px`, radius 10, the dialog's shadow, at most 520 wide; `undoLabel` an
+/// underlined 600 action after the words that runs `onUndo`. Announced politely (a status region). It owns its timer, as
+/// the kit's toast does: gone after `seconds` (a second for every 20 characters when that is longer), held while the
+/// pointer is over it; `onDismiss` clears the page's message. Render it always; an empty `message` shows nothing.
+/// Named `LookToast` because the kit's `Toast` (a corner toast in the kit's tones) shares the app's scope. On no board:
+/// drawn in their language.
+/// In a test: `Assert.Visible("Removed BOOK-14")`, `Ui.Click("Undo")`; to see it go, `Ui.Tick()`,
+/// `TestClock.Advance(TimeSpan.FromSeconds(10))`, `Ui.Tick()`, `Assert.Hidden(…)`.
+[Composable]
+component LookToast(string message, string undoLabel = "", Action? onUndo = null, int seconds = 5, Action? onDismiss = null) {
+  string timed = "";
+  DateTime since = DateTime.UtcNow;
+  string gone = "";
+  bool held = false;
+  on mount {
+    timed = message;
+    since = DateTime.UtcNow;
+  }
+  action Hold() { held = true; }
+  action Release() {
+    held = false;
+    since = DateTime.UtcNow;
+  }
+  // A page that clears its message (`onDismiss`) is told to; only a page that keeps it is hidden by `gone`, since a
+  // `gone` left behind would hide the same words said again before the next beat (undo a move, make it again).
+  action Undo() {
+    if (onUndo != null) { onUndo(); }
+    if (onDismiss != null) {
+      timed = "";
+      onDismiss();
+    } else {
+      gone = message;
+    }
+  }
+  on every (TimeSpan.FromSeconds(1)) {
+    if (message == "") {
+      timed = "";
+      gone = "";
+    } else if (seconds > 0 && gone != message) {
+      if (timed != message) {
+        timed = message;
+        since = DateTime.UtcNow;
+      } else if (!held && DateTime.UtcNow >= since.AddSeconds(Math.Max(seconds, message.Length / 20))) {
+        if (onDismiss != null) {
+          timed = "";
+          onDismiss();
+        } else {
+          gone = message;
+        }
+      }
+    }
+  }
+  render {
+    var wide = Viewport.AtLeast(Tablet);
+    Box(position: Position.Fixed, left: "0", right: "0", top: wide ? "auto" : "64px", bottom: wide ? "24px" : "auto", z: ZIndex.Notification, display: Display.Flex, justify: Justify.Center,
+        px: "16px", pointerEvents: PointerEvents.None) {
+      Box(role: UiRole.Status) {
+        if (message != "" && gone != message) {
+          Row(gap: "14px", align: Align.Center, maxW: "520px", py: "10px", px: "14px", rounded: Radius.Banner, bg: Colors.BannerBg, color: Colors.OnBanner,
+              shadow: Shadow.Dialog, fontSize: FontSize.Body, fontWeight: FontWeight.Medium, lineHeight: "1.4", pointerEvents: PointerEvents.Auto,
+              onPointerEnter: Hold, onPointerLeave: Release) {
+            Text(message, minW: "0");
+            if (undoLabel != "" && onUndo != null) {
+              Pressable(onClick: Undo, label: undoLabel, shrink: 0, fontWeight: FontWeight.Semibold, textDecoration: TextDecoration.Underline,
+                        color: Colors.OnBanner, rounded: Radius.Tag) {
+                Text(undoLabel);
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

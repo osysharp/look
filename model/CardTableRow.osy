@@ -1,0 +1,112 @@
+namespace Osysharp.Look;
+
+/// One row, under a Line 2 rule: the block's cells on the table's columns (14 px, centred on the row), and under them
+/// the `under` slot — the row's amber note and its disclosure, 6 apart, each set in 46 px (`AmberNote`,
+/// `Disclosure(indent: true)`), so they sit under the title and inside the row. Its gap and paddings are its table's
+/// (`TableRhythm`): give it the table's `spacing` (or `roomy`) and `dense` — `Plain` `10px 20px`, `Roomy` `12px 20px`,
+/// `Settings` `11px 20px` 14 apart, `dense` `7px 20px` over a 20 px line (34–36 high), `Long` `6px 20px` over 21 (34). A
+/// cell may hold several lines (a title over its meta line): wrap them in a `Stack`. A right-aligned column's cell sets its
+/// own `textAlign`.
+/// CELLS: the row is a table `row`, and each direct child of the block is ONE cell, in the head's order — give that child
+/// `role: UiRole.GridCell` (`Text(t.Title, minW: "0", role: UiRole.GridCell)`, `Stack(…, role: UiRole.GridCell)`), or wrap
+/// it in `TableCell`. A child that is not a cell is not read under its column (`Assert.Cell` refuses it). The `under`
+/// slot is not a cell. Rows written by a `foreach` are what `Assert.Items(<table label>, n)` counts.
+/// `label` names the row for `within:` (a test finds a row by its first cell's words without it).
+/// PRESSED AS A WHOLE (a list with a drawer, Components §15): with `onPress` the whole row is the target — one focus stop,
+/// Enter or a click anywhere on it calls `onPress`; give it `label` (the row's name, its first cell's words) so a reader
+/// hears what it opens. `open: true` marks the open row as the board does — the accent's tint inside a 1 px accent-line
+/// ring — and says so (`aria-current`, and `aria-selected`, which `Assert.Selected(label, true)` reads). A link or button inside the row keeps working and does not open the row.
+/// ON A PHONE (`stack`, default true; below the Phone breakpoint, the table's room under 480 px): ONE column — the first
+/// cell (the name) at full width, then each other cell under its column's head (`heads`: the table's heads, drawn as a
+/// small `Overline` over the cell; without `heads` the cells just stack, 6 apart), then the `under` slot at full width.
+/// The cells stay cells: a test still reads them by column name. `stack: false` keeps the columns at every width.
+/// `need: true` (console v6's `tr.need`) lays the row on the warm wash (`YouWash`) — a row that needs somebody (held,
+/// suspended, without members); the open row's tint wins over it. Say why in a cell too (a `StatusChip` in the You
+/// tone): the tint is never the only sign.
+/// `chevron: true` (v6's `td.chev`, a row that opens its item) ends the row with a `RowChevron` cell: give the table a
+/// last column for it ("20px") and an empty head (""). On a phone the chevron leaves the stack and
+/// stands at the row's right, centred, the cells kept clear of it.
+/// `band: true` lays the row on the wash (`Colors.Wash`, as `TableGroupBand`): a group's own row among its items, in the
+/// table's columns like every row; it differs from them by its ground alone. The open and the need tints win over it.
+/// e.g. `CardTableRow("minmax(0, 1fr) 140px 20px", label: "Osyrin Preview", onPress: Open, need: true, chevron: true) { … }`
+[Composable]
+component CardTableRow(string cols, bool roomy = false, string label = "", TableSpacing spacing = TableSpacing.Plain, bool dense = false,
+                       Action? onPress = null, bool open = false, List<string>? heads = null, bool stack = true, bool need = false,
+                       bool chevron = false, bool band = false) {
+  TableSpacing family = TableRhythm.Of(spacing, roomy);
+  action Key(string name) {
+    if (onPress != null) {
+      onPress();
+    }
+  }
+  string GridCols(bool stacked) => stacked ? "minmax(0, 1fr)" : cols;
+  string GridGap(bool stacked) => stacked ? (heads != null ? "2px" : "6px") : TableRhythm.Gap(family);
+  string GridMinH(bool stacked) => stacked ? "0" : TableRhythm.RowMinH(dense, family);
+  Align GridAlign(bool stacked) => stacked ? Align.Stretch : Align.Center;
+  Color Ground() => open ? Colors.AccentTint : (need ? Colors.YouWash : (band ? Colors.Wash : Colors.Transparent));
+  render {
+    if (onPress != null) {
+      // The row's one focus stop is a button laid over the whole row, under the cells: Enter and Space press it as a
+      // button; a click on the cells reaches the row's own `onClick`; a link or button in a cell takes its own click
+      // (the platform does not pass a control's click on), and its own keys.
+      Stack(gap: "6px", py: TableRhythm.RowPy(family, dense), px: "20px", borderTW: 1, border: Colors.Line2, role: UiRole.Row, label: label,
+            current: open, selected: open, onClick: onPress, cursor: Cursor.Pointer, position: Position.Relative,
+            bg: Ground()) {
+        Pressable(onClick: onPress, keys: [Enter, Space], onKeyDown: Key, label: label, position: Position.Absolute, top: "0", left: "0", right: "0", bottom: "0", bg: Colors.Transparent,
+                  borderW: 0, p: 0, cursor: Cursor.Pointer);
+        Box(display: Display.Grid, cols: GridCols(stack && !Layout.AtLeast(Phone)), gap: GridGap(stack && !Layout.AtLeast(Phone)),
+            align: GridAlign(stack && !Layout.AtLeast(Phone)), minH: GridMinH(stack && !Layout.AtLeast(Phone)),
+            pr: chevron && stack && !Layout.AtLeast(Phone) ? "28px" : "0", fontSize: FontSize.Body, color: Colors.OnSurface, position: Position.Relative) {
+          if (stack && !Layout.AtLeast(Phone) && heads != null) {
+            foreach (var head in HeadCells(heads!)) {
+              if (head.Index > 0) {
+                StackedHead(head.Words, head.Index * 2);
+              }
+            }
+          }
+          Slot;
+          if (chevron && !(stack && !Layout.AtLeast(Phone))) {
+            TableCell(TextAlign.Right) { RowChevron(); }
+          }
+        }
+        Slot("under");
+        if (chevron && stack && !Layout.AtLeast(Phone)) {
+          // Stacked, the chevron is not a line of its own: it stands at the row's right, level with the row's middle.
+          Box(position: Position.Absolute, top: "50%", right: "16px", mt: "-8px", role: UiRole.GridCell, pointerEvents: PointerEvents.None) {
+            RowChevron();
+          }
+        }
+        if (open) {
+          Box(position: Position.Absolute, top: "0", left: "0", right: "0", bottom: "0", borderW: 1, border: Colors.AccentLine,
+              pointerEvents: PointerEvents.None, decorative: true);
+        }
+      }
+    } else {
+      Stack(gap: "6px", py: TableRhythm.RowPy(family, dense), px: "20px", borderTW: 1, border: Colors.Line2, role: UiRole.Row, label: label,
+            bg: Ground(), position: chevron ? Position.Relative : Position.Static) {
+        Box(display: Display.Grid, cols: GridCols(stack && !Layout.AtLeast(Phone)), gap: GridGap(stack && !Layout.AtLeast(Phone)),
+            align: GridAlign(stack && !Layout.AtLeast(Phone)), minH: GridMinH(stack && !Layout.AtLeast(Phone)),
+            pr: chevron && stack && !Layout.AtLeast(Phone) ? "28px" : "0", fontSize: FontSize.Body, color: Colors.OnSurface) {
+          if (stack && !Layout.AtLeast(Phone) && heads != null) {
+            foreach (var head in HeadCells(heads!)) {
+              if (head.Index > 0) {
+                StackedHead(head.Words, head.Index * 2);
+              }
+            }
+          }
+          Slot;
+          if (chevron && !(stack && !Layout.AtLeast(Phone))) {
+            TableCell(TextAlign.Right) { RowChevron(); }
+          }
+        }
+        Slot("under");
+        if (chevron && stack && !Layout.AtLeast(Phone)) {
+          // Stacked, the chevron is not a line of its own: it stands at the row's right, level with the row's middle.
+          Box(position: Position.Absolute, top: "50%", right: "16px", mt: "-8px", role: UiRole.GridCell, pointerEvents: PointerEvents.None) {
+            RowChevron();
+          }
+        }
+      }
+    }
+  }
+}

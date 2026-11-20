@@ -1,0 +1,140 @@
+namespace Osysharp.Look;
+
+// A choice, in v3's decision template (board-specs.md:152, :529 "Consequential decisions with options never preselect the
+// recommended one: mark it Recommended, require an explicit choice, answer button disabled until then", :1767 the
+// option's label, what happens, pro, con, who acts), as designer.dc.html draws it inside the conversation. DECISIONS 13 Nov:
+// "showing choices or decision points that you can not read just becomes noice" — so every part is shown, in full.
+
+/// One option of a `DecisionCard`: `Key` what the page knows it by, `Label` the answer in a few words, `WhatHappens` if it
+/// is chosen, `For` and `Against`, and `Recommended` (at most one).
+public class ChoiceOption {
+  public string Key = "";
+  public string Label = "";
+  public string WhatHappens = "";
+  public string For = "";
+  public string Against = "";
+  public bool Recommended = false;
+}
+
+/// THE DECISION CARD: white in the Line hairline, radius 14, `18px 20px`, parts 14 apart. The `question` 17/700 over
+/// `meta` 13 Ink 3; the options as a radio group, 10 apart, each a row radius 10, `14px 16px`, in the Line hairline: a
+/// 20 px ring, the label 15/600 (with a "Recommended" chip on the recommended one), what happens 14/1.55, "For · …" and
+/// "Against · …" 13 Ink 3. The recommended option stands on the accent's wash in the banner line with a 3 px accent bar at
+/// its left; the chosen one has the accent's ring and dot and the accent's line. NOTHING is chosen to start.
+/// Under them `whoActs` ("Who acts: …") 13 Ink 3, then the answer button — disabled and reading "Choose an answer first"
+/// until an option is chosen, then `answerLabel` — and "Talk it through" (`onTalk`), both small. `onAnswer` is called with
+/// the chosen option's `Key`. A page that may draw the card again while it is open (it moves, or a read rearranges what
+/// holds it) keeps the person's pick itself: `picked` is the key chosen to start with, read as the card is made, and
+/// `onPick` is told each key chosen, so a card drawn afresh still holds what was chosen in the one before it.
+/// Keyboard: the options are one Tab stop; ↑/↓ move the lit option, Space or Enter chooses it.
+/// In a test the card is the region `question`, the options the radio group "Answers: <question>", each option the radio of its
+/// label: `Ui.Click("Yes, a given number is enough")`, `Assert.DisabledBecause("Answer", "Choose an answer first.")`.
+[Composable]
+component DecisionCard(string question, List<ChoiceOption> options, Action<string> onAnswer, Action? onTalk = null, string whoActs = "",
+                       string meta = "Choose an answer · none is chosen for you", string answerLabel = "Answer", string picked = "", Action<string>? onPick = null) {
+  string chosen = picked;
+  int at = -1;
+
+  action Choose(string key) {
+    chosen = key;
+    at = -1;
+    if (onPick != null) {
+      onPick!(key);
+    }
+  }
+  action Key(string name) {
+    var key = name.Replace("Arrow", "");
+    var lit = at;
+    if (lit < 0) {
+      int index = 0;
+      foreach (var option in options) {
+        if (option.Key == chosen) { lit = index; }
+        index = index + 1;
+      }
+    }
+    if (key == "Down" || key == "Right") {
+      at = lit < options.Count - 1 ? lit + 1 : 0;
+    } else if (key == "Up" || key == "Left") {
+      at = lit > 0 ? lit - 1 : options.Count - 1;
+    } else if ((key == "Space" || key == "Enter") && lit >= 0) {
+      chosen = options[lit].Key;
+      if (onPick != null) {
+        onPick!(chosen);
+      }
+    }
+  }
+  action Answer() {
+    if (chosen == "") { return; }
+    onAnswer(chosen);
+  }
+
+  render {
+    Stack(gap: "14px", minW: "0", py: "18px", px: "20px", mt: "6px", bg: Colors.Surface, borderW: 1, border: Colors.Border, rounded: Radius.Panel,
+          role: UiRole.Region, label: question) {
+      Stack(gap: "4px", minW: "0") {
+        Text(question, role: UiRole.Heading, level: 3, fontSize: FontSize.ItemTitle, fontWeight: FontWeight.Heavy, lineHeight: "1.35",
+             color: Colors.OnSurface);
+        if (meta != "") {
+          Text(meta, fontSize: FontSize.Label, color: Colors.Ink3, lineHeight: "1.5");
+        }
+      }
+      Stack(gap: "10px", minW: "0", role: UiRole.RadioGroup, label: "Answers: " + question, keys: [Up, Down, Left, Right, Space, Enter], onKeyDown: Key,
+            rounded: Radius.Inner) {
+        foreach (var place in Enumerable.Range(0, options.Count)) {
+          var option = options[place];
+          Box(onClick: () => Choose(option.Key), role: UiRole.Radio, checked: option.Key == chosen, label: option.Label, w: "100%") {
+            DecisionOption(option, option.Key == chosen, at == place);
+          }
+        }
+      }
+      if (whoActs != "") {
+        Text("Who acts: " + whoActs, fontSize: FontSize.Label, color: Colors.Ink3, lineHeight: "1.5");
+      }
+      Row(gap: "8px", align: Align.Center, wrap: Wrapping.Wrap) {
+        LookButton(chosen == "" ? "Choose an answer first" : answerLabel, Answer, kind: ButtonKind.Primary, small: true, disabled: chosen == "",
+                   name: answerLabel, whenDenied: "Choose an answer first.");
+        if (onTalk != null) {
+          LookButton("Talk it through", onTalk!, small: true);
+        }
+      }
+    }
+  }
+}
+
+/// One option of a `DecisionCard`, drawn; `lit` the keyboard is on it.
+[Composable, Part]
+component DecisionOption(ChoiceOption option, bool chosen, bool lit) {
+  render {
+    Row(gap: "12px", align: Align.Start, minW: "0", position: Position.Relative, py: "14px", px: "16px", rounded: Radius.Inner, borderW: 1,
+        border: chosen ? Colors.Primary : option.Recommended ? Colors.BannerLine : Colors.Border,
+        bg: option.Recommended ? Colors.AccentWash : Colors.Surface, shadow: lit ? Shadow.Ring : "none", cursor: Cursor.Pointer, overflow: Overflow.Hidden) {
+      if (option.Recommended) {
+        Box(position: Position.Absolute, left: "0", top: "0", bottom: "0", w: "3px", bg: Colors.Primary, decorative: true);
+      }
+      Box(w: "20px", h: "20px", minW: "20px", mt: "1px", rounded: Radius.Pill, borderW: 2, border: chosen ? Colors.Primary : Colors.Ink3,
+          display: Display.Flex, align: Align.Center, justify: Justify.Center, decorative: true) {
+        if (chosen) {
+          Box(w: "10px", h: "10px", rounded: Radius.Pill, bg: Colors.Primary);
+        }
+      }
+      Stack(gap: "4px", minW: "0", grow: 1, basis: "0") {
+        Row(gap: "6px 8px", align: Align.Center, wrap: Wrapping.Wrap, minW: "0") {
+          Text(option.Label, fontSize: FontSize.Summary, fontWeight: FontWeight.Semibold, color: Colors.OnSurface, lineHeight: "1.4");
+          if (option.Recommended) {
+            Text("Recommended", fontSize: FontSize.Caption, fontWeight: FontWeight.Semibold, color: Colors.AccentInk, bg: Colors.AccentTint,
+                 rounded: Radius.Chip, py: "3px", px: "8px", lineHeight: "normal", whiteSpace: WhiteSpace.Nowrap);
+          }
+        }
+        if (option.WhatHappens != "") {
+          Text(option.WhatHappens, fontSize: FontSize.Body, lineHeight: "1.55", color: Colors.OnSurface);
+        }
+        if (option.For != "") {
+          Text("For · " + option.For, fontSize: FontSize.Label, color: Colors.Ink3, lineHeight: "1.5");
+        }
+        if (option.Against != "") {
+          Text("Against · " + option.Against, fontSize: FontSize.Label, color: Colors.Ink3, lineHeight: "1.5");
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,21 @@
+namespace Osysharp.Look;
+
+/// A note about what is NOT here yet, set apart from the content (orgsettings/Policies "Not yet governable"): white in
+/// a 1 px dashed proposed line, radius 14, `14px 20px`, 8 between; the title 16/700 (a level-`level` heading), the text
+/// 14/1.5 Ink 2, then the block (a link, a chip). The solid note on the wash stays `StateCard(StateKind.Note)`.
+/// In a test it is the region of its title.
+[Composable]
+component DashedNote(string title, string text = "", int level = 2) {
+  render {
+    Box(label: title) {
+      StateCard(StateKind.Dashed) {
+        Text(title, role: UiRole.Heading, level: level, fontSize: FontSize.Subhead, fontWeight: FontWeight.Heavy, color: Colors.OnSurface,
+             lineHeight: "normal");
+        if (text != "") {
+          Text(text, fontSize: FontSize.Body, color: Colors.Ink2, lineHeight: "1.5");
+        }
+        Slot;
+      }
+    }
+  }
+}

@@ -1,0 +1,17 @@
+namespace Osysharp.Look;
+
+// The summary of what the talk is on (designer.dc.html, the Summary pane): its goal and desired outcomes as Markdown
+// (START-HERE rule 15; DECISIONS 13 Nov "the texts on the summary should be markdown of course"), each edited in place,
+// and what the designer filled in marked "suggested".
+
+/// A labelled block of the summary: `label` 14/700 ("Goal", "Desired outcomes", "Slices · 2"), then its entries 2 apart
+/// (`SummaryEntry`), 6 under the label. In a test it is the region `label`.
+[Composable]
+component SummaryBlock(string label) {
+  render {
+    Stack(gap: "6px", minW: "0", role: UiRole.Region, label: label) {
+      Text(label, role: UiRole.Heading, level: 3, fontSize: FontSize.Body, fontWeight: FontWeight.Heavy, color: Colors.OnSurface, lineHeight: "normal");
+      Stack(gap: "2px", minW: "0") { Slot; }
+    }
+  }
+}

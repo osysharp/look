@@ -1,0 +1,131 @@
+namespace OsyrinLookTests;
+
+using Osysharp.Look;
+
+/// Release.dc.html: its header and tabs, the decision band, the facts card, the three summary cards, "Contents" with
+/// its group band and four rows, and the four foot cards.
+[Route("/dev/page-parts/release")]
+[AllowAnonymous]
+[Title("Claims Desk 1.8.1")]
+[Render(CSR)]
+component ReleaseReplicaPage() {
+  action Nothing() { }
+  render {
+    BoardFrame("Claims Desk 1.8.1") {
+      ObjectHeader("Claims Desk 1.8.1",
+                   [new Crumb { Label = "Releases", To = "/dev/page-parts" }, new Crumb { Label = "Claims Desk", To = "/dev/page-parts" }, new Crumb { Label = "1.8.1" }],
+                   situation: "Waiting for your answer · Erik Sund approved · 1 of 2. Then it deploys to Osyrin Cloud zone eu-north and tells claims handlers the totals are fixed.",
+                   lead: true) {
+        slot chips {
+          KeyChip("9c41e7a");
+          StatusChip("Waiting for your answer", StatusTone.You);
+        }
+        LookButton("Hold the release", Nothing);
+        LookButton("Ask for changes", Nothing);
+        LookButton("Review production approval", Nothing, kind: ButtonKind.Primary);
+        LookButton("More ▾", Nothing);
+      }
+      TabBar("Claims Desk 1.8.1 sections", ReleaseTabs(), "/dev/page-parts/release");
+      DecisionBand("Approve Claims Desk 1.8.1 for production",
+                   meta: "Erik Sund approved 07:52 · 1 of 2 · asked 07:12 · waiting 2 h 28 min · while it waits INC-15 stays Mitigated") {
+        LookButton("Review approval", Nothing, kind: ButtonKind.Primary);
+      }
+      PlainCard("Release facts") {
+        FactsGrid("Release facts") {
+          FactCell("Version", "1.8.1");
+          FactCell("Product", "Claims Desk");
+          FactCell("Line", "main");
+          FactCell("Channel", "Public");
+          FactCell("Stage", "Candidate");
+          FactCell("Tag", "v1.8.1 · made at publish", mono: true);
+          FactCell("Commit", "9c41e7a", mono: true);
+          FactCell("Range", "v1.8.0..9c41e7a", mono: true);
+          FactCell("Target date", "Mon 2 Nov");
+          FactCell("Share", "Claims Desk’s 30 %");
+          FactCell("Slices", "4");
+        }
+      }
+      CardGrid("300px", "16px") {
+        SmallCard("In flight") {
+          Row(gap: "6px", wrap: Wrapping.Wrap, role: UiRole.List, label: "Release steps") {
+            Badge("Freeze ✓", tone: KitTone(ChipTone.Ok));
+            Badge("Gate ✓", tone: KitTone(ChipTone.Ok));
+            Badge("Approval 1 of 2", tone: KitTone(ChipTone.You));
+            PlainChip("Deploy");
+            PlainChip("Publish");
+          }
+          Text("Release band of Regulated change v4 · deploys to eu-north production · evidence 4 of 4", fontSize: FontSize.Label, color: Colors.Ink3);
+          Box { GoLink("Open In flight ›", "/dev/page-parts/release"); }
+        }
+        SmallCard("Notes") {
+          Text("What’s new · 1 entry to claims handlers, in-app and email.", fontSize: FontSize.Body, lineHeight: "1.5");
+          Text("UPKEEP-41’s entry covers UPKEEP-42", fontSize: FontSize.Label, color: Colors.Ink3);
+          Box { GoLink("Open Notes ›", "/dev/page-parts/release"); }
+        }
+        SmallCard("History") {
+          Text("Frozen 06:40 · gate passed 07:12 · Erik Sund approved 07:52.", fontSize: FontSize.Body, lineHeight: "1.5");
+          Text("Previous: 1.8.0 published Fri 30 Oct 11:20", fontSize: FontSize.Label, color: Colors.Ink3);
+          Box { GoLink("Open History ›", "/dev/page-parts/release"); }
+        }
+      }
+      SectionCard("Contents · 4 slices", linkLabel: "Open Plan ›", linkTo: "/dev/page-parts/plan") {
+        TableGroupBand("Saga", "Claims Desk upkeep", key: "UPKEEP", keyTo: "/dev/page-parts", innerKey: "UPKEEP-ROUND", innerKeyTo: "/dev/page-parts",
+                       innerTitle: "Rounding fix (INC-15)");
+        CardTable("Contents", ContentsColumns(), ["Slice", "Title", "Why in", "State", "What’s new"]) {
+          ContentsRow("UPKEEP-39", "One currency formatter for summary and export", "Pulled in by UPKEEP-41", "—");
+          ContentsRow("UPKEEP-41", "Round claim totals half-up in the summary", "From the arc", "Entry ✓");
+          ContentsRow("UPKEEP-42", "Same rounding in the exported PDF", "From the arc", "In UPKEEP-41’s");
+          ContentsRow("UPKEEP-43", "Regression test for currency rounding", "Set on the slice", "—");
+        }
+      }
+      CardGrid("240px", "16px") {
+        FootCard("Not ready", "Nothing. All 4 slices merged before the freeze.", "A slice that misses the freeze moves to 1.9 with its reason.");
+        FootCard("Left out on purpose", "UPKEEP-45 Rounding in old CSV exports → Claims Desk 1.9.",
+                 "Set on the slice by Maya Okafor: “the CSV export is used twice a month”.");
+        FootCard("Build order", "UPKEEP-39 → UPKEEP-41 → UPKEEP-42 → UPKEEP-43.", "The longest chain: 4 slices in a row, built Fri 30 Oct – Sun 1 Nov.");
+        FootCard("Decisions it waits on", "This approval — 1 of 2.", "No other open question touches these slices.");
+      }
+    }
+  }
+}
+
+/// One slice of a release's contents.
+[Composable]
+component ContentsRow(string key, string title, string why, string whatsNew) {
+  render {
+    CardTableRow(ContentsColumns(), label: key) {
+      KeyLink(key, "/dev/page-parts/slice");
+      Text(title);
+      Box { PlainChip(why); }
+      Box { StatusChip("Done", StatusTone.Ok); }
+      Text(whatsNew, fontSize: FontSize.Label);
+    }
+  }
+}
+
+/// One of Release's foot cards: what it says 14/1.5, then more 13 Ink 3 at 1.5.
+[Composable]
+component FootCard(string title, string body, string more) {
+  render {
+    SmallCard(title, kind: SmallCardKind.Foot) {
+      Text(body, fontSize: FontSize.Body, lineHeight: "1.5");
+      Text(more, fontSize: FontSize.Label, color: Colors.Ink3, lineHeight: "1.5");
+    }
+  }
+}
+
+/// Release's contents columns: slice, title, why in, state, what's new.
+string ContentsColumns() {
+  return "110px minmax(0, 1fr) 200px 90px 100px";
+}
+
+/// A release's tabs, Overview in view; In flight needs you.
+List<TabItem> ReleaseTabs() {
+  return [
+    new TabItem { Label = "Overview", To = "/dev/page-parts/release" },
+    new TabItem { Label = "Plan", To = "/dev/page-parts/release/plan" },
+    new TabItem { Label = "In flight", To = "/dev/page-parts/release/in-flight", Count = "1" },
+    new TabItem { Label = "Notes", To = "/dev/page-parts/release/notes" },
+    new TabItem { Label = "History", To = "/dev/page-parts/release/history" },
+  ];
+}

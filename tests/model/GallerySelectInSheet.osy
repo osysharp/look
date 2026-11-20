@@ -1,0 +1,43 @@
+namespace OsyrinLookTests;
+
+using Osysharp.Look;
+
+// The look's dropdowns where a page puts them in a sheet: a drawer under a page long enough to scroll, and a dialog
+// whose body scrolls. Their lists open against their field there as on a plain page (/dev/controls/select-in-sheet).
+
+/// A drawer under a tall band, so the page scrolls to reach it, holding the three dropdowns.
+[Route("/dev/controls/select-in-sheet")]
+[AllowAnonymous]
+[Title("Dropdowns in a sheet")]
+[Render(CSR)]
+component SelectInSheetPage() {
+  CheckCadence cadence = CheckCadence.EverySlice;
+  string line = "main";
+  string find = "";
+  GalleryHost? host = null;
+  bool dialog = false;
+  CheckCadence inDialog = CheckCadence.Never;
+  live var hosts = GalleryHost.Where(h => h.Name.Contains(find)).OrderBy(h => h.Name).Take(20).ToList();
+  action OpenDialog() { dialog = true; }
+  action CloseDialog() { dialog = false; }
+  render {
+    Stack(gap: "16px", p: "24px", maxW: "100%", minW: "0") {
+      LookButton("Open the dialog", OpenDialog);
+      Box(h: "900px", bg: Colors.Wash, rounded: Radius.Panel, label: "Tall band") { Text("A page long enough to scroll."); }
+      Drawer("Edit the check", onClose: CloseDialog, subtitle: "Three dropdowns") {
+        LookEnumSelect("Check runs when", cadence);
+        LookSelect("Check line", line, ["main", "preview"], words: LineWords);
+        LookRefPicker("Check host", host, find, hosts, h => h.Name, placeholder: "Choose a host");
+        Box(h: "400px") { }
+        LookButton("Done", CloseDialog);
+      }
+      if (dialog) {
+        Dialog("A scrolled dialog", onDismiss: CloseDialog) {
+          Box(h: "700px", bg: Colors.Wash, rounded: Radius.Panel) { Text("The dialog's body scrolls past this."); }
+          LookEnumSelect("Dialog runs when", inDialog);
+          Box(h: "40px") { }
+        }
+      }
+    }
+  }
+}

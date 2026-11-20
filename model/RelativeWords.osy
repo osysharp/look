@@ -1,0 +1,32 @@
+namespace Osysharp.Look;
+
+/// The look's ONE wording of a moment against now (both UTC; calendar days are UTC days): under a minute either way
+/// "just now"; under an hour "N min ago" / "in N min"; the same day "N h ago" / "in N h" (whole hours, rounded down);
+/// the day before "yesterday", the day after "tomorrow"; else the date, "12 Nov" this year and "12 Nov 2025" another.
+/// Pure: the caller gives `now`, so a test pins it.
+public string RelativeWords(DateTime at, DateTime now) {
+  var seconds = (now - at).TotalSeconds;
+  var past = seconds >= 0;
+  var gone = past ? seconds : -seconds;
+  if (gone < 60) {
+    return "just now";
+  }
+  if (gone < 3600) {
+    var minutes = (int)Math.Floor(gone / 60);
+    return past ? minutes.ToString() + " min ago" : "in " + minutes.ToString() + " min";
+  }
+  var days = (now.Date - at.Date).TotalDays;
+  if (days == 0) {
+    var hours = (int)Math.Floor(gone / 3600);
+    return past ? hours.ToString() + " h ago" : "in " + hours.ToString() + " h";
+  }
+  if (days == 1) {
+    return "yesterday";
+  }
+  if (days == -1) {
+    return "tomorrow";
+  }
+  var months = new List<string> { "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec" };
+  var day = at.Day.ToString() + " " + months[at.Month - 1];
+  return at.Year == now.Year ? day : day + " " + at.Year.ToString();
+}

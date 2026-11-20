@@ -1,0 +1,17 @@
+namespace Osysharp.Look;
+
+/// What could not load: "Error" in the bad ink, the title (17/700), why and what is still current (14/1.5 Ink 2), and
+/// its ways out (the block, `StateLink`s). An alert, so a screen reader says it.
+[Composable]
+component ErrorPanel(string title, string body) {
+  render {
+    Box(h: "100%", role: UiRole.Alert, label: title) {
+      StateCard(StateKind.Error) {
+        StateOverline("Error", bad: true);
+        Text(title, role: UiRole.Heading, level: 3, fontSize: FontSize.ItemTitle, fontWeight: FontWeight.Heavy, color: Colors.OnSurface, lineHeight: "normal");
+        Text(body, fontSize: FontSize.Body, color: Colors.Ink2, lineHeight: "1.5");
+        Row(gap: 0, wrap: Wrapping.Wrap, align: Align.Center) { Slot; }
+      }
+    }
+  }
+}

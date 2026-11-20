@@ -1,0 +1,33 @@
+namespace Osysharp.Look;
+
+/// A "▸ Details" row that opens its block: the summary 13/600 in the accent after a ▸ (▾ when open), its body 13/1.5 in
+/// Ink 2, 6 px under it. `ruled`: inside a card, under a Line 2 rule with 8 px above. `indent`: set in 46 px, under a
+/// ranked row's title (in `CardTableRow`'s `under` slot). `page`: at page level, 14/600, at least 32 high, its body 8
+/// under ("Diagnostics"). `trailing`: the marker after the words at the words' size, as Components §3 draws an
+/// expander ("Diagnostics ▸"). The kit has no disclosure control, so it is a pressable that says it is expanded.
+/// In a test it is pressed by its summary: `Ui.Click("Details and predicted token use")`.
+[Composable]
+component Disclosure(string summary, bool ruled = true, bool page = false, bool trailing = false, bool indent = false) {
+  bool open = false;
+  action Toggle() { open = !open; }
+  render {
+    Stack(gap: 0, pt: ruled ? "8px" : "0", ml: indent ? "46px" : "0", borderTW: ruled ? 1 : 0, border: Colors.Line2, label: summary) {
+      Pressable(onClick: Toggle, expanded: open, label: summary, minH: page ? "32px" : "0", align: Align.Center, alignSelf: AlignSelf.Start,
+                fontSize: page ? FontSize.Body : FontSize.Label, fontWeight: FontWeight.Semibold, color: Colors.Primary, bg: Colors.Transparent,
+                borderW: 0, p: 0, cursor: Cursor.Pointer, lineHeight: "normal") {
+        Row(align: Align.Center) {
+          if (!trailing) {
+            Box(w: "13px", minW: "13px", decorative: true) { Text(open ? "▼" : "▶", fontSize: "11px"); }
+          }
+          Text(summary);
+          if (trailing) {
+            Text(open ? " ▾" : " ▸", decorative: true, whiteSpace: WhiteSpace.Pre);
+          }
+        }
+      }
+      if (open) {
+        Stack(gap: "6px", mt: page ? "8px" : "6px", fontSize: FontSize.Label, color: Colors.Ink2, lineHeight: "1.5") { Slot; }
+      }
+    }
+  }
+}

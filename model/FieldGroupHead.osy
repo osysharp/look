@@ -1,0 +1,13 @@
+namespace Osysharp.Look;
+
+/// The head of a group of field rows (SagaArcEdit "WHAT IT IS"): 13/600 uppercase at 0.06em in Ink 4, `18px 20px 2px`
+/// under a soft rule. The first group of a card passes `first` and draws no rule.
+[Composable]
+component FieldGroupHead(string text, bool first = false) {
+  render {
+    Box(pt: "18px", px: "20px", pb: "2px", borderTW: first ? 0 : 1, border: Colors.SoftLine) {
+      Text(text, role: UiRole.Heading, level: 3, fontSize: FontSize.Label, fontWeight: FontWeight.Semibold, color: Colors.Ink4,
+           textTransform: TextTransform.Uppercase, letterSpacing: "0.06em", lineHeight: "normal");
+    }
+  }
+}

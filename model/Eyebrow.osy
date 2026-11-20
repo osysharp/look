@@ -1,0 +1,17 @@
+namespace Osysharp.Look;
+
+/// A card's eyebrow over its title: 12/600 uppercase at 0.06em in Ink 4 ("NEXT", "RIGHT NOW").
+[Composable]
+component Eyebrow(string text) {
+  variants {
+    base {
+      FontSize = FontSize.Caption;
+      FontWeight = FontWeight.Semibold;
+      Color = Colors.Ink4;
+      TextTransform = TextTransform.Uppercase;
+      LetterSpacing = "0.06em";
+      LineHeight = "normal";
+    }
+  }
+  render { Text(text); }
+}

@@ -1,0 +1,792 @@
+namespace Osysharp.Look;
+
+// The app frame as the owner's mock-up draws it (docs/designs/foundry/owner-refined-plan-mockup.png, DECISIONS 13
+// Nov): the rail attached to the window's left edge, full height, on the ground with a hairline to its right; the
+// page beside it, 24 px in, where a page's `PageBand` reaches back to the rail and the window's edge as a white band
+// and the page's body stands below it on the ground. There is no top bar. The rail holds the brand block, the app's
+// rows, a Collapse row and the signed-in person, whose menu holds what a top bar would. Collapsed it is a 64 px strip
+// of marks; below 768 px it is a header with a menu button and a menu card of 44 px rows.
+//
+// It takes the Ui kit's `AppChrome`, so an app moves from a kit shell by changing one word, and it keeps the kit
+// shells' leave guard: while the page holds unsaved edits a row asks before it leaves.
+
+/// THE APP FRAME: the rail at the window's edge, and the page beside it. `padded` (default): the page stands
+/// `PageInset()` in from its region; `false` for an app whose pages stand in the Ui kit's `WorkspaceFrame`, which pads
+/// them by the same itself. `chrome` is the Ui kit's: `Product` is the brand block's
+/// first line (the organisation, or the app), `Tagline` its second, `Mark` the glyph in the brand tile (the first
+/// letter of `Product` without one), `Nav` the rows (a `Section` is a label over its rows; a row with `Children`
+/// opens to them), `Apps` the places the brand block switches between, `User` the person at the foot and their menu.
+/// `switcher` (optional) lists more places under headings, after `Apps`: e.g. "Platform" and then "Your organisations"
+/// (`new LookSwitcherGroup { Label = "Platform", Apps = [ … ] }`). Without it the list is `Apps` alone, as before.
+/// The default slot is the routed page. `[` collapses and expands the rail.
+/// Every section stands open, its rows and their counts in view however long the rail (v6 draws all groups open; the
+/// rows between the brand block and the foot scroll when the window is shorter). A reader folds a section by its label
+/// and it then shows how many rows it holds.
+/// In a test the rail is "Main navigation": `Ui.Click("Hosts", within: "Main navigation")`; a section is folded and
+/// opened again by its label: `Ui.Click("Run", within: "Main navigation")`.
+[Composable]
+component LookShell(AppChrome chrome, bool padded = true, List<LookSwitcherGroup> switcher = null) {
+  bool menuOpen = false;
+  [Remembered] bool collapsed = false;
+  bool personOpen = false;
+  bool placesOpen = false;
+  // A section is open unless the reader folded it; `opened` and `closed` are the reader's own answers.
+  List<string> opened = [];
+  List<string> closed = [];
+  // The leave guard's held question: the edited route being left, and where the reader asked to go.
+  string leaving = "";
+  string target = "";
+  bool canSaveLeaving = false;
+  string leaveError = "";
+
+  live var path = Navigation.CurrentPath ?? "";
+  live var current = chrome.CurrentRoute(path);
+
+  action OpenMenu() { menuOpen = true; }
+  action CloseMenu() { menuOpen = false; }
+  action ToggleCollapse() { collapsed = !collapsed; personOpen = false; placesOpen = false; }
+  action TogglePerson() { personOpen = !personOpen; placesOpen = false; }
+  action TogglePlaces() { placesOpen = !placesOpen; personOpen = false; }
+  action DismissAll() { personOpen = false; placesOpen = false; menuOpen = false; }
+  action Navigated() { menuOpen = false; personOpen = false; placesOpen = false; }
+  action ToggleSection(string key, bool isOpen) {
+    List<string> nextOpened = [];
+    foreach (var k in opened) { if (k != key) { nextOpened.Add(k); } }
+    List<string> nextClosed = [];
+    foreach (var k in closed) { if (k != key) { nextClosed.Add(k); } }
+    if (isOpen) { nextClosed.Add(key); } else { nextOpened.Add(key); }
+    opened = nextOpened;
+    closed = nextClosed;
+  }
+  // Asked against the router as it is now: the row chose link or button when it was drawn.
+  action AskBeforeLeave(string to) {
+    if (!Navigation.IsDirty || to == Navigation.CurrentPath) { Navigation.Go(to); Navigated(); }
+    else {
+      leaveError = "";
+      canSaveLeaving = Navigation.CanSave(Navigation.CurrentPath);
+      leaving = Navigation.CurrentPath;
+      target = to;
+      personOpen = false; placesOpen = false;
+    }
+  }
+  action KeepEditing() { leaving = ""; target = ""; leaveError = ""; }
+  action DiscardAndLeave() {
+    Navigation.Close(leaving, true);
+    Navigation.Go(target);
+    leaving = ""; target = "";
+    Navigated();
+  }
+  action SaveAndLeave() {
+    leaveError = "";
+    try {
+      Navigation.Save(leaving);
+      Navigation.Go(target);
+      leaving = ""; target = "";
+      Navigated();
+    }
+    catch (ValidationException ex) { leaveError = ex.Message; }
+  }
+
+  render {
+    Box(bg: Colors.Bg, color: Colors.OnBg, minH: "100dvh", fontFamily: Font.Sans) {
+      if (Layout.AtLeast(Tablet)) {
+        Row(align: Align.Stretch, gap: 0, minW: "0", minH: "100dvh") {
+          LookRail(chrome, switcher, collapsed || !Layout.AtLeast(Laptop), Layout.AtLeast(Laptop), current, opened, closed,
+                   personOpen, placesOpen, ToggleCollapse, TogglePerson, TogglePlaces, DismissAll, ToggleSection, Navigated, AskBeforeLeave);
+          Stack(gap: 0, grow: 1, minW: "0", p: padded ? PageInset() : "0", pb: padded ? "40px" : "0", role: UiRole.Main,
+                label: "Page") { Slot; }
+        }
+      }
+      if (!Layout.AtLeast(Tablet)) {
+        Stack(gap: 0, minH: "100dvh") {
+          LookPhoneBar(chrome, OpenMenu);
+          Stack(gap: 0, grow: 1, minW: "0", p: padded ? PageInset() : "0", role: UiRole.Main, label: "Page") { Slot; }
+        }
+        if (menuOpen) {
+          Scrim(CloseMenu);
+          LookPhoneMenu(chrome, current, opened, closed, CloseMenu, DismissAll, ToggleSection, Navigated, AskBeforeLeave);
+        }
+      }
+      KeyboardSheet();
+      if (leaving != "") { LeavePrompt(canSaveLeaving, leaveError, SaveAndLeave, DiscardAndLeave, KeepEditing); }
+    }
+  }
+}
+
+// ── the rail ────────────────────────────────────────────────────────────────────────────────────────────────
+
+/// The rail: the window's full height at its left edge, on the ground with a hairline to its right, 248 px wide (64
+/// as the strip), and it stays in view while the page scrolls. The brand block and the foot stay put; only the rows
+/// between them scroll when the window is shorter than the rail.
+[Composable, Part]
+component LookRail(AppChrome chrome, List<LookSwitcherGroup> switcher, bool strip, bool canCollapse, string current, List<string> opened, List<string> closed,
+                   bool personOpen, bool placesOpen, Action onToggleCollapse, Action onTogglePerson, Action onTogglePlaces,
+                   Action onDismissAll, Action<string, bool> onToggleSection, Action onNavigated, Action<string> onAsk) {
+  bool HasGroups() => switcher != null && switcher.Count() > 0;
+  bool Switches() => chrome.Apps.Length > 0 || HasGroups();
+  variants {
+    base {
+      Position = Position.Sticky;
+      Top = "0";
+      Shrink = 0;
+      W = "248px";
+      H = "100dvh";
+      Bg = Colors.Bg;
+      Color = Colors.OnSurface;
+      BorderRW = 1;
+      BorderStyle = BorderStyle.Solid;
+      Border = Colors.Border;
+      Py = "16px";
+      Px = "12px";
+    }
+    strip {
+      W = "64px";
+      Px = "8px";
+    }
+  }
+  render {
+    Stack(gap: "2px", role: UiRole.Navigation, label: "Main navigation") {
+      Box(position: Position.Relative) {
+        LookRailBrand(chrome, strip, Switches(), placesOpen, onTogglePlaces);
+        if (placesOpen && Switches()) {
+          Backdrop(onTogglePlaces);
+          LookRailMenu(chrome.Product, above: false) {
+            LookMenuRow(new MenuAction { Label = "Home", To = chrome.Home, Icon = Icons.Home }, false, onDismissAll, onAsk);
+            foreach (var place in chrome.Apps) {
+              LookMenuRow(new MenuAction { Label = place.Label, To = place.To, Icon = place.Icon }, place.Current, onDismissAll, onAsk);
+            }
+            if (HasGroups()) {
+              foreach (var group in switcher) {
+                LookSwitcherGroupRows(group, onDismissAll, onAsk);
+              }
+            }
+          }
+        }
+      }
+      Stack(gap: "2px", grow: 1, minH: "0", overflowY: Overflow.Auto, scrollbarWidth: ScrollbarWidth.Thin) {
+        foreach (var item in chrome.Nav) {
+          LookRailNode(item, strip, false, current, opened, closed, onToggleSection, onNavigated, onAsk);
+        }
+      }
+      Stack(gap: "2px", mt: "10px", pt: "8px", borderTW: 1, border: Colors.Line2, label: "Footer navigation") {
+        foreach (var item in chrome.FootNav) {
+          LookRailNode(item, strip, false, current, opened, closed, onToggleSection, onNavigated, onAsk);
+        }
+        if (canCollapse) { LookRailCollapse(strip, onToggleCollapse); }
+        if (chrome.User != null) {
+          Box(position: Position.Relative) {
+            LookRailPerson(chrome.User, strip, false, personOpen, onTogglePerson);
+            if (personOpen && chrome.User.Menu.Length > 0) {
+              Backdrop(onTogglePerson);
+              LookRailMenu(chrome.User.Name, above: true) {
+                foreach (var entry in chrome.User.Menu) {
+                  if (entry.Divided) { Box(h: "1px", my: "4px", bg: Colors.Line2, decorative: true); }
+                  LookMenuRow(entry, false, onDismissAll, onAsk);
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}
+
+/// The brand block: a 26 px ink tile holding the app's mark (or its first letter), then the name 15/700 over a
+/// 12 px Ink 3 line. With places to switch between (`switches`) it is a button that opens their list.
+[Composable, Part]
+component LookRailBrand(AppChrome chrome, bool strip, bool switches, bool open, Action onToggle) {
+  variants {
+    base {
+      Display = Display.Flex;
+      W = "100%";
+      Pt = "6px";
+      Pb = "10px";
+      Px = "8px";
+      Rounded = Radius.Control;
+      Bg = Colors.Transparent;
+      BorderW = 0;
+      Color = Colors.OnSurface;
+      TextAlign = TextAlign.Left;
+      Focus { Shadow = Shadow.Ring; }
+    }
+    strip {
+      Px = "0";
+      Pb = "8px";
+    }
+  }
+  render {
+    if (switches) {
+      Pressable(onClick: onToggle, label: chrome.Product + ", switch", expanded: open, cursor: Cursor.Pointer) {
+        LookRailBrandFace(chrome, strip, true);
+      }
+    }
+    else {
+      Box { LookRailBrandFace(chrome, strip, false); }
+    }
+  }
+}
+
+[Composable, Part]
+component LookRailBrandFace(AppChrome chrome, bool strip, bool switches) {
+  render {
+    Row(gap: "10px", align: Align.Center, justify: strip ? Justify.Center : Justify.Start, w: "100%", minW: "0") {
+      Row(w: "26px", h: "26px", minW: "26px", rounded: "7px", bg: Colors.OnBg, color: Colors.Bg, align: Align.Center, justify: Justify.Center,
+          fontSize: "13px", fontWeight: 700, decorative: true) {
+        if (chrome.Mark != null) { Icon(chrome.Mark, size: 16); }
+        if (chrome.Mark == null) { Text(Text.Upper(Text.Left(chrome.Product, 1))); }
+      }
+      if (!strip) {
+        Stack(gap: 0, grow: 1, minW: "0", lineHeight: "normal") {
+          Text(chrome.Product, fontSize: "15px", fontWeight: 700, whiteSpace: WhiteSpace.Nowrap, overflow: Overflow.Hidden,
+               textOverflow: TextOverflow.Ellipsis);
+          if (chrome.Tagline != "") {
+            Text(chrome.Tagline, fontSize: "12px", color: Colors.Ink3, whiteSpace: WhiteSpace.Nowrap, overflow: Overflow.Hidden,
+                 textOverflow: TextOverflow.Ellipsis);
+          }
+        }
+        if (switches) { Icon(Icons.ChevronDown, size: 14, color: Colors.Ink3); }
+      }
+    }
+  }
+}
+
+/// One entry of the rail's rows: a section (its label, then its rows while it is open), or a row.
+[Composable, Part]
+component LookRailNode(NavItem item, bool strip, bool phone, string current, List<string> opened, List<string> closed,
+                       Action<string, bool> onToggleSection, Action onNavigated, Action<string> onAsk) {
+  live var isSection = item.Shape() == NavKind.Section;
+  live var isOpen = opened.Contains(item.Key()) || !closed.Contains(item.Key());
+  render {
+    if (isSection && item.Children.Length > 0) {
+      LookRailSection(item.Label, item.Children.Length, isOpen, strip, phone, () => onToggleSection(item.Key(), isOpen));
+      if (isOpen) {
+        foreach (var child in item.Children) {
+          LookRailBranch(child, strip, phone, current, opened, closed, onToggleSection, onNavigated, onAsk);
+        }
+      }
+    }
+    if (!isSection) {
+      LookRailBranch(item, strip, phone, current, opened, closed, onToggleSection, onNavigated, onAsk);
+    }
+  }
+}
+
+/// A section's label, 12/600 uppercase Ink 4. It folds and opens its rows; folded, it shows how many it holds.
+/// On the strip it is a hairline that does the same.
+[Composable, Part]
+component LookRailSection(string label, int count, bool open, bool strip, bool phone, Action onToggle) {
+  variants {
+    base {
+      Display = Display.Flex;
+      W = "100%";
+      Pt = "12px";
+      Pb = "4px";
+      Px = "10px";
+      Bg = Colors.Transparent;
+      BorderW = 0;
+      Rounded = Radius.Control;
+      Color = Colors.Ink4;
+      FontSize = "12px";
+      FontWeight = FontWeight.Semibold;
+      LetterSpacing = "0.06em";
+      TextTransform = TextTransform.Uppercase;
+      LineHeight = "normal";
+      Cursor = Cursor.Pointer;
+      Hover { Color = Colors.OnSurface; }
+      Focus { Shadow = Shadow.Ring; }
+    }
+    strip {
+      Px = "0";
+      Pt = "6px";
+      Pb = "6px";
+    }
+    phone {
+      Px = "16px";
+      Pt = "14px";
+      Pb = "8px";
+      Rounded = "0";
+    }
+  }
+  render {
+    Pressable(onClick: onToggle, label: label, expanded: open) {
+      if (!strip) {
+        Row(gap: "8px", align: Align.Center, justify: Justify.Between, w: "100%") {
+          Text(label);
+          if (!open) {
+            Row(gap: "4px", align: Align.Center, decorative: true) {
+              Text("" + count, letterSpacing: "0");
+              Icon(Icons.ChevronRight, size: 12);
+            }
+          }
+        }
+      }
+      if (strip) {
+        Stack(gap: "4px", align: Align.Center, w: "100%") {
+          Box(h: "1px", w: "100%", bg: Colors.Line2, decorative: true);
+          if (!open) { Icon(Icons.ChevronDown, size: 12); }
+        }
+      }
+    }
+  }
+}
+
+/// A row and, when it has rows of its own, those under it while it is open — which it is when the page in view is
+/// one of them, or the reader opened it.
+[Composable, Part]
+component LookRailBranch(NavItem item, bool strip, bool phone, string current, List<string> opened, List<string> closed,
+                         Action<string, bool> onToggle, Action onNavigated, Action<string> onAsk) {
+  live var hasRows = item.Children.Length > 0;
+  live var onTrail = item.HasRoute(current);
+  live var isOpen = hasRows && (opened.Contains(item.Key()) || (onTrail && !closed.Contains(item.Key())));
+  live var state = item.To == current && current != "" ? NavState.Current : (onTrail ? NavState.Trail : NavState.Idle);
+  render {
+    if (strip) { LookRailMark(item, state, onNavigated, onAsk); }
+    if (!strip) {
+      Row(gap: "0", align: Align.Stretch, minW: "0", position: Position.Relative) {
+        LookRailRow(item, state, false, phone, hasRows, onNavigated, onAsk);
+        if (hasRows) { LookRailOpener(item.Label, isOpen, phone, () => onToggle(item.Key(), isOpen)); }
+      }
+    }
+    if (isOpen) {
+      foreach (var child in item.Descendants()) {
+        if (strip) { LookRailMark(child, child.To == current && current != "" ? NavState.Current : NavState.Idle, onNavigated, onAsk); }
+        if (!strip) {
+          LookRailRow(child, child.To == current && current != "" ? NavState.Current : NavState.Idle, true, phone, false, onNavigated, onAsk);
+        }
+      }
+    }
+  }
+}
+
+/// A rail row: at least 38 high, `0 10px`, radius 8, 14 px; a 16 px icon, 10 px, the label, a badge at the right.
+/// The row in view stands on the accent's tint in the accent's deep ink, 600. A row under another is set in by the
+/// icon's width. `phone`: the menu's row — 44 high, 15 px, `0 16px`, no icon, a hairline above.
+[Composable, Part]
+component LookRailRow(NavItem item, NavState state, bool nested, bool phone, bool opens, Action onNavigated, Action<string> onAsk) {
+  variants {
+    base {
+      Display = Display.Flex;
+      Grow = 1;
+      MinW = "0";
+      MinH = "38px";
+      Px = "10px";
+      Rounded = Radius.Control;
+      Bg = Colors.Transparent;
+      BorderW = 0;
+      Color = Colors.OnSurface;
+      FontSize = FontSize.Body;
+      LineHeight = "normal";
+      TextAlign = TextAlign.Left;
+      Cursor = Cursor.Pointer;
+      Hover { Bg = Colors.Line2; }
+      Focus { Shadow = Shadow.Ring; }
+    }
+    // A row under another stands in the rail's column itself, so it keeps its own height there (LK6).
+    nested {
+      Pl = "36px";
+      Grow = 0;
+    }
+    opens { Pr = "34px"; }
+    phone {
+      MinH = "44px";
+      Px = "16px";
+      FontSize = FontSize.Summary;
+      Rounded = "0";
+      BorderTW = 1;
+      BorderStyle = BorderStyle.Solid;
+      Border = Colors.Bg;
+    }
+    state {
+      Current {
+        Bg = Colors.AccentTint;
+        Color = Colors.AccentInk;
+        FontWeight = FontWeight.Semibold;
+        Hover { Bg = Colors.AccentTint; }
+      }
+      Trail { FontWeight = FontWeight.Medium; }
+      Idle { }
+    }
+  }
+  render {
+    if (!Navigation.IsDirty) {
+      Link(href: item.To, label: item.Named(), current: state == NavState.Current, onClick: onNavigated, shortcut: item.Shortcut) {
+        LookRailRowFace(item, phone);
+      }
+    }
+    if (Navigation.IsDirty) {
+      Pressable(label: item.Named(), onClick: () => onAsk(item.To)) { LookRailRowFace(item, phone); }
+    }
+  }
+}
+
+[Composable, Part]
+component LookRailRowFace(NavItem item, bool phone) {
+  render {
+    Row(gap: "8px", align: Align.Center, justify: Justify.Between, w: "100%", minW: "0") {
+      Row(gap: "10px", align: Align.Center, minW: "0") {
+        if (!phone) { Icon(item.Icon, size: 16); }
+        Text(item.Label, whiteSpace: WhiteSpace.Nowrap, overflow: Overflow.Hidden, textOverflow: TextOverflow.Ellipsis);
+      }
+      if (item.Badge != "") { Badge(item.Badge, tone: item.BadgeTone); }
+    }
+  }
+}
+
+/// The small control at the right of a row that has rows of its own: it opens and shuts them.
+[Composable, Part]
+component LookRailOpener(string label, bool open, bool phone, Action onToggle) {
+  variants {
+    base {
+      Position = Position.Absolute;
+      Top = "5px";
+      Right = "4px";
+      W = "28px";
+      H = "28px";
+      Display = Display.InlineFlex;
+      Bg = Colors.Transparent;
+      BorderW = 0;
+      Rounded = Radius.Chip;
+      Color = Colors.Ink3;
+      Cursor = Cursor.Pointer;
+      Hover { Bg = Colors.Muted; Color = Colors.OnSurface; }
+      Focus { Shadow = Shadow.Ring; }
+    }
+    phone {
+      Top = "8px";
+      Right = "10px";
+    }
+  }
+  render {
+    Pressable(onClick: onToggle, label: label + " pages", expanded: open, align: Align.Center, justify: Justify.Center) {
+      Icon(open ? Icons.ChevronDown : Icons.ChevronRight, size: 12);
+    }
+  }
+}
+
+/// A row on the strip: its 18 px icon in a 44 × 40 mark, named for a screen reader; the one in view on the tint.
+[Composable, Part]
+component LookRailMark(NavItem item, NavState state, Action onNavigated, Action<string> onAsk) {
+  variants {
+    base {
+      Display = Display.Flex;
+      W = "44px";
+      H = "40px";
+      MinH = "40px";
+      Mx = "auto";
+      Rounded = Radius.Control;
+      Bg = Colors.Transparent;
+      BorderW = 0;
+      Color = Colors.OnSurface;
+      Cursor = Cursor.Pointer;
+      Hover { Bg = Colors.Line2; }
+      Focus { Shadow = Shadow.Ring; }
+    }
+    state {
+      Current {
+        Bg = Colors.AccentTint;
+        Color = Colors.AccentInk;
+        Hover { Bg = Colors.AccentTint; }
+      }
+      Trail { }
+      Idle { }
+    }
+  }
+  render {
+    if (!Navigation.IsDirty) {
+      Link(href: item.To, label: item.NameWithBadge(), current: state == NavState.Current, onClick: onNavigated, shortcut: item.Shortcut) {
+        Row(align: Align.Center, justify: Justify.Center, w: "100%", h: "100%") { Icon(item.Icon, size: 18); }
+      }
+    }
+    if (Navigation.IsDirty) {
+      Pressable(label: item.NameWithBadge(), onClick: () => onAsk(item.To)) {
+        Row(align: Align.Center, justify: Justify.Center, w: "100%", h: "100%") { Icon(item.Icon, size: 18); }
+      }
+    }
+  }
+}
+
+/// The Collapse row: the word in Ink 2 and the `[` keycap; on the strip, a mark that opens the rail again.
+[Composable, Part]
+component LookRailCollapse(bool strip, Action onToggle) {
+  variants {
+    base {
+      Display = Display.Flex;
+      W = "100%";
+      MinH = "38px";
+      Px = "10px";
+      Rounded = Radius.Control;
+      Bg = Colors.Transparent;
+      BorderW = 0;
+      Color = Colors.Ink2;
+      FontSize = FontSize.Body;
+      LineHeight = "normal";
+      Cursor = Cursor.Pointer;
+      Hover { Bg = Colors.Line2; }
+      Focus { Shadow = Shadow.Ring; }
+    }
+    strip {
+      W = "44px";
+      H = "40px";
+      Mx = "auto";
+      Px = "0";
+    }
+  }
+  render {
+    Pressable(onClick: onToggle, label: strip ? "Expand navigation" : "Collapse navigation", expanded: !strip, shortcut: "[") {
+      if (!strip) {
+        Row(gap: "8px", align: Align.Center, justify: Justify.Between, w: "100%") {
+          Text("Collapse");
+          LookKeycap("[");
+        }
+      }
+      if (strip) {
+        Row(align: Align.Center, justify: Justify.Center, w: "100%", h: "100%") { Icon(Icons.ChevronRight, size: 16); }
+      }
+    }
+  }
+}
+
+/// A key as the boards draw it: mono 11 px Ink 3 in the control line, radius 4.
+[Composable]
+component LookKeycap(string key) {
+  render {
+    Box(fontFamily: Font.KeyFace, fontSize: "11px", color: Colors.Ink3, borderW: 1, border: Colors.ControlLine, rounded: "4px", px: "5px",
+        lineHeight: "normal", decorative: true) {
+      Text(key);
+    }
+  }
+}
+
+/// The signed-in person at the rail's foot: 26 px round initials on Line 2, the name 13/600 over a 12 px Ink 3 line.
+/// With a menu it is a button, named as the person, that opens it. `phone`: the same in the menu card, set in 16 px.
+[Composable, Part]
+component LookRailPerson(ShellUser user, bool strip, bool phone, bool open, Action onToggle) {
+  variants {
+    base {
+      Display = Display.Flex;
+      W = "100%";
+      Pt = "8px";
+      Pb = "2px";
+      Px = "10px";
+      Rounded = Radius.Control;
+      Bg = Colors.Transparent;
+      BorderW = 0;
+      Color = Colors.OnSurface;
+      TextAlign = TextAlign.Left;
+      Cursor = Cursor.Pointer;
+      Focus { Shadow = Shadow.Ring; }
+    }
+    strip { Px = "0"; }
+    phone {
+      Px = "16px";
+      Py = "12px";
+      Cursor = Cursor.Default;
+    }
+  }
+  render {
+    if (user.Menu.Length > 0 && !phone) {
+      Pressable(onClick: onToggle, label: user.Name, expanded: open) { LookRailPersonFace(user, strip); }
+    }
+    else {
+      Box { LookRailPersonFace(user, strip); }
+    }
+  }
+}
+
+[Composable, Part]
+component LookRailPersonFace(ShellUser user, bool strip) {
+  render {
+    Row(gap: "10px", align: Align.Center, justify: strip ? Justify.Center : Justify.Start, w: "100%", minW: "0") {
+      Row(w: "26px", h: "26px", minW: "26px", rounded: Radius.Pill, bg: Colors.Line2, color: Colors.OnSurface, align: Align.Center,
+          justify: Justify.Center, fontSize: "11px", fontWeight: 700, decorative: true) {
+        Text(user.Initials);
+      }
+      if (!strip) {
+        Stack(gap: 0, minW: "0", lineHeight: "normal") {
+          Text(user.Name, fontSize: "13px", fontWeight: 600, whiteSpace: WhiteSpace.Nowrap, overflow: Overflow.Hidden,
+               textOverflow: TextOverflow.Ellipsis);
+          if (user.Secondary != "") {
+            Text(user.Secondary, fontSize: "12px", color: Colors.Ink3, whiteSpace: WhiteSpace.Nowrap, overflow: Overflow.Hidden,
+                 textOverflow: TextOverflow.Ellipsis);
+          }
+        }
+      }
+    }
+  }
+}
+
+/// A menu that opens from the rail: under the brand block, or — `above` — over the person at the foot. A raised card
+/// in the control line, radius 10, at most 60 % of the window high, its rows scrolling inside it.
+[Composable, Part]
+component LookRailMenu(string label, bool above) {
+  variants {
+    base {
+      Position = Position.Absolute;
+      Left = "0";
+      Top = "100%";
+      MinW = "228px";
+      MaxW = "320px";
+      MaxH = "60vh";
+      OverflowY = Overflow.Auto;
+      Z = ZIndex.Popover;
+      Bg = Colors.Elevated;
+      BorderW = 1;
+      BorderStyle = BorderStyle.Solid;
+      Border = Colors.ControlLine;
+      Rounded = Radius.Inner;
+      Shadow = Shadow.Floating;
+      P = "6px";
+    }
+    above {
+      Top = "auto";
+      Bottom = "100%";
+      Mb = "6px";
+    }
+  }
+  render {
+    Stack(gap: "2px", role: UiRole.Menu, label: label) { Slot; }
+  }
+}
+
+/// One headed group of the switcher's list: its label 11/600 uppercase Ink 4, then its places as menu rows. The
+/// group is named by its label, so a reader hears "Platform" before its rows.
+[Composable, Part]
+component LookSwitcherGroupRows(LookSwitcherGroup group, Action onPick, Action<string> onGo) {
+  render {
+    Stack(gap: "2px", role: UiRole.Group, label: group.Label) {
+      Text(group.Label, px: "10px", pt: "10px", pb: "4px", fontSize: "11px", fontWeight: FontWeight.Semibold, color: Colors.Ink4,
+           letterSpacing: "0.06em", textTransform: TextTransform.Uppercase, lineHeight: "normal", decorative: true);
+      foreach (var place in group.Apps) {
+        LookMenuRow(new MenuAction { Label = place.Label, To = place.To, Icon = place.Icon }, place.Current, onPick, onGo);
+      }
+    }
+  }
+}
+
+/// One row of a rail menu: a 16 px icon and its words, 14 px, at least 36 high; `chosen` is the place you are in.
+/// It closes the menu first, then goes to its address through the leave guard, or runs its action.
+[Composable, Part]
+component LookMenuRow(MenuAction item, bool chosen, Action onPick, Action<string> onGo) {
+  action Pick() {
+    onPick();
+    if (item.To != "") { onGo(item.To); }
+    else { item.OnPress(); }
+  }
+  variants {
+    base {
+      Display = Display.Flex;
+      W = "100%";
+      MinH = "36px";
+      Px = "10px";
+      Rounded = Radius.Control;
+      Bg = Colors.Transparent;
+      BorderW = 0;
+      Color = Colors.OnSurface;
+      FontSize = FontSize.Body;
+      LineHeight = "normal";
+      TextAlign = TextAlign.Left;
+      Cursor = Cursor.Pointer;
+      Hover { Bg = Colors.Line2; }
+      Focus { Bg = Colors.Line2; }
+    }
+    chosen {
+      Bg = Colors.AccentTint;
+      Color = Colors.AccentInk;
+      FontWeight = FontWeight.Semibold;
+    }
+  }
+  render {
+    Pressable(onClick: Pick, label: item.Label, role: UiRole.MenuItem) {
+      Row(gap: "10px", align: Align.Center, w: "100%", minW: "0") {
+        Icon(item.Icon, size: 16);
+        Text(item.Label, grow: 1, whiteSpace: WhiteSpace.Nowrap, overflow: Overflow.Hidden, textOverflow: TextOverflow.Ellipsis);
+      }
+    }
+  }
+}
+
+// ── the phone ───────────────────────────────────────────────────────────────────────────────────────────────
+
+/// The phone's header (OverviewPhone): white on a hairline, `6px 8px`, a 44 px menu button, the page's title
+/// 17/700 in the middle.
+[Composable, Part]
+component LookPhoneBar(AppChrome chrome, Action onOpenMenu) {
+  live var active = Navigation.Routes.FirstOrDefault(r => r.IsActive);
+  live var title = (active?.Title ?? "") != "" ? active.Title : chrome.Product;
+  variants {
+    base {
+      Position = Position.Sticky;
+      Top = "0";
+      Z = ZIndex.Sticky;
+      Bg = Colors.Surface;
+      BorderBW = 1;
+      BorderStyle = BorderStyle.Solid;
+      Border = Colors.CardLine;
+      Py = "6px";
+      Px = "8px";
+    }
+  }
+  render {
+    Row(align: Align.Center, justify: Justify.Between, gap: "8px", role: UiRole.Banner, label: "Page header", minW: "0") {
+      Pressable(onClick: onOpenMenu, label: "Open navigation", w: "44px", h: "44px", minW: "44px", bg: Colors.Transparent, borderW: 0,
+                rounded: Radius.Control, color: Colors.OnSurface, align: Align.Center, justify: Justify.Center, cursor: Cursor.Pointer) {
+        Icon(Icons.Menu, size: 20);
+      }
+      Text(title, fontSize: "17px", fontWeight: 700, minW: "0", whiteSpace: WhiteSpace.Nowrap, overflow: Overflow.Hidden,
+           textOverflow: TextOverflow.Ellipsis);
+      Box(w: "44px", minW: "44px", decorative: true);
+    }
+  }
+}
+
+/// The phone's menu (Navigation, "On a phone: the drawer"): a card over the page, the name and a 44 px close
+/// button on a hairline, then every row 44 high and labelled, the person and their menu last.
+[Composable, Part]
+component LookPhoneMenu(AppChrome chrome, string current, List<string> opened, List<string> closed,
+                        Action onClose, Action onDismissAll, Action<string, bool> onToggleSection, Action onNavigated, Action<string> onAsk) {
+  variants {
+    base {
+      Position = Position.Fixed;
+      Top = "8px";
+      Left = "8px";
+      Right = "8px";
+      MaxH = "calc(100dvh - 16px)";
+      OverflowY = Overflow.Auto;
+      Z = ZIndex.Drawer;
+      Bg = Colors.Surface;
+      Color = Colors.OnSurface;
+      BorderW = 1;
+      BorderStyle = BorderStyle.Solid;
+      Border = Colors.CardLine;
+      Rounded = Radius.Panel;
+      Shadow = "0 10px 24px rgba(31,30,27,0.10)";
+    }
+  }
+  render {
+    Stack(gap: 0, role: UiRole.Navigation, label: "Main navigation") {
+      Row(align: Align.Center, justify: Justify.Between, pl: "16px", pr: "8px", py: "8px", borderBW: 1, border: Colors.Line2) {
+        Text(chrome.Product, fontSize: "15px", fontWeight: 700, minW: "0", whiteSpace: WhiteSpace.Nowrap, overflow: Overflow.Hidden,
+             textOverflow: TextOverflow.Ellipsis);
+        Pressable(onClick: onClose, label: "Close menu", w: "44px", h: "44px", minW: "44px", bg: Colors.Transparent, borderW: 0,
+                  rounded: Radius.Control, color: Colors.OnSurface, align: Align.Center, justify: Justify.Center, cursor: Cursor.Pointer) {
+          Icon(Icons.Close, size: 18);
+        }
+      }
+      foreach (var item in chrome.Nav) {
+        LookRailNode(item, false, true, current, opened, closed, onToggleSection, onNavigated, onAsk);
+      }
+      foreach (var item in chrome.FootNav) {
+        LookRailNode(item, false, true, current, opened, closed, onToggleSection, onNavigated, onAsk);
+      }
+      if (chrome.User != null) {
+        Stack(gap: "2px", borderTW: 1, border: Colors.Line2, pb: "6px") {
+          LookRailPerson(chrome.User, false, true, false, onClose);
+          Stack(gap: "2px", px: "6px") {
+            foreach (var entry in chrome.User.Menu) { LookMenuRow(entry, false, onDismissAll, onAsk); }
+          }
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,20 @@
+namespace Osysharp.Look;
+
+/// One item of a console menu: 36 high, `0 10px`, 13 text, square-ish corners; a link when given `to`, else a button.
+[Composable, Part]
+component ConsoleMenuItem(string label, string to = "", Action onPress = null) {
+  render {
+    if (to != "") {
+      Link(to, label: label) {
+        Row(h: "36px", px: "10px", align: Align.Center, rounded: Radius.ConsoleBadgeCorner, fontSize: FontSize.ConsoleBody, color: Colors.ConsoleText) {
+          Text(label);
+        }
+      }
+    } else {
+      Pressable(onClick: onPress, label: label, h: "36px", px: "10px", align: Align.Center, justify: Justify.Start, rounded: Radius.ConsoleBadgeCorner,
+                fontSize: FontSize.ConsoleBody, color: Colors.ConsoleText, bg: Colors.Transparent) {
+        Text(label);
+      }
+    }
+  }
+}

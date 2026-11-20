@@ -1,0 +1,73 @@
+namespace Osysharp.Look;
+
+// The one place a table's spacing comes from. `CardTable`'s head, `CardTableRow` and `SettingTableRow` all read their
+// cell gap and paddings here, so a head always sits on its rows' columns: the head and the rows of one table are given
+// the same `TableSpacing` (and the same `dense`), and nothing else sets a gap or a padding of its own.
+
+/// The numbers, read by every table part. `dense` (the look's compact row, HostConfigIndex's `8px 20px` one-line
+/// index row): rows `7px 20px` over a 20 px line — 34–36 high with the same type and chips — and the head `5px 20px`.
+/// `TableSpacing.Long` (a long list): rows `6px 20px` over a 21 px line, 34 high with text or a chip; head `5px 20px`.
+public class TableRhythm {
+  /// The gap between cells, the same in the head and in every row.
+  public static string Gap(TableSpacing spacing) {
+    if (spacing == TableSpacing.Settings) {
+      return "14px";
+    }
+    if (spacing == TableSpacing.Tight) {
+      return "10px";
+    }
+    return "12px";
+  }
+
+  /// A row's padding top and bottom (its sides are always 20).
+  public static string RowPy(TableSpacing spacing, bool dense) {
+    if (spacing == TableSpacing.Long) {
+      return "6px";
+    }
+    if (dense) {
+      return "7px";
+    }
+    if (spacing == TableSpacing.Roomy) {
+      return "12px";
+    }
+    if (spacing == TableSpacing.Settings) {
+      return "11px";
+    }
+    if (spacing == TableSpacing.Tight) {
+      return "9px";
+    }
+    return "10px";
+  }
+
+  /// A dense row's cells stand at least this high, so a row of text alone is as tall as a row of chips.
+  public static string RowMinH(bool dense) {
+    return dense ? "20px" : "0";
+  }
+
+  /// A row's cells' least height in its family: `Long`'s 21 px line (a chip's height), so every long-list row is 34
+  /// high; the others as `RowMinH(dense)`.
+  public static string RowMinH(bool dense, TableSpacing spacing) {
+    return spacing == TableSpacing.Long ? "21px" : RowMinH(dense);
+  }
+
+  /// The head row's padding top and bottom.
+  public static string HeadPy(TableSpacing spacing, bool dense) {
+    if (dense || spacing == TableSpacing.Long) {
+      return "5px";
+    }
+    if (spacing == TableSpacing.Settings || spacing == TableSpacing.Tight) {
+      return "7px";
+    }
+    return "8px";
+  }
+
+  /// Whether the head sits under a Line 2 rule (Release's does; the others run straight on from the card's head).
+  public static bool HeadRuled(TableSpacing spacing) {
+    return spacing == TableSpacing.Plain || spacing == TableSpacing.Long;
+  }
+
+  /// The spacing a caller's `roomy` asks for: `roomy` is kept as the short name of `TableSpacing.Roomy`.
+  public static TableSpacing Of(TableSpacing spacing, bool roomy) {
+    return roomy ? TableSpacing.Roomy : spacing;
+  }
+}

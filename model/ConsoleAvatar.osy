@@ -1,0 +1,88 @@
+namespace Osysharp.Look;
+
+/// The person's avatar: 28 px round on the accent's soft tint, their initials 11.5/600 in its ink, in a 44 px target.
+/// Pressing it opens their menu under it, its right edge on the avatar's: the address, then `chrome.Menu` (the Ui kit's
+/// `MenuAction`s: a `To` is a link, an `OnPress` runs once the menu has closed), or with none the old shell's person
+/// menu: Your account, Light or dark, Sign out. Escape or pressing the avatar again closes it. In a test: `Ui.Click("Account menu for
+/// <address>")`, then the item by its words within "Account menu". `onGo` (the shell's leave guard, `ConsoleShellBar`):
+/// while the page holds unsaved edits an item with an address hands it there, which asks before leaving.
+[Composable, Part]
+component ConsoleAvatar(ConsoleChrome chrome, Action<string> onGo = null) {
+  bool open = false;
+
+  action GoAccount() {
+    open = false;
+    onGo(chrome.Account != "" ? chrome.Account : chrome.Home);
+  }
+
+  action Toggle() {
+    open = !open;
+  }
+
+  action SwitchTheme() {
+    open = false;
+    Theme.Toggle();
+  }
+
+  action SignOut() {
+    open = false;
+    Session.SignOut();
+  }
+
+  render {
+    Box(position: Position.Relative) {
+      Pressable(onClick: Toggle, label: "Account menu for " + chrome.Address, w: "44px", h: "44px", minW: "44px", display: Display.Flex,
+                align: Align.Center, justify: Justify.Center, rounded: Radius.Pill, bg: Colors.Transparent) {
+        Box(w: "28px", h: "28px", minW: "28px", rounded: Radius.Pill, bg: Colors.ConsoleAccentSoft, color: Colors.ConsoleAccentSoftInk, display: Display.Flex,
+            alignItems: Align.Center, justify: Justify.Center) {
+          Text(chrome.Initials, fontSize: FontSize.ConsoleBadge, fontWeight: 600, lineHeight: "1");
+        }
+      }
+      if (open) {
+        Stack(gap: 0, position: Position.Absolute, top: "48px", right: "0", z: ZIndex.Popover, w: "220px", p: "4px", bg: Colors.ConsoleSurface,
+              borderW: 1, border: Colors.ConsoleBorder, rounded: Radius.ConsoleCorner, shadow: Shadow.DrawerLift, role: UiRole.Menu,
+              label: "Account menu", onEscape: Toggle, color: Colors.ConsoleText) {
+          Text(chrome.Address, px: "10px", py: "8px", fontSize: FontSize.ConsoleSmall, color: Colors.ConsoleText2, wordBreak: WordBreak.BreakWord);
+          if (chrome.Menu.Count() > 0) {
+            foreach (var entry in chrome.Menu) {
+              ConsoleAvatarEntry(entry, Toggle, onGo);
+            }
+          } else {
+            if (onGo != null && Navigation.IsDirty) {
+              ConsoleMenuItem("Your account", onPress: GoAccount);
+            } else {
+              ConsoleMenuItem("Your account", to: chrome.Account != "" ? chrome.Account : chrome.Home);
+            }
+            ConsoleMenuItem("Light or dark", onPress: SwitchTheme);
+            ConsoleMenuItem("Sign out", onPress: SignOut);
+          }
+        }
+      }
+    }
+  }
+}
+
+/// One of `chrome.Menu`'s entries in the avatar's menu: a link to its `To` (through `onGo`, the leave guard, while the page
+/// holds unsaved edits), else a button that closes the menu and runs its `OnPress`.
+[Composable, Part]
+component ConsoleAvatarEntry(MenuAction entry, Action onClose, Action<string> onGo = null) {
+  action Run() {
+    onClose();
+    entry.OnPress();
+  }
+
+  action Go() {
+    onClose();
+    onGo(entry.To);
+  }
+
+  render {
+    if (entry.To != "" && onGo != null && Navigation.IsDirty) {
+      ConsoleMenuItem(entry.Label, onPress: Go);
+    } else if (entry.To != "") {
+      ConsoleMenuItem(entry.Label, to: entry.To);
+    } else {
+      ConsoleMenuItem(entry.Label, onPress: Run);
+    }
+  }
+}

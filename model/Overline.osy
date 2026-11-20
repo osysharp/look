@@ -1,0 +1,17 @@
+namespace Osysharp.Look;
+
+/// A table head's or a rail group's overline: 11/600 uppercase at 0.06em in Ink 4.
+[Composable]
+component Overline(string text) {
+  variants {
+    base {
+      FontSize = FontSize.Overline;
+      FontWeight = FontWeight.Semibold;
+      Color = Colors.Ink4;
+      TextTransform = TextTransform.Uppercase;
+      LetterSpacing = "0.06em";
+      LineHeight = "normal";
+    }
+  }
+  render { Text(text); }
+}

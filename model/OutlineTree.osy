@@ -1,0 +1,290 @@
+namespace Osysharp.Look;
+
+// The outline as a real tree (DECISIONS 13 Nov: "the hierarchy is unclear"; designer.dc.html and plan-part.dc.html):
+// each level stands 14 px in from its parent behind a guide line, carries its level's mark, and wraps its title to two
+// lines; quiet marks at the right say what is new, what depends on something outside, and how many.
+
+/// One row of an `OutlineTree`, in the tree's order (a parent, then its children): `Id` what the page knows it by,
+/// `Depth` how deep it stands (0 the top), its `Level`, `Title`, an optional `Key` (mono, before the title, as the
+/// plan's tree draws it), `Fresh` new or changed in this session (a 6 px accent dot), `DependsOn` the words of what it
+/// depends on outside the design ("" none; a link mark, its words on hover), `Count` a quiet number at the right, and
+/// for the plan's tree a status dot at the right, `Tone` (`ToneDot`, the console's dots) named `ToneWords` ("Ready").
+public class OutlineEntry {
+  public string Id = "";
+  public int Depth = 0;
+  public PartLevel Level = PartLevel.Slice;
+  public string Title = "";
+  public string Key = "";
+  public bool Fresh = false;
+  /// Lit by the page for a moment ("Show" on a review's capture line): drawn in the wash, as a hovered row.
+  public bool Shown = false;
+  public string DependsOn = "";
+  public string Count = "";
+  public StatTone Tone = StatTone.None;
+  public string ToneWords = "";
+}
+
+/// THE TREE: `entries` in order, `selected` the lit row's `Id`, `onSelect` called with a row's `Id` when it is pressed or
+/// Enter is pressed on it. Rows with children open and close by their ▸ mark (all open to start). `menu` the words of
+/// the row menu ("New conversation about this", "Rename"), `onMenu` called with the row's `Id` and the words; its "···"
+/// shows on the selected row and on a hovered one.
+/// The tree is one Tab stop (and the open/close marks and the menu button their own): ↑/↓ move the lit row, → opens a closed row (or goes to its first child), ← closes an open
+/// row (or goes to its parent), Home/End the ends, Enter selects the lit row.
+/// A row: guides 14 px a level, a 1 px line at 6; a 14 px open/close cell; the level's mark; the title 14/20, up to two
+/// lines; then the marks. Selected: the accent's tint, a 3 px accent bar at the tree's left edge, the title 600 in the
+/// accent's ink. Hovered: the wash. The keyboard's row: the accent ring.
+/// `console`: the rows in the console look (docs/designs/console-B): the title 13 (500 at the top and when selected), the
+/// key in JetBrains Mono 12/400 text-2, the current row as the rail's current row — rail-active, radius 5, white words,
+/// the rail's dots — with no bar; a hovered row on the sunken ground.
+/// In a test the tree is the listbox `label` (the platform has no tree role), each row the option "<Level> <Title>": `Ui.Click("Arc Waiting list")`,
+/// `Assert.Selected("Arc Waiting list", true)`; its open/close mark "Close <Title>" / "Open <Title>", its menu button
+/// "More for <Title>".
+[Composable]
+component OutlineTree(string label, List<OutlineEntry> entries, string selected, Action<string> onSelect, List<string>? menu = null,
+                      Action<string, string>? onMenu = null, bool console = false) {
+  // The closed rows' ids, each between bars ("|wait|book|"): a string is replaced, so the tree redraws.
+  string closed = "|";
+  int at = -1;
+  string menuFor = "";
+
+  bool HasChildren(int index) => index + 1 < entries.Count && entries[index + 1].Depth > entries[index].Depth;
+  bool IsClosed(string id) => closed.Contains("|" + id + "|");
+
+  List<int> Shown() {
+    List<int> shown = [];
+    int hideBelow = -1;
+    int index = 0;
+    foreach (var entry in entries) {
+      if (hideBelow >= 0 && entry.Depth > hideBelow) {
+        index = index + 1;
+        continue;
+      }
+      hideBelow = -1;
+      shown.Add(index);
+      if (IsClosed(entry.Id) && HasChildren(index)) { hideBelow = entry.Depth; }
+      index = index + 1;
+    }
+    return shown;
+  }
+
+  int SelectedPlace() {
+    var shown = Shown();
+    int place = 0;
+    foreach (var index in shown) {
+      if (entries[index].Id == selected) { return place; }
+      place = place + 1;
+    }
+    return 0;
+  }
+  int Lit() => at < 0 ? SelectedPlace() : at;
+
+  action Close(string id) { closed = closed + id + "|"; }
+  action Reopen(string id) { closed = closed.Replace("|" + id + "|", "|"); }
+  action Toggle(string id) {
+    if (IsClosed(id)) { Reopen(id); } else { Close(id); }
+  }
+  action Pick(string id) {
+    at = -1;
+    menuFor = "";
+    onSelect(id);
+  }
+  action ToggleMenu(string id) { menuFor = menuFor == id ? "" : id; }
+  action ChooseMenu(string id, string words) {
+    menuFor = "";
+    if (onMenu != null) { onMenu!(id, words); }
+  }
+  action Key(string name) {
+    var shown = Shown();
+    if (shown.Count == 0) { return; }
+    var place = Lit();
+    var index = shown[place];
+    var entry = entries[index];
+    var key = name.Replace("Arrow", "");
+    if (key == "Down") {
+      at = place < shown.Count - 1 ? place + 1 : place;
+    } else if (key == "Up") {
+      at = place > 0 ? place - 1 : 0;
+    } else if (key == "Home") {
+      at = 0;
+    } else if (key == "End") {
+      at = shown.Count - 1;
+    } else if (key == "Right") {
+      if (HasChildren(index) && IsClosed(entry.Id)) {
+        Reopen(entry.Id);
+        at = place;
+      } else if (HasChildren(index)) {
+        at = place + 1;
+      }
+    } else if (key == "Left") {
+      if (HasChildren(index) && !IsClosed(entry.Id)) {
+        Close(entry.Id);
+        at = place;
+      } else {
+        int parent = place;
+        int look = place - 1;
+        while (look >= 0) {
+          if (entries[shown[look]].Depth < entry.Depth) {
+            parent = look;
+            break;
+          }
+          look = look - 1;
+        }
+        at = parent;
+      }
+    } else if (key == "Enter") {
+      Pick(entry.Id);
+    } else if (key == "Escape") {
+      menuFor = "";
+    }
+  }
+
+  render {
+    var shown = Shown();
+    Stack(gap: 0, py: "8px", minW: "0", role: UiRole.ListBox, label: label, keys: [Up, Down, Left, Right, Home, End, Enter, Escape], onKeyDown: Key,
+          rounded: Radius.Control) {
+      foreach (var place in Enumerable.Range(0, shown.Count)) {
+        var index = shown[place];
+        var entry = entries[index];
+        OutlineTreeRow(entry, HasChildren(index), IsClosed(entry.Id), entry.Id == selected, at >= 0 && place == at, menu != null && onMenu != null,
+                       menuFor == entry.Id, () => Pick(entry.Id), () => Toggle(entry.Id), () => ToggleMenu(entry.Id), console: console) {
+          if (menu != null) {
+            foreach (var words in menu!) {
+              MenuAction(words, () => ChooseMenu(entry.Id, words), announce: words + ": " + entry.Title);
+            }
+          }
+        }
+      }
+    }
+  }
+}
+
+/// One row of the tree, drawn by `OutlineTree`; the block is its menu's items.
+[Composable, Part]
+component OutlineTreeRow(OutlineEntry entry, bool hasChildren, bool isClosed, bool selected, bool lit, bool hasMenu, bool menuOpen,
+                         Action onPick, Action onToggle, Action onMenu, bool console = false) {
+  bool hovered = false;
+  action Enter() { hovered = true; }
+  action Leave() { hovered = false; }
+  render {
+    Box(position: Position.Relative, minW: "0", onPointerEnter: Enter, onPointerLeave: Leave) {
+      Row(gap: 0, align: Align.Stretch, minW: "0", pl: "8px", pr: "10px") {
+        if (selected && !console) {
+          Box(position: Position.Absolute, left: "0", top: "0", bottom: "0", w: "3px", bg: Colors.Primary, decorative: true);
+        }
+        foreach (var guide in Enumerable.Range(0, entry.Depth)) {
+          Box(w: "14px", minW: "14px", position: Position.Relative, decorative: true) {
+            Box(position: Position.Absolute, left: "6px", top: "0", bottom: "0", w: "1px", bg: Colors.ControlLine);
+          }
+        }
+        Row(gap: "6px", align: Align.Start, grow: 1, minW: "0", py: "6px", pl: "2px", pr: "4px", rounded: console ? Radius.ConsoleButtonCorner : "6px",
+            bg: console ? (selected ? Colors.ConsoleRailActive : hovered || entry.Shown ? Colors.ConsoleSunken : Colors.Transparent)
+              : selected ? Colors.AccentTint : hovered || entry.Shown ? Colors.Wash : Colors.Transparent, shadow: lit ? Shadow.Ring : "none") {
+          Box(w: "14px", minW: "14px", h: "20px", display: Display.Flex, align: Align.Center, justify: Justify.Center,
+              color: console ? (selected ? Colors.ConsoleRailText2 : Colors.ConsoleText2) : Colors.Ink2) {
+            if (hasChildren) {
+              Pressable(onClick: onToggle, label: (isClosed ? "Open " : "Close ") + entry.Title, w: "14px", h: "20px", align: Align.Center,
+                        justify: Justify.Center) {
+                Icon(isClosed ? Icons.ChevronRight : Icons.ChevronDown, size: 12);
+              }
+            }
+          }
+          Row(gap: "6px", align: Align.Start, grow: 1, minW: "0", role: UiRole.Option, selected: selected, label: entry.Level.Label + " " + entry.Title,
+              onClick: onPick, cursor: Cursor.Pointer) {
+            Box(h: "20px", display: Display.Flex, align: Align.Center, shrink: 0) { LevelMark(entry.Level, onDark: console && selected); }
+            if (console) {
+              Box(grow: 1, basis: "0", minW: "0", fontSize: FontSize.ConsoleBody, lineHeight: "20px", maxH: "40px", overflow: Overflow.Hidden,
+                  color: selected ? Colors.ConsoleRailInk : Colors.ConsoleText, fontWeight: selected || entry.Depth == 0 ? 500 : 400) {
+                if (entry.Key != "") {
+                  Text(entry.Key + " ", fontFamily: Font.ConsoleMono, fontSize: FontSize.ConsoleSmall, fontWeight: 400,
+                       color: selected ? Colors.ConsoleRailText2 : Colors.ConsoleText2);
+                }
+                Text(entry.Title);
+              }
+            } else {
+              Box(grow: 1, basis: "0", minW: "0", fontSize: FontSize.Body, lineHeight: "20px", maxH: "40px", overflow: Overflow.Hidden,
+                  color: selected ? Colors.AccentInk : Colors.OnSurface, fontWeight: selected || entry.Depth == 0 ? FontWeight.Semibold : FontWeight.Regular) {
+                if (entry.Key != "") {
+                  Text(entry.Key + " ", fontFamily: Font.KeyFace, fontSize: FontSize.Caption, fontWeight: FontWeight.Semibold, color: Colors.Ink4);
+                }
+                Text(entry.Title);
+              }
+            }
+            if (entry.DependsOn != "") {
+              OutlineMarkCell() { DependsMark(entry.DependsOn); }
+            }
+            if (entry.Count != "") {
+              OutlineMarkCell() {
+                Text(entry.Count, fontSize: FontSize.Caption, fontWeight: console ? 400 : FontWeight.Semibold,
+                     color: console ? (selected ? Colors.ConsoleRailText2 : Colors.ConsoleText2) : Colors.Ink3);
+              }
+            }
+            if (entry.Fresh) {
+              OutlineMarkCell() { Box(w: "6px", h: "6px", rounded: Radius.Pill, bg: Colors.BannerLine, role: UiRole.Graphic, label: "New or changed"); }
+            }
+            if (entry.Tone != StatTone.None) {
+              OutlineMarkCell() { ToneDot(entry.Tone, entry.ToneWords, onDark: console && selected); }
+            }
+          }
+          if (hasMenu && (selected || hovered || menuOpen)) {
+            OutlineMarkCell() {
+              Pressable(onClick: onMenu, label: "More for " + entry.Title, expanded: menuOpen, w: "22px", h: "20px", rounded: "5px",
+                        bg: Colors.Border, color: Colors.Ink2, fontSize: FontSize.Label, fontWeight: FontWeight.Heavy, align: Align.Center,
+                        justify: Justify.Center, lineHeight: "1") {
+                Text("···");
+              }
+            }
+          }
+        }
+      }
+      if (menuOpen) {
+        Stack(gap: 0, position: Position.Absolute, top: "30px", right: "8px", z: ZIndex.Popover, minW: "200px", p: "4px", bg: Colors.Surface,
+              borderW: 1, border: Colors.ControlLine, rounded: Radius.Control, shadow: Shadow.DrawerLift, role: UiRole.Menu, label: entry.Title,
+              onEscape: onMenu) {
+          Slot;
+        }
+      }
+    }
+  }
+}
+
+/// A 20 px cell at a tree row's right, holding one quiet mark.
+[Composable, Part]
+component OutlineMarkCell() {
+  render {
+    Box(h: "20px", display: Display.Flex, align: Align.Center, shrink: 0) { Slot; }
+  }
+}
+
+/// The link mark of a row that depends on something done or planned: a 14 px link in Ink 4, named by what it depends
+/// on, which shows on hover (Escape closes it). `focusable`: a keyboard stop whose words open on focus too — for a mark
+/// outside a tree; inside one the row is the keyboard's stop.
+[Composable]
+component DependsMark(string words, bool focusable = false) {
+  bool hovered = false;
+  action Enter() { hovered = true; }
+  action Leave() { hovered = false; }
+  render {
+    // Not positioned itself: the tooltip spans the row (`OutlineTreeRow`'s box), so it never passes the outline's edge.
+    Box(display: Display.InlineFlex, color: Colors.Ink4, role: UiRole.Graphic, label: words, onPointerEnter: Enter,
+        onPointerLeave: Leave, onFocus: focusable ? Enter : null, onBlur: focusable ? Leave : null, onEscape: hovered ? Leave : null) {
+      Icon(Icons.Link, size: 14);
+      if (hovered) {
+        HoverTitle(words, "Depends on", across: true);
+      }
+    }
+  }
+}
+
+/// A status dot named `words`, as the console draws its states (`ConsoleDot`, docs/designs/console-B): 6 px, ok and running
+/// the ok dot, needs-you the warn dot, waiting (not agreed yet) and the floor the neutral dot, bad the critical icon's red;
+/// `onDark` the rail's brighter dots, for a row drawn on rail-active.
+[Composable]
+component ToneDot(StatTone tone, string words, bool onDark = false) {
+  render {
+    Box(w: "6px", h: "6px", minW: "6px", rounded: Radius.Pill, role: UiRole.Graphic, label: words,
+        bg: tone == StatTone.Ok || tone == StatTone.Run ? (onDark ? Colors.ConsoleRailOk : Colors.ConsoleOkDot)
+          : tone == StatTone.You ? (onDark ? Colors.ConsoleRailWarn : Colors.ConsoleWarnDot)
+          : tone == StatTone.Bad ? Colors.ConsoleCriticalIcon : tone == StatTone.None ? Colors.Transparent
+          : onDark ? Colors.ConsoleRailNeutral : Colors.ConsoleText3);
+  }
+}

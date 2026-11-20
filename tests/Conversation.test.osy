@@ -1,0 +1,72 @@
+// The design studio's look parts (P3.6): a conversation's turns, a proposed change as a block, the composer, the side
+// panel, the stages and the readiness marks — read by their names, pressed by keyboard, held inside 390.
+
+using Osysharp.Look;
+using OsyrinLookTests;
+
+[Test]
+void A_conversation_reads_its_turns_and_a_change_is_decided_by_its_named_buttons() {
+  Ui.Viewport(1440);
+  Ui.Visit("/dev/parts/conversation");
+  Assert.Visible("Find the gaps in BOOK-CONFIRM", within: "Anna Berg, 18 min ago");
+  Assert.Visible("BOOK-17", within: "Planner, 17 min ago");
+  Assert.Visible("1,840 tokens · $0.04", within: "Planner, 17 min ago");
+  Assert.Hidden("search_items(arc: \"BOOK-CONFIRM\", missing: \"screenshot\") → BOOK-17");
+  Ui.Click("3 calls · read_item, search_items");
+  Assert.Expanded("3 calls · read_item, search_items", true);
+  Assert.Visible("search_items(arc: \"BOOK-CONFIRM\", missing: \"screenshot\") → BOOK-17");
+  Assert.Visible("new criterion", within: "Acceptance on BOOK-17");
+  Assert.Visible("Accepted", within: "Update on BOOK-14");
+  Assert.Visible("+ Proved by: screenshot · Approved by: Anna Berg", within: "Acceptance on BOOK-17 diff");
+  Assert.Visible("3 changes to 3 items", within: "Proposed changes");
+  Assert.Visible("Proved by: screenshot", within: "Criterion The file opens in the three mail clients");
+  Ui.Click("Reject: Create on BOOK-26");
+  Assert.Visible("Rejected BOOK-26.");
+  Ui.Click("Accept the criterion", within: "Acceptance on BOOK-17");
+  Assert.Visible("Accepted the criterion.");
+}
+
+[Test]
+void The_composer_sends_on_Enter_once_something_is_written() {
+  Ui.Viewport(1440);
+  Ui.Visit("/dev/parts/conversation");
+  Assert.DisabledBecause("Send", "Write something first.");
+  Ui.Fill("Ask, plan or change something in BOOK-CONFIRM", "Split BOOK-17 into the mail and the file");
+  Assert.Enabled("Send");
+  Ui.Press("Enter");
+  Assert.Visible("Split BOOK-17 into the mail and the file", within: "Anna Berg, just now");
+  Assert.Visible("Writing…", within: "Planner, just now");
+  Assert.Value("Ask, plan or change something in BOOK-CONFIRM", "");
+  Ui.Fill("Ask, plan or change something in BOOK-CONFIRM", "And BOOK-26?");
+  Ui.Click("Send");
+  Assert.Visible("And BOOK-26?");
+  Ui.Shot("conversation-1440");
+  Ui.Viewport(390);
+  Ui.Visit("/dev/parts/conversation");
+  Assert.NoOverflow();
+  Assert.Inside("Accept: create BOOK-26", "Create on BOOK-26");
+  Assert.Inside("Send", "Ask, plan or change something in BOOK-CONFIRM composer");
+  Ui.Shot("conversation-390");
+}
+
+[Test]
+void A_side_panel_stands_beside_the_column_closes_and_is_a_full_sheet_on_a_phone() {
+  Ui.Viewport(1440);
+  Ui.Visit("/dev/parts/conversation");
+  Assert.Visible("Find the gaps in BOOK-CONFIRM", within: "Planner");
+  Assert.RightOf("Find the gaps in BOOK-CONFIRM", "Confirmation mail with a calendar file");
+  Assert.Below("Send", "Find the gaps in BOOK-CONFIRM");
+  Assert.Visible("Arc · BOOK-CONFIRM", within: "Planner");
+  Ui.Click("Close Planner");
+  Assert.Hidden("Find the gaps in BOOK-CONFIRM");
+  Ui.Click("Open the planner");
+  Assert.Visible("Find the gaps in BOOK-CONFIRM", within: "Planner");
+  Ui.Viewport(390);
+  Ui.Visit("/dev/parts/conversation");
+  Assert.Dialog("Planner");
+  Assert.NoOverflow();
+  Ui.Shot("side-panel-390");
+  Ui.Press("Escape");
+  Assert.Hidden("Find the gaps in BOOK-CONFIRM");
+  Assert.Visible("Open the planner");
+}

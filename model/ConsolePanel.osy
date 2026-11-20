@@ -1,0 +1,49 @@
+namespace Osysharp.Look;
+
+/// A console panel (spec "Components", Panel): white, a 1 px border, radius 6, no shadow. With a `title` it has a
+/// header row `12px 16px` over a `border-inner` rule: the title (an h2, 13.5/600; 14 on a phone), a muted `count` after
+/// it (a count, or a short note of what the panel covers: "newest 20 builds" after "Size over time"), and `slot extras` at the right (summary badges; under the title on a phone). The default slot is its body, set
+/// edge to edge (a table, a list of rows). In a test the panel is the region `label`, else `title`.
+/// The panel does NOT clip what leaves it (PO1): a date field's calendar, a select's or a menu's list opens over its edge
+/// and stays pickable (the kit draws them in place, under the field, not in the browser's top layer). Its corners stay
+/// clean because what reaches them rounds itself to the panel's inside (`Radius.ConsolePanelTop`/`ConsolePanelFoot`):
+/// the head here, a `ConsoleTable`, and a list of rows (`ConsoleTapRow`s) in a stack with the foot's corners that clips.
+[Composable]
+component ConsolePanel(string title = "", string count = "", string label = "") {
+  render {
+    // The window, not the layout: a panel in a narrower column (a form beside its side panel) is still a desk's panel, its title 13.5.
+    var wide = Viewport.AtLeast(Tablet);
+    Stack(gap: 0, minW: "0", bg: Colors.ConsoleSurface, borderW: 1, border: Colors.ConsoleBorder, rounded: Radius.ConsoleCorner,
+          role: UiRole.Region, label: label != "" ? label : title) {
+      if (title != "") {
+        if (wide) {
+          Row(justify: Justify.Between, align: Align.Center, wrap: Wrapping.Wrap, gap: "12px", py: "12px", px: "16px", borderBW: 1,
+              border: Colors.ConsoleBorderInner, rounded: Radius.ConsolePanelTop, minW: "0") {
+            ConsolePanelHead(title, count, false);
+            Row(gap: "6px", wrap: Wrapping.Wrap, align: Align.Center) { Slot("extras"); }
+          }
+        } else {
+          Stack(gap: "8px", py: "12px", px: "16px", rounded: Radius.ConsolePanelTop, minW: "0") {
+            ConsolePanelHead(title, count, true);
+            Row(gap: "6px", wrap: Wrapping.Wrap, align: Align.Center) { Slot("extras"); }
+          }
+        }
+      }
+      Slot;
+    }
+  }
+}
+
+/// A panel's title (h2) with its muted count after it.
+[Composable, Part]
+component ConsolePanelHead(string title, string count, bool phone) {
+  render {
+    Row(gap: "8px", align: Align.Baseline, minW: "0") {
+      Text(title, role: UiRole.Heading, level: 2, fontSize: phone ? FontSize.ConsolePanelTitlePhone : FontSize.ConsolePanelTitle,
+           fontWeight: 600, lineHeight: "1.5", color: Colors.ConsoleText);
+      if (count != "") {
+        Text(count, fontSize: FontSize.ConsoleSmall, color: Colors.ConsoleText2);
+      }
+    }
+  }
+}

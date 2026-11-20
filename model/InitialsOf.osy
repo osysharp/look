@@ -1,0 +1,14 @@
+namespace Osysharp.Look;
+
+/// A person's initials for a `PersonChip`: the first letter of their first and last word, capitals ("Pia Planner" → "PP",
+/// "Rex" → "R"); "?" for no name.
+public string InitialsOf(string name) {
+  var words = name.Trim().Split(" ").Where(w => w != "").ToList();
+  if (words.Count == 0) {
+    return "?";
+  }
+  if (words.Count == 1) {
+    return words[0].Substring(0, 1).ToUpper();
+  }
+  return (words[0].Substring(0, 1) + words[words.Count - 1].Substring(0, 1)).ToUpper();
+}

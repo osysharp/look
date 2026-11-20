@@ -1,0 +1,184 @@
+// LC1: the console shell as a [Layout] (/dev/console-shell) with pages that draw their own heads, a 25-row rail that
+// scrolls in an 800 px window and lights a row by its pages' addresses, the switcher's list, the avatar's own menu,
+// a tab's count, and the console in dark; at 1440 and 390, photographed.
+
+using Osysharp.Look;
+using OsyrinLookTests;
+
+[Test]
+void The_console_shell_holds_a_layouts_pages_and_each_page_draws_its_own_head() {
+  Ui.Viewport(1440);
+  Ui.Visit("/dev/console-shell");
+  Assert.Visible("Everything the platform runs, at a glance.", within: "Overview header");
+  Assert.Visible("Beta approved", within: "Top bar");
+  Assert.RightOf("Account menu for ops@osyrin.test", "Breadcrumb");
+  Assert.Above("Breadcrumb", "Overview header");
+  Assert.LeftOf("Rail", "Overview header");
+  Assert.Above("Overview header", "Platform now");
+  Assert.Inside("Platform now", "Platform overview");
+  Assert.NoOverflow();
+  Ui.Shot("lc1-shell-1440");
+  Ui.Click("Org settings", within: "Rail");
+  Assert.OnPage("/dev/console-shell/org/northwind/settings");
+  Assert.Visible("Who may do what here.", within: "Settings");
+  Assert.Visible("northwind", within: "Breadcrumb");
+  Ui.Viewport(390);
+  Ui.Visit("/dev/console-shell");
+  Assert.Hidden("Rail");
+  Assert.Clickable("Open menu");
+  Assert.Clickable("Account menu for ops@osyrin.test");
+  Assert.Hidden("Breadcrumb");
+  Assert.Above("Overview header", "Platform now");
+  Assert.NoOverflow();
+  Ui.Shot("lc1-shell-390");
+  Ui.Click("Open menu");
+  Ui.Click("Org settings", within: "Menu");
+  Assert.OnPage("/dev/console-shell/org/northwind/settings");
+  Assert.Hidden("Menu");
+  Assert.Clickable("Back to northwind");
+  Ui.Shot("lc1-shell-settings-390");
+}
+
+[Test]
+void A_rail_row_is_lit_by_its_pages_the_longest_address_wins_and_a_tall_rail_scrolls() {
+  Ui.Viewport(1440, 800);
+  Ui.Visit("/dev/console-shell/org/masoli");
+  Ui.Within("Rail") {
+    Assert.Current("Organizations", true);
+    Assert.Current("Org settings", false);
+  }
+  Ui.Visit("/dev/console-shell/org/northwind/settings");
+  Ui.Within("Rail") {
+    Assert.Current("Org settings", true);
+    Assert.Current("Organizations", false);
+  }
+  Assert.Shorter("Rail rows", "Window");
+  Assert.Clickable("Platform 25");
+  Assert.NoOverflow();
+  Ui.Shot("lc1-rail-25-rows-1440x800");
+  Ui.Viewport(390, 800);
+  Ui.Visit("/dev/console-shell/org/masoli");
+  Ui.Click("Open menu");
+  Ui.Within("Menu") {
+    Assert.Current("Organizations", true);
+  }
+  Assert.Clickable("Platform 25");
+  Ui.Shot("lc1-rail-25-rows-390-menu");
+}
+
+[Test]
+void The_switcher_opens_its_places_under_it_with_the_current_one_marked() {
+  Ui.Viewport(1440);
+  Ui.Visit("/dev/console-shell");
+  Assert.Hidden("Switch to");
+  Ui.Click("Osyrin, switch");
+  Assert.Visible("Your organisations", within: "Switch to");
+  Assert.Current("Osyrin platform", true);
+  Assert.Current("Northwind Health", false);
+  Assert.Below("Northwind Health", "Osyrin, switch");
+  Ui.Shot("lc1-switcher-1440");
+  Ui.Click("Northwind Health", within: "Switch to");
+  Assert.OnPage("/dev/console-shell/org/northwind");
+  Assert.Hidden("Switch to");
+  Ui.Viewport(390);
+  Ui.Visit("/dev/console-shell");
+  Ui.Click("Open menu");
+  Ui.Click("Osyrin, switch", within: "Menu");
+  Assert.Visible("Masoli", within: "Switch to");
+  Assert.NoOverflow();
+  Ui.Shot("lc1-switcher-390");
+}
+
+[Test]
+void The_avatar_menu_holds_the_apps_own_entries() {
+  Ui.Viewport(1440);
+  Ui.Visit("/dev/console-shell");
+  Ui.Click("Account menu for ops@osyrin.test");
+  Assert.Visible("Your privacy", within: "Account menu");
+  Assert.Visible("Light or dark", within: "Account menu");
+  Assert.Hidden("Sign out");
+  Ui.Shot("lc1-avatar-menu-1440");
+  Ui.Click("Your privacy");
+  Assert.Hidden("Account menu");
+  Assert.Visible("What Osyrin keeps about you.");
+  Ui.Viewport(390);
+  Ui.Visit("/dev/console-shell");
+  Ui.Click("Account menu for ops@osyrin.test");
+  Assert.Visible("Your privacy", within: "Account menu");
+  Assert.NoOverflow();
+  Ui.Shot("lc1-avatar-menu-390");
+}
+
+[Test]
+void A_console_tab_shows_its_count_only_while_it_is_more_than_nothing() {
+  Ui.Viewport(1440);
+  Ui.Visit("/dev/console-shell");
+  Assert.Visible("3", within: "Held");
+  Assert.RightOf("3", "All");
+  Ui.Shot("lc1-tab-count-1440", within: "Overview header");
+  Ui.Viewport(390);
+  Ui.Visit("/dev/console-shell");
+  Assert.Visible("3", within: "Held");
+  Ui.Shot("lc1-tab-count-390", within: "Overview header");
+}
+
+[Test]
+void The_console_has_a_dark_mode_rail_and_all() {
+  Assert.Token("Colors.ConsolePaper", "#121110", mode: "dark");
+  Assert.Token("Colors.ConsoleRail", "#16142B", mode: "dark");
+  Assert.Token("Colors.ConsoleRailInk", "#FFFFFF", mode: "dark");
+  Ui.Theme("dark");
+  Ui.Viewport(1440);
+  Ui.Visit("/dev/console");
+  Assert.Readable("1 of 2 organizations needs somebody: held, suspended or without members.");
+  Assert.Readable("Organizations", within: "Breadcrumb");
+  Assert.Readable("Beta approved");
+  Assert.Readable("New organization");
+  Assert.NoOverflow();
+  Ui.Shot("lc1-console-dark-1440");
+  Ui.Visit("/dev/console-shell");
+  Ui.Shot("lc1-shell-dark-1440");
+  Ui.Viewport(390);
+  Ui.Visit("/dev/console");
+  Assert.Readable("New organization");
+  Assert.NoOverflow();
+  Ui.Shot("lc1-console-dark-390");
+  Ui.Click("Open menu");
+  Ui.Shot("lc1-console-dark-390-menu");
+  Ui.Theme("light");
+  Ui.Viewport(1440);
+  Ui.Visit("/dev/console");
+  Assert.Token("Colors.ConsolePaper", "#F4F3F0");
+  Assert.Token("Colors.ConsoleRail", "#1E1B3A");
+}
+
+[Test]
+void Console_tabs_on_a_phone_bring_the_current_one_into_view_and_fade_the_edge() {
+  Ui.Viewport(390);
+  Ui.Visit("/dev/console-tabs");
+  Assert.Current("Floor", true);
+  Assert.Inside("Floor", "Policy tabs");
+  Assert.Visible("Floor", within: "Policy tabs");
+  Ui.Shot("ct-tabs-390");
+}
+
+[Test]
+void A_bare_console_tab_strip_on_a_phone_shows_the_current_tab_and_fades_its_far_edge_without_widening_the_page() {
+  Ui.Viewport(390);
+  Ui.Visit("/dev/console-tabs-bare");
+  Assert.Current("Performance", true);
+  Assert.Inside("Performance", "Measures tabs");
+  Assert.Clickable("Performance");
+  Assert.LeftOf("Reviews", "Performance");
+  Assert.LeftOf("Throughput", "Quality");
+  Assert.NoOverflow();
+  Ui.Shot("ct-bare-390");
+}
+
+[Test]
+void The_phone_bars_menu_mark_is_in_the_rails_ink_and_shows_on_the_rail_in_both_themes() {
+  // The mark's three bars are drawn in the button's ink (Colors.ConsoleRailInk); a non-text icon needs 3:1 (WCAG 1.4.11).
+  Assert.Contrast("Colors.ConsoleRailInk", "Colors.ConsoleRail", 3);
+  Assert.Contrast("Colors.ConsoleRailInk", "Colors.ConsoleRail", 3, mode: "dark");
+  Assert.Contrast("Colors.ConsoleSurface", "Colors.ConsoleRail", 3);
+}

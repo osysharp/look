@@ -1,0 +1,29 @@
+namespace Osysharp.Look;
+
+// The header's "More ▾" (Release's "More release actions"): an outlined button that opens a small menu under it. The
+// page holds whether it is open, so choosing an item can close it.
+
+/// The button (`LookButton`, outlined) and, while `open`, its menu 50 px below, its right edge on the button's: 240
+/// wide, white on the Line hairline, radius 10, the drawer's lift, `6px` round its items (`MenuAction`); Escape closes it.
+/// In a test: `Ui.Click("More ▾")`, then the item by its words.
+/// IN A TABLE ROW (a row's own actions): `announce` names each row's button apart, its words first ("More for
+/// GH_TOKEN"; a test clicks it by that name); `small` the band's 36 px button, its menu 42 below. The menu opens over the
+/// card's edge — a `SectionCard`/`TableCard` does not clip — so the LAST row's menu is whole. On a phone pass
+/// `popover: false` (`Viewport.AtLeast(Tablet)`): the button alone is drawn and the page draws the items in a
+/// `MenuSheet` at its own level, as `ChipMenu` does.
+[Composable]
+component MoreMenu(string label, bool open, Action onToggle, string menuLabel = "More actions", string announce = "", bool small = false,
+                   bool popover = true) {
+  render {
+    Box(position: Position.Relative) {
+      LookButton(label, onToggle, small: small, announce: announce);
+      if (open && popover) {
+        Stack(gap: 0, position: Position.Absolute, top: small ? "42px" : "50px", right: "0", z: ZIndex.Popover, w: "240px", p: "6px",
+              bg: Colors.Surface, borderW: 1, border: Colors.Border, rounded: Radius.Banner, shadow: Shadow.DrawerLift, role: UiRole.Menu,
+              label: menuLabel, onEscape: onToggle) {
+          Slot;
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,154 @@
+namespace OsyrinLookTests;
+
+using Osysharp.Look;
+
+/// The console shell as a `[Layout]` (LC1), as Admin's platform frame will use it: a rail of 25 rows under six headings
+/// (taller than an 800 px window), an organisation row lit by its pages' addresses (`LitBy`), a switcher with two groups
+/// of places, an avatar menu of the app's own entries, and pages under it that draw their own heads.
+[Layout]
+[AllowAnonymous]
+component ConsoleShellSample() {
+  string searchText = "";
+  bool privacyOpen = false;
+
+  action OpenPrivacy() {
+    privacyOpen = true;
+  }
+
+  action ClosePrivacy() {
+    privacyOpen = false;
+  }
+
+  action SwitchTheme() {
+    Theme.Toggle();
+  }
+
+  List<ConsoleNavItem> Rows(string prefix, int from, int count) {
+    var rows = new List<ConsoleNavItem>();
+    foreach (var n in Enumerable.Range(from, count)) {
+      rows.Add(new ConsoleNavItem { Label = prefix + " " + n.ToString(), To = "/dev/console-shell/row/" + n.ToString(), Icon = Icons.Folder });
+    }
+    return rows;
+  }
+
+  ConsoleChrome Chrome() => new ConsoleChrome {
+    Product = "Osyrin",
+    Context = "Platform",
+    Home = "/dev/console-shell",
+    Address = "ops@osyrin.test",
+    Initials = "O",
+    Badge = "Beta approved",
+    Switcher = [
+      new LookSwitcherGroup { Label = "Platform", Apps = [ new AppLink { Label = "Osyrin platform", To = "/dev/console-shell", Current = true } ] },
+      new LookSwitcherGroup { Label = "Your organisations", Apps = [
+        new AppLink { Label = "Northwind Health", To = "/dev/console-shell/org/northwind" },
+        new AppLink { Label = "Masoli", To = "/dev/console-shell/org/masoli" },
+      ] },
+    ],
+    Groups = [
+      new ConsoleNavGroup { Items = [ new ConsoleNavItem { Label = "Overview", To = "/dev/console-shell", Icon = Icons.Home, Exact = true } ] },
+      new ConsoleNavGroup { Label = "Organizations", Items = [
+        new ConsoleNavItem { Label = "Organizations", To = "/dev/console-shell/orgs", Icon = Icons.Building, Count = "2", LitBy = [ "/dev/console-shell/org" ] },
+        new ConsoleNavItem { Label = "Org settings", To = "/dev/console-shell/org/northwind/settings", Icon = Icons.Gear },
+        new ConsoleNavItem { Label = "Applications", To = "/dev/console-shell/row/apps", Icon = Icons.Folder },
+      ] },
+      new ConsoleNavGroup { Label = "Runtime", Items = Rows("Runtime", 4, 5) },
+      new ConsoleNavGroup { Label = "Releases", Items = Rows("Release", 9, 4) },
+      new ConsoleNavGroup { Label = "People", Items = Rows("People", 13, 5) },
+      new ConsoleNavGroup { Label = "Money", Items = Rows("Money", 18, 4) },
+      new ConsoleNavGroup { Label = "Platform", Items = Rows("Platform", 22, 4) },
+    ],
+  };
+
+  List<ConsoleSearchGroup> Found() => new List<ConsoleSearchGroup>();
+
+  render {
+    ConsoleShell {
+      slot rail { ConsoleShellRail(Chrome()); }
+      // An `OnPress` is set only at a call site, so the bar's chrome, which holds the avatar's menu, is built here.
+      slot bar {
+        ConsoleShellBar(new ConsoleChrome {
+          Product = "Osyrin",
+          Context = "Platform",
+          Home = "/dev/console-shell",
+          Address = "ops@osyrin.test",
+          Initials = "O",
+          Badge = "Beta approved",
+          Menu = [
+            new MenuAction { Label = "Your account", To = "/dev/console-shell" },
+            new MenuAction { Label = "Your privacy", OnPress = OpenPrivacy },
+            new MenuAction { Label = "Light or dark", OnPress = SwitchTheme },
+          ],
+        }, searchText, Found());
+      }
+      Outlet;
+      if (privacyOpen) {
+        Dialog(title: "Your privacy", onDismiss: ClosePrivacy) { Text("What Osyrin keeps about you."); }
+      }
+    }
+    // A mark the window's height, for the tests to measure the rail against.
+    Box(position: Position.Fixed, top: "0", right: "0", w: "1px", h: "100vh", label: "Window", decorative: true);
+  }
+}
+
+/// The shell's overview: its own head (breadcrumb, title, a badge, a description, tabs with a count, a primary button)
+/// and a working area.
+[Route("/dev/console-shell")]
+[AllowAnonymous]
+[Title("Overview")]
+[Layout(ConsoleShellSample)]
+[Render(CSR)]
+component ConsoleShellOverviewPage() {
+  int presses = 0;
+
+  action Press() {
+    presses = presses + 1;
+  }
+
+  render {
+    ConsolePageHead([ new Crumb { Label = "Platform", To = "/dev/console-shell" }, new Crumb { Label = "Overview" } ], "Overview",
+                    description: "Everything the platform runs, at a glance.",
+                    tabs: [ new TabItem { Label = "All", To = "/dev/console-shell" }, new TabItem { Label = "Held", To = "/dev/console-shell/held", Count = "3" },
+                            new TabItem { Label = "Closed", To = "/dev/console-shell/closed", Count = "0" } ],
+                    current: "/dev/console-shell") {
+      slot badge { ConsoleBadge("Live", ConsoleTone.Ok, dot: true); }
+      slot primary { ConsoleButton("New organization", Press, primary: true, wide: true) { Icon(Icons.Plus, size: 14); } }
+    }
+    ConsoleWork("Platform overview") {
+      ConsolePanel("Platform now") { Text("2 organizations, 5 applications.", p: "16px"); }
+    }
+  }
+}
+
+/// An organisation's page: lit in the rail by "Organizations" (`LitBy`), its settings page by its own row.
+[Route("/dev/console-shell/org/{slug}")]
+[AllowAnonymous]
+[Title("Organization")]
+[Layout(ConsoleShellSample)]
+[Render(CSR)]
+component ConsoleShellOrgPage(string slug) {
+  render {
+    ConsolePageHead([ new Crumb { Label = "Organizations", To = "/dev/console-shell/orgs" }, new Crumb { Label = slug } ], slug) {
+      slot badge { ConsoleBadge(slug, ConsoleTone.Outline); }
+    }
+    ConsoleWork(slug) {
+      ConsolePanel("Account") { Text("The organisation's account.", p: "16px"); }
+    }
+  }
+}
+
+/// An organisation's settings: its own rail row is longer than "Organizations"' `LitBy`, so it is the one lit.
+[Route("/dev/console-shell/org/{slug}/settings")]
+[AllowAnonymous]
+[Title("Org settings")]
+[Layout(ConsoleShellSample)]
+[Render(CSR)]
+component ConsoleShellOrgSettingsPage(string slug) {
+  render {
+    ConsolePageHead([ new Crumb { Label = "Organizations", To = "/dev/console-shell/orgs" }, new Crumb { Label = slug, To = "/dev/console-shell/org/" + slug },
+                      new Crumb { Label = "Settings" } ], "Settings");
+    ConsoleWork("Settings") {
+      ConsolePanel("Policy") { Text("Who may do what here.", p: "16px"); }
+    }
+  }
+}

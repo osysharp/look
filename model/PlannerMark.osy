@@ -1,0 +1,12 @@
+namespace Osysharp.Look;
+
+/// The planner's mark before what the planner says: a small hexagon in the accent, 7.25 px wide (the board's 14 px mark
+/// as its flex row shrinks it). Decorative.
+[Composable]
+component PlannerMark() {
+  render {
+    Box(w: "7.25px", minW: "7.25px", h: "14px", decorative: true) {
+      Text("⬡", fontSize: "8px", lineHeight: "14px", color: Colors.Primary);
+    }
+  }
+}

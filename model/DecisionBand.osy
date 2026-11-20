@@ -1,0 +1,22 @@
+namespace Osysharp.Look;
+
+/// A decision that waits on the reader, at the top of an object's page (Release "Approve Claims Desk 1.8.1 for
+/// production"): white inside the you line, radius 14, `18px 20px`; its question 20/600 over a 13 px Ink 3 line, 6
+/// apart, from a 520 px basis; the block (its one primary button) on the right, 12 off. In a test it is the region of
+/// its question.
+[Composable]
+component DecisionBand(string question, string meta = "") {
+  render {
+    Row(justify: Justify.Between, align: Align.Center, wrap: Wrapping.Wrap, gap: "12px", py: "18px", px: "20px", bg: Colors.Surface, borderW: 1,
+        border: Colors.YouLine, rounded: Radius.Panel, label: question) {
+      Stack(gap: "6px", grow: 1, basis: "520px", minW: "0") {
+        Text(question, role: UiRole.Heading, level: 2, fontSize: FontSize.Heading, fontWeight: FontWeight.Semibold, color: Colors.OnSurface,
+             lineHeight: "normal");
+        if (meta != "") {
+          Text(meta, fontSize: FontSize.Label, color: Colors.Ink3, lineHeight: "normal");
+        }
+      }
+      Row(gap: "8px", align: Align.Center, wrap: Wrapping.Wrap) { Slot; }
+    }
+  }
+}

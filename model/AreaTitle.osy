@@ -1,0 +1,20 @@
+namespace Osysharp.Look;
+
+// The v3 type scale as parts (Components §2). Headings are headings — a role and a level — so a test reads them as
+// text: `Assert.Visible("Patient Portal 2.4")`.
+
+/// A page's or an object's title: 28/700, the page's level-1 heading. `tight` sets its lines 1.2 apart (the page
+/// boards' header); without it the line height is the font's own, as the Components board's object header draws it.
+[Composable]
+component AreaTitle(string text, bool tight = true) {
+  variants {
+    base {
+      FontSize = FontSize.AreaTitle;
+      FontWeight = FontWeight.Heavy;
+      Color = Colors.OnSurface;
+      LineHeight = "normal";
+    }
+    tight { LineHeight = "1.2"; }
+  }
+  render { Text(text, role: UiRole.Heading, level: 1); }
+}

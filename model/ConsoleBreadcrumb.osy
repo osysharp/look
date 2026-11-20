@@ -1,0 +1,26 @@
+namespace Osysharp.Look;
+
+/// The breadcrumb: 12.5 text-2, a "/" 8 either side, the earlier crumbs links (those with a `To`), the last the page in
+/// text at 500. Named "Breadcrumb".
+[Composable, Part]
+component ConsoleBreadcrumb(List<Crumb> trail) {
+  render {
+    Row(gap: "8px", align: Align.Center, fontSize: FontSize.ConsoleControl, color: Colors.ConsoleText2, minW: "0", role: UiRole.Navigation,
+        label: "Breadcrumb") {
+      foreach (var index in Enumerable.Range(0, trail.Count())) {
+        if (index > 0) {
+          Text("/", color: Colors.ConsoleCrumbMark, decorative: true);
+        }
+        if (index == trail.Count() - 1) {
+          Text(trail[index].Label, color: Colors.ConsoleText, fontWeight: 500);
+        } else {
+          if (trail[index].To != "") {
+            Link(trail[index].To, label: trail[index].Label) { Text(trail[index].Label, color: Colors.ConsoleText2); }
+          } else {
+            Text(trail[index].Label);
+          }
+        }
+      }
+    }
+  }
+}

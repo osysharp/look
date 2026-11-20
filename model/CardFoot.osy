@@ -1,0 +1,16 @@
+namespace Osysharp.Look;
+
+/// A section card's foot line: 13 Ink 2 at the font's own line height, `10px 20px 14px`, under a Line 2 rule ("Also in
+/// 2.4: …"); the block continues it inline (a `KeyLink` among the words). `quiet`: Ink 3.
+[Composable]
+component CardFoot(string text = "", bool quiet = false) {
+  render {
+    Box(fontSize: FontSize.Label, color: quiet ? Colors.Ink3 : Colors.Ink2, lineHeight: "normal", pt: "10px", px: "20px", pb: "14px", borderTW: 1,
+        border: Colors.Line2) {
+      if (text != "") {
+        Text(text, whiteSpace: WhiteSpace.PreWrap);
+      }
+      Slot;
+    }
+  }
+}

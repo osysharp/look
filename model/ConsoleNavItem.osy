@@ -1,0 +1,57 @@
+namespace Osysharp.Look;
+
+/// One rail row: `Label` to `To`, its 16 px `Icon` (or, with `Dot`, a 6 px status dot in `DotTone` in its place), a
+/// small `Count` at the right. Lit when the address is `To` (`Exact`) or under it, or one of `LitBy` or under it (other
+/// addresses that are this row's pages, e.g. an organisation's pages under "/org/" lighting "Organizations"); across the
+/// rail the row whose matching address is the longest wins (`ConsoleLitRow`).
+public class ConsoleNavItem {
+  public string Label = "";
+  public string To = "";
+  public Icons Icon = Icons.Folder;
+  public bool Dot = false;
+  public ConsoleDotTone DotTone = ConsoleDotTone.RailNeutral;
+  public string Count = "";
+  public bool Exact = false;
+  public List<string> LitBy = new List<string>();
+}
+
+/// Whether a rail row is the page in view, taken alone: its address, or (not `Exact`) an address under it, or one of
+/// its `LitBy` or an address under one. The rail lights one row of those (`ConsoleLitRow`).
+public bool ConsoleCurrent(ConsoleNavItem item, string path) {
+  return ConsoleMatch(item, path) >= 0;
+}
+
+/// How long the row's address that matches `path` is: `To` (only `path` itself when `Exact`) or a `LitBy` address,
+/// each matching itself and the addresses under it; -1 when none does.
+public int ConsoleMatch(ConsoleNavItem item, string path) {
+  var best = -1;
+  if (path == item.To || (!item.Exact && path.StartsWith(item.To + "/"))) {
+    best = item.To.Length;
+  }
+  foreach (var address in item.LitBy) {
+    if ((path == address || path.StartsWith(address + "/")) && address.Length > best) {
+      best = address.Length;
+    }
+  }
+  return best;
+}
+
+/// The rail row the address lights, as its `ConsoleRowKey`: of the rows that match `path`, the one whose matching
+/// address is the longest, the first of equals; "" when none does.
+public string ConsoleLitRow(List<ConsoleNavGroup> groups, string path) {
+  var best = -1;
+  var lit = "";
+  foreach (var group in groups) {
+    foreach (var item in group.Items) {
+      var match = ConsoleMatch(item, path);
+      if (match > best) {
+        best = match;
+        lit = ConsoleRowKey(item);
+      }
+    }
+  }
+  return lit;
+}
+
+/// A rail row's key: its address and its words.
+public string ConsoleRowKey(ConsoleNavItem item) => item.To + "|" + item.Label;

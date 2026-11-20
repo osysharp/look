@@ -1,0 +1,25 @@
+namespace Osysharp.Look;
+
+/// What you may do here and whom to ask to change it: "You can view this. To change it, ask someone with policy admin
+/// (Org admins: Jonas Lindqvist)." (14/1.5) on the neutral wash; the block holds its link. The permission is words in the
+/// text face; `mono`: it is a code name ("settings.write"), set in the key face at 13.
+[Composable]
+component PermissionNote(string permission, string heldBy, bool mono = false) {
+  render {
+    Box(h: "100%", label: "Permission note") {
+      StateCard(StateKind.Note) {
+        StateOverline("Permission note");
+        Box(fontSize: FontSize.Body, color: Colors.OnSurface, lineHeight: "1.5") {
+          Text("You can view this. To change it, ask someone with ");
+          if (mono) {
+            Text(permission, fontFamily: Font.KeyFace, fontSize: FontSize.Label);
+          } else {
+            Text(permission);
+          }
+          Text(" (" + heldBy + ").");
+        }
+        Row(gap: 0, wrap: Wrapping.Wrap, align: Align.Center) { Slot; }
+      }
+    }
+  }
+}

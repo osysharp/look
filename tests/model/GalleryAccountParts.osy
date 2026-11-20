@@ -1,0 +1,88 @@
+namespace OsyrinLookTests;
+
+using Osysharp.Look;
+
+// Admin's organisation page as console v6 draws it, with the look's parts for the asks of Admin's SHOTS-1 and SHOTS-3
+// (LK8, LK10): the band's state chip on the title's line, the account card's ruled facts, an address in the key face
+// under its label, a trend card with a note after its title and an axis without numbers, and the applications table
+// with the row that needs somebody on the warm wash and a chevron at each row's end (/dev/organisation).
+
+/// One application of the sample organisation; its `Id` makes the loop the table's counted rows.
+public class SampleApplication {
+  public string Id = "";
+  public string Name = "";
+  public string State = "";
+  public string Members = "";
+  public bool Needs = false;
+}
+
+/// The sample organisation's applications: the middle one has no members, so it needs somebody.
+List<SampleApplication> SampleApplications() {
+  return [ new SampleApplication { Id = "a1", Name = "Claims Desk", State = "Running", Members = "4" },
+           new SampleApplication { Id = "a2", Name = "Patient Portal", State = "No members", Members = "0", Needs = true },
+           new SampleApplication { Id = "a3", Name = "Rota", State = "Running", Members = "8" } ];
+}
+
+/// The organisation page.
+[Route("/dev/organisation")]
+[AllowAnonymous]
+[Title("Northwind Health")]
+[Render(CSR)]
+component OrganisationGalleryPage() {
+  string opened = "";
+  action Open(string name) { opened = name + " opened"; }
+  render {
+    MockupFrame() {
+      PageBand("Northwind Health", [new Crumb { Label = "Organisations", To = "/dev/organisation" }]) {
+        slot status {
+          StatusChip("Active", StatusTone.Ok);
+        }
+        slot chips {
+          PlainChip("Team plan");
+        }
+        LookButton("Suspend…", () => Open("Suspend"));
+      }
+      PageColumn() {
+        Stack(gap: "18px", minW: "0") {
+          SectionCard("Account") {
+            FactsGrid("Account facts", ruled: true) {
+              FactCell("Plan", "Team", ruled: true);
+              FactCell("Slug", "northwind-health", mono: true, ruled: true);
+              FactCell("Apps", "3", ruled: true);
+              FactCell("Created", "3 Mar 2026", ruled: true);
+            }
+          }
+          SectionCard("Organisation settings") {
+            FieldRow("Address", help: "https://northwind-health.eu-north.osyrin.app", helpMono: true) {
+              Text("Set when the organisation was made", fontSize: FontSize.Label, color: Colors.Ink2);
+            }
+            SettingAlways("Organisation slug", help: "northwind-health", word: "Fixed", note: "Set when the organisation was made.");
+          }
+          SectionCard("Size over time", note: "newest 20 builds") {
+            Stack(gap: "0", px: "20px", pb: "16px", pt: "8px", minW: "0") {
+              Row(h: "56px", gap: "3px", align: Align.End, minW: "0", decorative: true) {
+                foreach (var h in [22, 24, 23, 27, 30, 29, 31, 30, 34, 36, 35, 38, 37, 40, 42, 41, 44, 47, 46, 50]) {
+                  Box(grow: 1, basis: "0", h: h + "px", bg: Colors.Series1, rounded: "2px 2px 0 0");
+                }
+              }
+              TrendAxis("20 builds ago", "newest");
+            }
+          }
+          SectionCard("Applications", sub: "1 of 3 needs somebody") {
+            CardTable("Applications table", "minmax(0, 1fr) 150px 90px 20px", ["Application", "State", "Members", ""], quietHead: true) {
+              foreach (var app in SampleApplications()) {
+                CardTableRow("minmax(0, 1fr) 150px 90px 20px", label: app.Name, onPress: () => Open(app.Name), need: app.Needs, chevron: true,
+                             heads: ["Application", "State", "Members", ""]) {
+                  Text(app.Name, fontWeight: FontWeight.Semibold, role: UiRole.GridCell);
+                  TableCell { StatusChip(app.State, app.Needs ? StatusTone.You : StatusTone.Ok); }
+                  Text(app.Members, role: UiRole.GridCell);
+                }
+              }
+            }
+          }
+          if (opened != "") { Text(opened); }
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,61 @@
+namespace Osysharp.Look;
+
+// The section card every v3 page puts its content in (ProductPlan's release cards, Release's "Contents"): white on the
+// Line hairline, radius 14, clipped, a head and then its rows, each ruled off by Line 2. The kit's `Card` is padded all
+// round and has a shadow; the board's head and rows run edge to edge, so the card is drawn here.
+
+/// A section card and its head, then the block.
+/// `band: true` is ProductPlan's release card: the head `16px 20px 10px`, the eyebrow (12/600 uppercase, Ink 4) 8 px
+/// BESIDE the title (20/700, the section's level-2 heading), under them 4 px down a 14 px Ink 2 line (`sub`, which the
+/// `sub` slot continues inline — a `StatusChip`), and the link (`GoLink`, 14/600) top right, 10 px off.
+/// Without it, Release's "Contents" head: `16px 20px 6px`, the title 18/700 and the link on its baseline, 8 px off.
+/// `note`: a short quiet word AFTER the title, on its baseline (13, Ink 3) — what the card's figures cover, as m11a draws
+/// "Size over time  newest 20 builds". Not the `eyebrow` (an overline before the title) and not `sub` (a line under it).
+/// In a test it is the region of its title: `Assert.Visible("UPKEEP-41", within: "Contents · 4 slices")`.
+/// `actions: true` draws the `actions` slot at the right of the head, after the link and 16 px from it, the two together
+/// (the Item board's "Add a part"): the card's own small buttons.
+/// The card does NOT clip what leaves it (L1): a row's menu (`MoreMenu`) and a hover title (`HoverTitle`, `ClampText`,
+/// `ReadinessMarks`) on its last row open over its edge. Its corners are its own border's; what is drawn inside keeps off
+/// them (no part of the look paints a background at the card's edge). `clip: true` cuts at the edge as before L1.
+[Composable]
+component SectionCard(string title, string eyebrow = "", string sub = "", string linkLabel = "", string linkTo = "", bool band = false,
+                      bool actions = false, bool clip = false, string note = "") {
+  render {
+    Stack(gap: 0, bg: Colors.Surface, borderW: 1, border: Colors.Border, rounded: Radius.Panel, overflow: clip ? Overflow.Hidden : Overflow.Visible,
+          label: title) {
+      Row(justify: Justify.Between, align: band ? Align.Start : Align.Baseline, wrap: Wrapping.Wrap, gap: band ? "10px" : "8px", pt: "16px", px: "20px",
+          pb: band ? "10px" : "6px") {
+        Stack(gap: "4px", minW: "0") {
+          Row(gap: "8px", align: note != "" ? Align.Baseline : Align.Center, wrap: note != "" ? Wrapping.Wrap : Wrapping.NoWrap) {
+            if (eyebrow != "") {
+              Eyebrow(eyebrow);
+            }
+            Text(title, role: UiRole.Heading, level: 2, fontSize: band ? FontSize.Heading : FontSize.SectionTitle, fontWeight: FontWeight.Heavy,
+                 color: Colors.OnSurface, lineHeight: "normal");
+            if (note != "") {
+              Text(note, fontSize: FontSize.Label, color: Colors.Ink3, lineHeight: "normal");
+            }
+          }
+          if (sub != "") {
+            Box(fontSize: FontSize.Body, color: Colors.Ink2, lineHeight: "normal") {
+              Text(sub + " ", whiteSpace: WhiteSpace.PreWrap);
+              Slot("sub");
+            }
+          }
+        }
+        if (actions) {
+          // The link beside the actions, together at the right (L1: a table card's "Add …" beside its link).
+          Row(gap: "16px", align: Align.Center, wrap: Wrapping.Wrap, shrink: 0) {
+            if (linkLabel != "") {
+              GoLink(linkLabel, linkTo);
+            }
+            Row(gap: "8px", align: Align.Center, shrink: 0) { Slot("actions"); }
+          }
+        } else if (linkLabel != "") {
+          GoLink(linkLabel, linkTo);
+        }
+      }
+      Slot;
+    }
+  }
+}

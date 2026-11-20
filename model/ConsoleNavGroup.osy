@@ -1,0 +1,7 @@
+namespace Osysharp.Look;
+
+/// A group of rail rows under an uppercase heading (`Label`; none for the first group, under the switcher).
+public class ConsoleNavGroup {
+  public string Label = "";
+  public List<ConsoleNavItem> Items = new List<ConsoleNavItem>();
+}

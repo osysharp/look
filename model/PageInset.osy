@@ -1,0 +1,6 @@
+namespace Osysharp.Look;
+
+/// How far a page stands in from the shell's page region on every side, which a `PageBand` reaches back over: 24 px,
+/// the padding the Ui kit's `WorkspaceFrame` gives a page (`p: 6`), and what `LookShell` gives one itself when it is
+/// `padded`.
+public string PageInset() => "24px";

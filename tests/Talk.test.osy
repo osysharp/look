@@ -1,0 +1,94 @@
+// The design conversation's parts (designer.dc.html): plain turns under a one-word speaker, the capture line with its
+// levels and Move · Undo, the decision card in v3's template with nothing chosen and the answer held until a choice, and
+// the composer with what the talk is about (/dev/panes).
+
+using Osysharp.Look;
+using OsyrinLookTests;
+
+[Test]
+void A_turn_is_plain_text_under_its_speaker_and_the_capture_line_says_the_levels() {
+  Ui.Viewport(1440);
+  Ui.Visit("/dev/panes");
+  Assert.Visible("Let's do reminders before a visit.", within: "You, 28 min ago");
+  Assert.Visible("Designer", within: "Designer, 27 min ago");
+  Assert.Visible("Arc", within: "Added Send the reminder by text");
+  Assert.Visible("Slice", within: "Added Send the reminder by text");
+  Assert.Visible("Reminders before a visit", within: "Added Send the reminder by text");
+  Assert.Visible(", with a goal and three outcomes", within: "Added Send the reminder by text");
+  Ui.Click("Undo: Added Send the reminder by text");
+  Assert.Visible("Undo on send");
+  Ui.Click("Move: Added Expire an offer after two hours");
+  Assert.Visible("Move on expire");
+  Ui.Click("Send the reminder by text", within: "Added Send the reminder by text");
+  Assert.Visible("Open on send");
+  Assert.NoOverflow();
+}
+
+[Test]
+void A_choice_in_the_conversation_has_no_option_chosen_until_you_choose() {
+  Ui.Viewport(1440);
+  Ui.Visit("/dev/panes");
+  var question = "Does giving a mobile number count as agreeing to reminder texts?";
+  Assert.Visible("Recommended", within: question);
+  Assert.Checked("No, the patient says yes to texts", false);
+  Assert.Checked("Yes, a given number is enough", false);
+  Assert.DisabledBecause("Answer", "Choose an answer first.");
+  Ui.Shot("decision-card-1440", within: question);
+  Assert.Visible("For · reaches everyone from day one.", within: question);
+  Assert.Visible("Against · needs an exception to the messaging policy.", within: question);
+  Assert.Visible("Who acts: the designer adds or leaves out the opt-in, and writes the answer into the outcomes of Send the reminder by text.",
+                 within: question);
+  Ui.Click("Yes, a given number is enough");
+  Assert.Checked("Yes, a given number is enough", true);
+  Assert.Enabled("Answer");
+  Ui.Shot("decision-card-chosen-1440", within: question);
+  Ui.Click("Answer");
+  Assert.Visible("Answered on number");
+  Ui.Click("Talk it through");
+  Assert.Visible("Talk it through on choice");
+}
+
+[Test]
+void The_choice_is_made_from_the_keyboard() {
+  Ui.Viewport(1440);
+  Ui.Visit("/dev/panes");
+  Ui.Fill("Talk about Waiting list", "x");
+  // Back from the composer: the about chip's ×, the last turn's Undo, Move and link, then the card's "Talk it through".
+  foreach (var step in Enumerable.Range(0, 5)) { Ui.Press("Shift+Tab"); }
+  Assert.Focused("Talk it through");
+  Ui.Press("Shift+Tab");
+  Assert.Focused("Answers: Does giving a mobile number count as agreeing to reminder texts?");
+  Ui.Press("ArrowDown");
+  Ui.Press(" ");
+  Assert.Checked("No, the patient says yes to texts", true);
+  Ui.Press("ArrowDown");
+  Ui.Press("Enter");
+  Assert.Checked("Yes, a given number is enough", true);
+  Assert.Checked("No, the patient says yes to texts", false);
+}
+
+[Test]
+void The_composer_says_what_the_talk_is_about_and_sends_once_something_is_written() {
+  Ui.Viewport(1440);
+  Ui.Visit("/dev/panes");
+  Assert.Visible("Arc", within: "About Waiting list");
+  Assert.DisabledBecause("Send", "Write something first.");
+  Ui.Shot("talk-1440", within: "Conversation pane");
+  Assert.SameWidth("Talk about Waiting list composer", "You, 28 min ago");
+  Ui.Fill("Talk about Waiting list", "Offers should go out by text too");
+  Ui.Click("Send");
+  Assert.Visible("Sent: Offers should go out by text too");
+  Ui.Click("Talk about the whole design");
+  Assert.Hidden("About Waiting list");
+  Assert.Visible("Send", within: "Talk about the whole design composer");
+}
+
+[Test]
+void At_390_the_conversation_its_choice_and_the_composer_fit() {
+  Ui.Viewport(390);
+  Ui.Visit("/dev/panes");
+  Ui.Shot("talk-390");
+  Assert.NoOverflow();
+  Assert.Visible("No, the patient says yes to texts");
+  Assert.Visible("Waiting list", within: "About Waiting list");
+}

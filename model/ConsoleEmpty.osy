@@ -1,0 +1,15 @@
+namespace Osysharp.Look;
+
+/// `ConsoleLinkButton`). In a test it is the group `title`.
+[Composable]
+component ConsoleEmpty(string title, string body = "") {
+  render {
+    Stack(gap: "6px", align: Align.Center, py: "28px", px: "16px", minW: "0", fontFamily: Font.ConsoleSans, role: UiRole.Group, label: title) {
+      Text(title, fontSize: FontSize.ConsoleBody, fontWeight: 600, color: Colors.ConsoleText, textAlign: TextAlign.Center);
+      if (body != "") {
+        Text(body, fontSize: FontSize.ConsoleBody, color: Colors.ConsoleText2, lineHeight: "1.5", maxW: "440px", textAlign: TextAlign.Center);
+      }
+      Row(gap: "8px", wrap: Wrapping.Wrap, justify: Justify.Center, mt: "6px") { Slot; }
+    }
+  }
+}

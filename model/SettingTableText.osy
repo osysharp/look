@@ -1,0 +1,8 @@
+namespace Osysharp.Look;
+
+/// The page's own text cell of a settings table (`SettingTableRow`): 12/1.4 Ink 2 ("Organization tiers: T1 Haiku · T2
+/// Sonnet").
+[Composable]
+component SettingTableText(string text) {
+  render { Text(text, fontSize: FontSize.Caption, color: Colors.Ink2, lineHeight: "1.4", minW: "0"); }
+}

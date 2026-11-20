@@ -1,0 +1,23 @@
+namespace Osysharp.Look;
+
+/// The search icon in the phone's dark top bar, white: it opens `ConsoleSearchDialog` as the desktop button does.
+[Composable]
+component ConsoleSearchIcon(Binding<string> text, List<ConsoleSearchGroup> groups, string label = "Search", string placeholder = "Search") {
+  bool open = false;
+
+  action Open() {
+    text = "";
+    open = true;
+  }
+
+  action Close() {
+    open = false;
+  }
+
+  render {
+    ConsoleIconButton("Search", Open) { Icon(Icons.Search, size: 20, color: Colors.ConsoleRailInk); }
+    if (open) {
+      ConsoleSearchDialog(text, groups, Close, label, placeholder);
+    }
+  }
+}

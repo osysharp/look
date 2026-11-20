@@ -1,0 +1,86 @@
+// The outline as a tree (designer.dc.html): rows by level with their marks, opened and closed, chosen by pointer and
+// by keyboard, a row menu, and the open questions under it (/dev/panes).
+
+using Osysharp.Look;
+using OsyrinLookTests;
+
+[Test]
+void The_tree_says_each_rows_level_and_marks_what_is_new_and_what_depends() {
+  Ui.Viewport(1440);
+  Ui.Visit("/dev/panes");
+  Assert.Selected("Arc Waiting list", true);
+  Assert.Selected("Arc Book online", false);
+  Assert.Visible("Saga", within: "Saga Booking and visits");
+  Assert.Visible("Slice", within: "Slice Offer a freed slot to the next patient");
+  Assert.Visible("Bit", within: "Bit No text between 21:00 and 08:00");
+  Assert.Visible("New or changed", within: "Arc Waiting list");
+  Assert.Visible("Depends on CARE-31 Care Companion's sender, planned", within: "Slice Send the reminder by text");
+  Assert.Visible("a choice", within: "Open questions · 2");
+  Assert.NoOverflow();
+  Ui.Shot("outline-1440", within: "Outline pane");
+}
+
+[Test]
+void A_row_closes_and_opens_and_a_press_selects_it() {
+  Ui.Viewport(1440);
+  Ui.Visit("/dev/panes");
+  Ui.Click("Close Reminders before a visit");
+  Assert.Hidden("Send the reminder by text", within: "Outline of the design");
+  Assert.Visible("Open Reminders before a visit");
+  Ui.Click("Open Reminders before a visit");
+  Assert.Visible("Send the reminder by text", within: "Outline of the design");
+  Ui.Click("Expire an offer after two hours", within: "Outline of the design");
+  Assert.Selected("Slice Expire an offer after two hours", true);
+  Assert.Selected("Arc Waiting list", false);
+  Assert.Visible("Talking about expire");
+}
+
+[Test]
+void The_keyboard_moves_opens_closes_and_selects_in_the_tree() {
+  Ui.Viewport(1440);
+  Ui.Visit("/dev/panes");
+  // Twelve Tab stops from the top of the page reach the tree: the rail, the trail, the outline's fold button.
+  foreach (var step in Enumerable.Range(0, 12)) { Ui.Press("Tab"); }
+  Assert.Focused("Outline of the design");
+  Ui.Press("ArrowDown");
+  Ui.Press("Enter");
+  Assert.Selected("Slice Offer a freed slot to the next patient", true);
+  Ui.Press("ArrowLeft");
+  Ui.Press("Enter");
+  Assert.Selected("Arc Waiting list", true);
+  Ui.Press("ArrowLeft");
+  Assert.Hidden("Expire an offer after two hours", within: "Outline of the design");
+  Ui.Press("ArrowRight");
+  Assert.Visible("Expire an offer after two hours", within: "Outline of the design");
+  Ui.Press("ArrowUp");
+  Ui.Press("ArrowUp");
+  Ui.Press("Enter");
+  Assert.Selected("Arc Book online", true);
+  Ui.Press("Home");
+  Ui.Press("Enter");
+  Assert.Selected("Saga Booking and visits", true);
+}
+
+[Test]
+void The_selected_rows_menu_offers_a_new_conversation_about_it() {
+  Ui.Viewport(1440);
+  Ui.Visit("/dev/panes");
+  Ui.Click("More for Waiting list");
+  Assert.Expanded("More for Waiting list", true);
+  Ui.Shot("outline-row-menu-1440", within: "Outline pane");
+  Ui.Click("New conversation about this: Waiting list");
+  Assert.Visible("New conversation about this on wait");
+  Ui.Click("A shorter offer time for same-day slots?");
+  Assert.Visible("open question on q2");
+}
+
+[Test]
+void At_390_the_outline_opens_as_a_sheet_and_its_rows_wrap() {
+  Ui.Viewport(390);
+  Ui.Visit("/dev/panes");
+  Ui.Click("Outline", within: "Reminders before a visit header");
+  Assert.Visible("Offer a freed slot to the next patient");
+  Assert.Visible("Open questions · 2");
+  Assert.NoOverflow();
+  Ui.Shot("outline-sheet-390");
+}

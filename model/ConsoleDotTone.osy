@@ -1,0 +1,5 @@
+namespace Osysharp.Look;
+
+/// The colour of a console dot: a badge's or a stat label's (`Ok`, `Warn`), or a rail row's, brighter on the dark rail
+/// (`RailOk` on track, `RailWarn` needs you, `RailNeutral` nothing planned).
+public enum ConsoleDotTone { Ok, Warn, Neutral, RailOk, RailWarn, RailNeutral }

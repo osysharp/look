@@ -1,0 +1,63 @@
+namespace Osysharp.Look;
+
+/// `ConsoleShell`'s rail from the app's chrome: the switcher and the groups, the row of the address in view lit; in the
+/// phone's drawer every row 44 high. It keeps the shells' leave guard: while the page holds unsaved edits
+/// (`Navigation.IsDirty`) a row and a place in the switcher are buttons that ask first (`LeavePrompt`: Keep editing ·
+/// Save and leave · Discard and leave); a clean page's rows are plain links.
+[Composable, Part]
+component ConsoleShellRail(ConsoleChrome chrome) {
+  live var path = Navigation.CurrentPath ?? "";
+  // The leave guard's held question: the edited route being left, and where the reader asked to go.
+  string leaving = "";
+  string target = "";
+  bool canSaveLeaving = false;
+  string leaveError = "";
+
+  action Navigated() {
+  }
+
+  // Asked against the router as it is now: the row chose link or button when it was drawn.
+  action AskBeforeLeave(string to) {
+    if (!Navigation.IsDirty || to == Navigation.CurrentPath) {
+      Navigation.Go(to);
+    } else {
+      leaveError = "";
+      canSaveLeaving = Navigation.CanSave(Navigation.CurrentPath);
+      leaving = Navigation.CurrentPath;
+      target = to;
+    }
+  }
+
+  action KeepEditing() {
+    leaving = "";
+    target = "";
+    leaveError = "";
+  }
+
+  action DiscardAndLeave() {
+    Navigation.Close(leaving, true);
+    Navigation.Go(target);
+    leaving = "";
+    target = "";
+  }
+
+  action SaveAndLeave() {
+    leaveError = "";
+    try {
+      Navigation.Save(leaving);
+      Navigation.Go(target);
+      leaving = "";
+      target = "";
+    }
+    catch (ValidationException ex) {
+      leaveError = ex.Message;
+    }
+  }
+
+  render {
+    ConsoleRailBody(chrome, path, Navigated, phone: !Viewport.AtLeast(Tablet), onAsk: AskBeforeLeave);
+    if (leaving != "") {
+      LeavePrompt(canSaveLeaving, leaveError, SaveAndLeave, DiscardAndLeave, KeepEditing);
+    }
+  }
+}

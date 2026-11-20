@@ -1,0 +1,16 @@
+namespace Osysharp.Look;
+
+/// One cell: `11px 16px`, on one line; `right` for a number (right-aligned, tabular) or the links at the row's end.
+/// `wraps` for words that may take more lines (a name): the cell then lets them wrap rather than cut them, and breaks a
+/// word longer than the cell (an identifier) inside it rather than letting it run into the next column.
+[Composable]
+component ConsoleCell(bool right = false, bool wraps = false) {
+  render {
+    Row(role: UiRole.GridCell, py: "11px", px: "16px", minW: "0", align: Align.Center, justify: right ? Justify.End : Justify.Start,
+        textAlign: right ? TextAlign.Right : TextAlign.Left, fontVariant: FontVariant.TabularNums,
+        whiteSpace: wraps ? WhiteSpace.Normal : WhiteSpace.Nowrap, overflow: wraps ? Overflow.Visible : Overflow.Hidden,
+        wordBreak: wraps ? WordBreak.BreakWord : WordBreak.Normal) {
+      Slot;
+    }
+  }
+}

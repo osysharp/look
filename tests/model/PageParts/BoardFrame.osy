@@ -1,0 +1,40 @@
+namespace OsyrinLookTests;
+
+using Osysharp.Look;
+
+// The page replicas: ProductPlan, Release and Slice (docs/designs/factory-ui-v3/canvas2) drawn with the look's parts
+// and the boards' sample content, each at its board's 1440 px frame, so scripts/design/pixel-budget.sh can diff them
+// part by part against the rendered boards.
+
+/// The boards' page frame at 1440 px: 20 px in, the app's rail (248 px, the app's own, held empty here) 24 px before
+/// the main column, which grows from 640 px to at most 1120, its parts 18 apart. `planner`: the Slice board's 44 px
+/// planner tab on the right, 24 off. Inter at the browser's 16 px with line-height `normal`, as the boards' page.
+[Composable]
+component BoardFrame(string label, bool planner = false) {
+  render {
+    Row(gap: "24px", align: Align.Start, w: "1440px", p: "20px", bg: Colors.Bg, color: Colors.OnSurface, fontSize: "16px", lineHeight: "normal",
+        fontFamily: Font.Sans) {
+      Box(w: "248px", minW: "248px", label: "The app's rail");
+      PageColumn(label, landmark: true) { Slot; }
+      if (planner) {
+        Box(w: "44px", minW: "44px", label: "The planner tab");
+      }
+    }
+  }
+}
+
+/// The front door of the replicas.
+[Route("/dev/page-parts")]
+[AllowAnonymous]
+[Title("Page parts")]
+[Render(CSR)]
+component PagePartsPage() {
+  render {
+    Stack(gap: "8px", p: "20px") {
+      Link("/dev/page-parts/plan", label: "ProductPlan") { Text("ProductPlan: the Plan tab down through the first release card"); }
+      Link("/dev/page-parts/release", label: "Release") { Text("Release: header, facts, the cards and Contents"); }
+      Link("/dev/page-parts/slice", label: "Slice") { Text("Slice: header, Right now, Waits on · Unlocks, Acceptance"); }
+      Link("/dev/page-parts/effective", label: "Effective policy") { Text("PolicyFloorEffective: section list, the effective table, Check a value"); }
+    }
+  }
+}

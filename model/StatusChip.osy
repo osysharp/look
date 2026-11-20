@@ -1,0 +1,83 @@
+namespace Osysharp.Look;
+
+// The one status chip (Components §4): words and a 7 px dot on the tone's tint. Grey means it waits on something
+// neutral, amber a person, red that it cannot go on. The kit's `Badge` has no dot, so the chip is drawn here on the
+// base theme's tone tokens.
+
+/// A status as words and a dot on its tone's tint: 12/600, `3px 8px`, radius 6, the dot 6 px before the words; the
+/// floor's chip has the board's 12 px lock (`LockMark`) in place of the dot.
+/// In a test it is read by its words: `Assert.Visible("In review")`.
+[Composable]
+component StatusChip(string words, StatusTone tone) {
+  variants {
+    base {
+      Display = Display.InlineFlex;
+      W = "fit-content";
+      Px = "8px";
+      Py = "3px";
+      Rounded = Radius.Chip;
+      FontSize = FontSize.Caption;
+      FontWeight = FontWeight.Semibold;
+      WhiteSpace = WhiteSpace.Nowrap;
+      LineHeight = "normal";
+    }
+    tone {
+      Ok {
+        Bg = Colors.OkTint;
+        Color = Colors.OkInk;
+      }
+      Run {
+        Bg = Colors.RunTint;
+        Color = Colors.RunInk;
+      }
+      Wait {
+        Bg = Colors.WaitTint;
+        Color = Colors.WaitInk;
+      }
+      You {
+        Bg = Colors.YouTint;
+        Color = Colors.YouInk;
+      }
+      Bad {
+        Bg = Colors.BadTint;
+        Color = Colors.BadInk;
+      }
+      Floor {
+        Bg = Colors.FloorTint;
+        Color = Colors.FloorInk;
+      }
+    }
+  }
+  render {
+    Row(gap: "6px", align: Align.Center) {
+      if (tone == StatusTone.Floor) {
+        LockMark();
+      } else {
+        StatusDot(tone);
+      }
+      Text(words);
+    }
+  }
+}
+
+/// The dot of a status, in its tone: 7 px round. Decorative, because the words beside it say it.
+[Composable]
+component StatusDot(StatusTone tone) {
+  variants {
+    base {
+      W = "7px";
+      H = "7px";
+      MinW = "7px";
+      Rounded = Radius.Pill;
+    }
+    tone {
+      Ok { Bg = Colors.OkDot; }
+      Run { Bg = Colors.RunDot; }
+      Wait { Bg = Colors.WaitDot; }
+      You { Bg = Colors.YouDot; }
+      Bad { Bg = Colors.BadDot; }
+      Floor { Bg = Colors.FloorDot; }
+    }
+  }
+  render { Box(decorative: true); }
+}

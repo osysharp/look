@@ -1,0 +1,27 @@
+namespace Osysharp.Look;
+
+/// A card of an area or settings page with the settings boards' head (orgsettings/Policies' policy groups): white on
+/// the hairline, radius 14, clipped; the head `12px 20px` over a SoftLine rule, the title 16/700 (a level-2 heading)
+/// and at the right, space between, a count (13 Ink 3, "3 policies") or the `side` slot (a chip) — no link, unlike
+/// `SectionCard`. Then the block, edge to edge (a table, rows). In a test it is the region of its title.
+/// A settings card holds fields, so like `SectionCard` (L1) it does NOT clip what leaves it (PO1): a date field's calendar
+/// or a menu opens over its edge. What is drawn inside keeps off its corners; `clip: true` cuts at the edge as before.
+[Composable]
+component AreaCard(string title, string count = "", bool clip = false) {
+  render {
+    Stack(gap: 0, bg: Colors.Surface, borderW: 1, border: Colors.Border, rounded: Radius.Panel, overflow: clip ? Overflow.Hidden : Overflow.Visible,
+          minW: "0", label: title) {
+      Row(justify: Justify.Between, align: Align.Center, wrap: Wrapping.Wrap, gap: "10px", py: "12px", px: "20px", borderBW: 1, border: Colors.SoftLine) {
+        Text(title, role: UiRole.Heading, level: 2, fontSize: FontSize.Subhead, fontWeight: FontWeight.Heavy, color: Colors.OnSurface, lineHeight: "normal",
+             minW: "0");
+        Row(gap: "8px", align: Align.Center) {
+          if (count != "") {
+            Text(count, fontSize: FontSize.Label, color: Colors.Ink3, lineHeight: "normal", whiteSpace: WhiteSpace.Nowrap);
+          }
+          Slot("side");
+        }
+      }
+      Slot;
+    }
+  }
+}

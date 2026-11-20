@@ -1,0 +1,24 @@
+namespace Osysharp.Look;
+
+/// One field's change in a sentence (Components §6 "Field: Runs when — every slice → slices that touch …"): 13 px,
+/// "Field:" strong, the field's name, then the old value struck through in the bad ink, "→", the new value in the ok ink.
+/// `was` empty: only the new value ("added"); `now` empty: only the old one, struck ("removed").
+/// e.g. `FieldDiff("Runs when", "every slice", "slices that touch app/booking/**")`
+[Composable]
+component FieldDiff(string field, string was, string now, string lead = "Field:") {
+  render {
+    Box(fontSize: FontSize.Label, lineHeight: "normal", color: Colors.OnSurface) {
+      Text(lead, fontWeight: FontWeight.Heavy);
+      Text(" " + field + " — ", whiteSpace: WhiteSpace.PreWrap);
+      if (was != "") {
+        Text(was, textDecoration: TextDecoration.LineThrough, color: Colors.BadInk);
+      }
+      if (was != "" && now != "") {
+        Text(" → ", whiteSpace: WhiteSpace.PreWrap);
+      }
+      if (now != "") {
+        Text(now, color: Colors.OkInk);
+      }
+    }
+  }
+}

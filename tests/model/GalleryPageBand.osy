@@ -1,0 +1,100 @@
+namespace OsyrinLookTests;
+
+using Osysharp.Look;
+
+// The owner's mock-up (docs/designs/foundry/owner-refined-plan-mockup.png) drawn with the look's parts: the frame with
+// the rail at the window's edge, a product's header band with its tabs and "Add to plan" on the tabs' line, the stat
+// strip and a table with the quiet head (/dev/band); and a three-pane body under a band (/dev/panes).
+
+[Composable]
+component MockupFrame() {
+  render {
+    LookShell(new AppChrome {
+      Product = "Foundry",
+      Nav = [
+        new NavItem { Label = "Home", To = "/dev/band/home", Icon = Icons.Home, Exact = true },
+        new NavItem { Kind = NavKind.Section, Label = "Work", Children = [
+          new NavItem { Label = "Products", To = "/dev/band", Icon = Icons.Folder },
+          new NavItem { Label = "Hosts", To = "/dev/panes", Icon = Icons.Building } ] }
+      ],
+      FootNav = [ new NavItem { Label = "Settings", To = "/dev/band/settings", Icon = Icons.Gear },
+                  new NavItem { Label = "People", To = "/dev/band/people", Icon = Icons.Users } ],
+      User = new ShellUser { Name = "ops@osyrin.com", Secondary = "Foundry owner", Initials = "O",
+        Menu = [ new MenuAction { Label = "Your account", To = "/dev/band", Icon = Icons.User } ] }
+    }) {
+      Slot;
+    }
+  }
+}
+
+[Composable]
+component MockupBand(string current) {
+  string said = "";
+  action Edit() { said = "Edit opened"; }
+  action Add() { said = "Add opened"; }
+  render {
+    PageBand("Test", [new Crumb { Label = "Products", To = "/dev/band" }, new Crumb { Label = "Test" }],
+             tabs: [new TabItem { Label = "Home", To = "/dev/band/home" }, new TabItem { Label = "Releases", To = "/dev/band/releases" },
+                    new TabItem { Label = "Plan", To = "/dev/band" }, new TabItem { Label = "Designs", To = "/dev/panes" },
+                    new TabItem { Label = "People", To = "/dev/band/people" }, new TabItem { Label = "Settings", To = "/dev/band/settings" }],
+             current: current, tabsLabel: "Product sections") {
+      slot chips {
+        KeyLink("TEST", "/dev/band");
+        PlainChip(".NET");
+        PersonChip("ops@osyrin.com · product owner", "O", quiet: true);
+      }
+      slot primary {
+        LookButton("Add to plan", Add, kind: ButtonKind.Primary);
+      }
+      LookButton("Edit product", Edit);
+    }
+    if (said != "") { Box(mb: "12px") { Text(said); } }
+  }
+}
+
+/// The Plan tab of the mock-up.
+[Route("/dev/band")]
+[AllowAnonymous]
+[Title("Test")]
+[Render(CSR)]
+component PageBandGalleryPage() {
+  render {
+    MockupFrame() {
+      MockupBand("/dev/band");
+      PageColumn() {
+        StatStrip("Plan at a glance", [
+          new StripStat { Label = "Open items", Value = "1", Sub = "0 in progress · 0 waiting", Tone = StatTone.Run },
+          new StripStat { Label = "Done", Value = "0 of 1", Tone = StatTone.Ok },
+          new StripStat { Label = "Unscheduled", Value = "1", Tone = StatTone.Neutral },
+          new StripStat { Label = "Next release", Value = "No release planned", To = "/dev/band/releases" } ]);
+        SectionCard("Not scheduled", sub: "1 item", band: true) {
+          CardTable("Not scheduled items", "34px minmax(0, 1fr) 160px 160px 190px 70px", ["#", "Item · priority", "Parts", "State", "Release", "Order"],
+                    roomy: true, quietHead: true) {
+            CardTableRow("34px minmax(0, 1fr) 160px 160px 190px 70px", roomy: true, label: "TEST-1 testing the designer") {
+              Text("1", fontWeight: FontWeight.Semibold);
+              Stack(gap: "2px") { Text("testing the designer", fontWeight: FontWeight.Semibold); KeyText("TEST-1"); }
+              Text("");
+              Box { StatusChip("Not started", StatusTone.Floor); }
+              Text("Not scheduled");
+              Text("");
+            }
+          }
+        }
+      }
+    }
+  }
+}
+
+/// Any other tab or row of the mock-up's frame: the band with that tab lit, nothing under it.
+[Route("/dev/band/{name}")]
+[AllowAnonymous]
+[Title("Test")]
+[Render(CSR)]
+component PageBandOtherGalleryPage(string name) {
+  render {
+    MockupFrame() {
+      MockupBand("/dev/band/" + name);
+      PageColumn() { SummaryText("The " + name + " tab."); }
+    }
+  }
+}

@@ -1,0 +1,8 @@
+namespace Osysharp.Look;
+
+/// `done` of `total` as a CSS width, a whole per cent, never past 100 %; 0 % of nothing.
+public string StatShareWidth(int done, int total) {
+  if (total <= 0 || done <= 0) { return "0%"; }
+  if (done >= total) { return "100%"; }
+  return ((done * 200 + total) / (total * 2)) + "%";
+}

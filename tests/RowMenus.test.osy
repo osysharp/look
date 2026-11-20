@@ -1,0 +1,68 @@
+// L1: a row's menu named for its row, whole over the card's edge on the LAST row, and a sheet on a phone.
+
+using Osysharp.Look;
+using OsyrinLookTests;
+
+[Test]
+void A_row_menu_on_the_last_row_opens_whole_over_the_cards_edge() {
+  Ui.Viewport(1440);
+  Ui.Visit("/dev/controls/row-menus");
+  // Each row's button has its own name.
+  Assert.Clickable("More for DEPLOY_KEY");
+  Assert.Clickable("More for GH_TOKEN");
+  Ui.Click("More for GH_TOKEN");
+  // The menu hangs below the last row, past the card's foot, and is not cut there: its last item is pressable.
+  Assert.Below("Revoke", "More for GH_TOKEN");
+  Assert.Clickable("Revoke GH_TOKEN");
+  Ui.Shot("row-menu-last-row-1440");
+  Ui.Click("Revoke GH_TOKEN");
+  Assert.Visible("Revoke GH_TOKEN.");
+}
+
+[Test]
+void A_table_card_holds_its_primary_action_and_a_last_rows_hover_title_is_whole() {
+  Ui.Viewport(1440);
+  Ui.Visit("/dev/controls/row-menus");
+  // The action sits in the card's head, right of the title, beside the link.
+  Assert.Clickable("Add a slice");
+  Assert.Inside("Add a slice", "Slices to place");
+  Assert.RightOf("Add a slice", "All slices ›");
+  Assert.Above("Add a slice", "BOOK-29");
+  Ui.Click("Add a slice");
+  Assert.Visible("Adding a slice.");
+  // The last row's failed mark: its reason hangs below the card's foot and is not cut there.
+  Ui.Within("Readiness of BOOK-31") { Ui.Hover("Tests named"); Ui.Focus("Tests named"); }
+  Assert.Visible("Criterion 2 names no test", within: "Why Tests named failed");
+  Assert.FitsOn("Why Tests named failed");
+  Ui.Shot("card-action-hover-1440");
+}
+
+[Test]
+void An_empty_card_is_as_tall_as_what_it_says() {
+  Ui.Viewport(1440);
+  Ui.Visit("/dev/controls/row-menus");
+  // In a column 720 high, neither empty card takes a share of the spare height: each is shorter than 200 px.
+  Assert.Shorter("No repositories yet", "200 px mark");
+  Assert.Shorter("Keys", "200 px mark");
+  Assert.Inside("Add a key", "Keys");
+  Assert.RightOf("Add a key", "Keys");
+  Assert.Above("Add a key", "No keys yet");
+  Ui.Shot("empty-cards-1440", within: "Empty cards in a tall column");
+  Ui.Viewport(390);
+  Ui.Visit("/dev/controls/row-menus");
+  Assert.NoOverflow();
+  Ui.Shot("empty-cards-390", within: "Empty cards in a tall column");
+}
+
+[Test]
+void On_a_phone_a_row_menu_is_a_sheet_and_the_row_is_one_column() {
+  Ui.Viewport(390);
+  Ui.Visit("/dev/controls/row-menus");
+  Assert.NoOverflow();
+  Ui.Click("More for GH_TOKEN");
+  Assert.Visible("Change", within: "Actions for GH_TOKEN sheet");
+  Assert.Clickable("Revoke GH_TOKEN");
+  Ui.Shot("row-menu-sheet-390");
+  Ui.Click("Change GH_TOKEN");
+  Assert.Visible("Change GH_TOKEN.");
+}

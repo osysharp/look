@@ -1,0 +1,46 @@
+namespace OsyrinLookTests;
+
+using Osysharp.Look;
+
+/// Console table rows with detail (owner, 16 Nov): two policies of the same height, each with "Where it is enforced". A row is
+/// named "<name> row", so a test measures the row and not its name's words. Under the table, a `ConsoleDisclosure` as a phone
+/// card or a panel draws one.
+[Route("/dev/console-detail-rows")]
+[AllowAnonymous]
+[Title("Console detail rows")]
+[Render(CSR)]
+component ConsoleDetailRowsPage() {
+  render {
+    Box(minH: "100vh", bg: Colors.ConsolePaper, color: Colors.ConsoleText, fontFamily: Font.ConsoleSans) {
+      ConsoleWork("Console detail rows") {
+        ConsolePanel("Network", label: "Policies") {
+          ConsoleTable("Policies table", DetailRowsColumns(), minWidth: "900px", details: true) {
+            foreach (var name in ["Outbound hosts", "Inbound hosts"]) {
+              ConsoleTableRow(DetailRowsColumns(), label: name + " row", detail: "Where it is enforced") {
+                slot detail { Text(DetailRowsWords()); }
+                ConsoleCell(wraps: true) { Text(name, fontWeight: 500); }
+                ConsoleCell(wraps: true) { Text("api.stripe.com, hooks.slack.com"); }
+                ConsoleCell { ConsoleBadge("Hard boundary", ConsoleTone.Solid); }
+                ConsoleCell { Text("All apps"); }
+              }
+            }
+          }
+        }
+        ConsolePanel("What these rows are", label: "Disclosure") {
+          Box(py: "12px", px: "16px") {
+            ConsoleDisclosure("How a policy holds an application") { Text(DetailRowsWords()); }
+          }
+        }
+      }
+    }
+  }
+}
+
+public List<ConsoleColumn> DetailRowsColumns() {
+  return [new ConsoleColumn { Label = "Policy", Width = "minmax(0, 1.2fr)" }, new ConsoleColumn { Label = "Value", Width = "minmax(0, 2fr)" },
+          new ConsoleColumn { Label = "Kind", Width = "150px" }, new ConsoleColumn { Label = "Applies to", Width = "110px" }];
+}
+
+public string DetailRowsWords() {
+  return "At save on the settings screen, and again by the host when an app calls out. Why: payments and alerts leave the organization through these two hosts only.";
+}

@@ -1,0 +1,341 @@
+// The look's controls (P2.D12): each group driven as a person would — pressed, ticked, switched, opened by the
+// keyboard and picked, sorted, paged, confirmed, a toast undone — held inside a phone's 390, and photographed light and
+// dark.
+
+using Osysharp.Look;
+using OsyrinLookTests;
+
+[Test]
+void A_button_that_a_policy_refuses_says_why_and_the_others_press() {
+  Ui.Viewport(1440);
+  Ui.Visit("/dev/controls/buttons");
+  Assert.DisabledBecause("Approve 2.4", "Only a release manager approves a release.");
+  Assert.DisabledBecause("Retire host", "A host with running lanes cannot be retired.");
+  Assert.Disabled("Edit");
+  Ui.Click("Add host");
+  Ui.Click("Continue with email");
+  Assert.Visible("Pressed 2 times");
+  Assert.SameWidth("Continue with email", "Use a passkey");
+  Ui.Shot("buttons-1440");
+  Ui.Viewport(390);
+  Ui.Visit("/dev/controls/buttons");
+  Assert.NoOverflow();
+  Ui.Shot("buttons-390");
+  Ui.Theme("dark");
+  Ui.Visit("/dev/controls/buttons");
+  Assert.Readable("Approve 2.4");
+  Ui.Shot("buttons-dark");
+  Ui.Theme("light");
+}
+
+[Test]
+void The_red_button_goes_busy_so_a_slow_action_pressed_twice_runs_once() {
+  Ui.Viewport(1440);
+  Ui.Visit("/dev/controls/slow-confirm");
+  Assert.Dialog("Retire host-4?");
+  Assert.Visible("Ran 0 times");
+  Ui.HoldServer();
+  Ui.Click("Retire host-4", within: "Retire host-4?");
+  Assert.Visible("Ran 0 times · retiring");
+  Assert.DisabledBecause("Retire host-4", "Working on it…");
+  Ui.Click("Retire host-4", within: "Retire host-4?");
+  Ui.ReleaseServer();
+  Assert.Visible("Ran 1 times · Retired host-4");
+  Assert.Hidden("retiring");
+  Assert.Enabled("Retire host-4");
+}
+
+[Test]
+void Checkboxes_tick_and_a_switch_switches() {
+  Ui.Viewport(1440);
+  Ui.Visit("/dev/controls/checks");
+  Assert.Checked("Run docs checks", true);
+  Assert.Checked("Write outside the docs paths", false);
+  Ui.Click("Write outside the docs paths");
+  Assert.Checked("Write outside the docs paths", true);
+  Ui.Click("Run docs checks");
+  Assert.Checked("Run docs checks", false);
+  Ui.Check("Email me when a check fails");
+  Assert.Checked("Email me when a check fails", true);
+  Assert.Disabled("Use the shared cache");
+  Assert.Checked("Live updates", true);
+  Ui.Click("Live updates");
+  Assert.Checked("Live updates", false);
+  Assert.Visible("Docs off · outside on · email on · live off");
+  Assert.Disabled("Night builds");
+  Ui.Shot("checks-1440");
+  Ui.Viewport(390);
+  Ui.Visit("/dev/controls/checks");
+  Assert.NoOverflow();
+  Ui.Shot("checks-390");
+  Ui.Theme("dark");
+  Ui.Visit("/dev/controls/checks");
+  Assert.Readable("Write outside the docs paths");
+  Ui.Shot("checks-dark");
+  Ui.Theme("light");
+}
+
+[Test]
+void An_enum_select_opens_by_the_keyboard_and_picks() {
+  Ui.Viewport(1440);
+  Ui.Visit("/dev/controls/select");
+  Assert.Expanded("Runs when", false);
+  Ui.Click("Runs when");
+  Assert.Expanded("Runs when", true);
+  Assert.Selected("Every slice", true);
+  Ui.Shot("select-open-1440");
+  Ui.Click("Runs when");
+  Assert.Expanded("Runs when", false);
+  Ui.Visit("/dev/controls/select");
+  Ui.Press("Tab");
+  Assert.Focused("Runs when");
+  Ui.Press("ArrowDown");
+  Assert.Expanded("Runs when", true);
+  Ui.Press("Escape");
+  Assert.Expanded("Runs when", false);
+  Assert.Focused("Runs when");
+  Ui.Press("ArrowDown");
+  Assert.Expanded("Runs when", true);
+  Ui.Press("ArrowDown");
+  Ui.Press("ArrowDown");
+  Ui.Press("Enter");
+  Assert.Expanded("Runs when", false);
+  Assert.Visible("Runs when: Before a release · intake: Open · 1 changed");
+  Ui.Click("Intake");
+  Ui.Click("Draining");
+  Assert.Visible("intake: Draining");
+  Assert.Disabled("Intake on a frozen host");
+  Ui.Viewport(390);
+  Ui.Visit("/dev/controls/select");
+  Ui.Click("Runs when");
+  Assert.NoOverflow();
+  Ui.Shot("select-390");
+  Ui.Theme("dark");
+  Ui.Visit("/dev/controls/select");
+  Ui.Click("Runs when");
+  Assert.Readable("Slices that touch the docs");
+  Ui.Shot("select-dark");
+  Ui.Theme("light");
+}
+
+[Test]
+void A_confirmation_retires_a_host_and_its_toast_undoes_it() {
+  Ui.Viewport(1440);
+  Ui.Visit("/dev/controls/messages");
+  Assert.Visible("Needs you.");
+  Ui.Click("Retire host-3");
+  Assert.Dialog("Retire host-3?");
+  Ui.Click("Cancel");
+  Assert.Visible("host-3 takes work");
+  Ui.Click("Retire host-3");
+  Ui.Shot("confirm-1440");
+  Ui.Click("Retire host-3", within: "Retire host-3?");
+  Assert.Visible("host-3 is retired");
+  Assert.Visible("Retired host-3 · its 2 lanes went back to the pool.");
+  Ui.Shot("toast-1440");
+  Ui.Viewport(390);
+  Assert.Clickable("Back to hosts");
+  Ui.Shot("toast-390");
+  Ui.Theme("dark");
+  Ui.Visit("/dev/controls/messages");
+  Ui.Click("Retire host-3");
+  Ui.Click("Retire host-3", within: "Retire host-3?");
+  Assert.Clickable("Back to hosts");
+  Ui.Shot("toast-390-dark");
+  Ui.Theme("light");
+  Ui.Viewport(1440);
+  Ui.Visit("/dev/controls/messages");
+  Ui.Click("Retire host-3");
+  Ui.Click("Retire host-3", within: "Retire host-3?");
+  Ui.Click("Undo");
+  Assert.Visible("host-3 takes work");
+  Assert.Hidden("Retired host-3 ·");
+  Ui.Click("Retire host-3");
+  Ui.Click("Retire host-3", within: "Retire host-3?");
+  Ui.Tick();
+  TestClock.Advance(TimeSpan.FromSeconds(10));
+  Ui.Tick();
+  Assert.Hidden("Retired host-3 ·");
+  Assert.Visible("host-3 is retired");
+  Ui.Viewport(390);
+  Ui.Visit("/dev/controls/messages");
+  Assert.NoOverflow();
+  Ui.Click("Retire host-3");
+  Ui.Shot("confirm-390");
+  Ui.Theme("dark");
+  Ui.Visit("/dev/controls/messages");
+  Assert.Readable("Needs you.");
+  Ui.Shot("messages-dark");
+  Ui.Theme("light");
+}
+
+[Test]
+void A_button_and_a_menu_item_are_found_by_their_announced_name_and_a_tab_bar_by_its_label() {
+  Ui.Viewport(1440);
+  Ui.Visit("/dev/components");
+  // The tab bar is found by the label every TabBar must be given (a container is located by its accessible name).
+  Ui.Within("Product pages") {
+    Assert.Visible("Designs");
+    Assert.Visible("Settings");
+  }
+  // "Take out" on the band and "Export evidence" in the open menu, each by the name it announces.
+  Assert.Enabled("Take out BOOK-REMIND");
+  Assert.Enabled("Export evidence of 2.4");
+  // Four rows each show "Resolve"; the one pressed is the one named.
+  Ui.Visit("/dev/controls/tables");
+  Ui.Click("Resolve UPKEEP-50");
+  Assert.Visible("Resolved UPKEEP-50");
+  Ui.Click("Resolve UPKEEP-44");
+  Assert.Visible("Resolved UPKEEP-44");
+}
+
+[TestFixture]
+void ManyHosts() {
+  for (int i = 0; i < 30; i++) { new GalleryHost { Name = "Host " + i.ToString("D2") }; }
+  // Last by name: never in the first page of rows unless it is searched for.
+  new GalleryHost { Name = "Zephyr" };
+}
+
+[TestFixture]
+void FewHosts() {
+  new GalleryHost { Name = "Kestrel" };
+  new GalleryHost { Name = "Osprey" };
+}
+
+[Test]
+void A_text_select_is_the_looks_dropdown_and_picks_by_the_keyboard() {
+  Ui.Viewport(1440);
+  Ui.Visit("/dev/controls/row-picker");
+  Assert.Visible("Choose a line");
+  Assert.Expanded("Release line", false);
+  Ui.Click("Release line");
+  Assert.Expanded("Release line", true);
+  Assert.Visible("Main → Public");
+  Ui.Click("Release line");
+  Ui.Press("Tab");
+  Assert.Focused("Release line");
+  Ui.Press("ArrowDown");
+  Assert.Expanded("Release line", true);
+  Ui.Press("ArrowDown");
+  Ui.Press("Enter");
+  Assert.Expanded("Release line", false);
+  Assert.Focused("Release line");
+  Assert.Visible("Line: Preview · severity: Should");
+  Ui.Select("Severity", "May");
+  Assert.Visible("Line: Preview · severity: May");
+  Assert.Visible("A Must needs an owner.");
+  Ui.Viewport(390);
+  Ui.Visit("/dev/controls/row-picker");
+  Ui.Click("Release line");
+  Assert.NoOverflow();
+  Ui.Shot("text-select-390");
+  Ui.Theme("dark");
+  Ui.Visit("/dev/controls/row-picker");
+  Ui.Click("Severity");
+  Assert.Readable("Should");
+  Ui.Shot("text-select-dark");
+  Ui.Theme("light");
+}
+
+[Test(FewHosts)]
+void A_row_picker_over_a_few_rows_lists_them_without_a_search() {
+  Ui.Viewport(1440);
+  Ui.Visit("/dev/controls/row-picker");
+  Assert.Visible("Choose a host");
+  Ui.Click("Host");
+  Assert.Expanded("Host", true);
+  Assert.Visible("Kestrel");
+  Assert.Hidden("Search Host");
+  Ui.Click("Host");
+  Ui.Focus("Host");
+  Ui.Press("ArrowDown");
+  Assert.Expanded("Host", true);
+  Ui.Press("ArrowDown");
+  Ui.Press("Enter");
+  Assert.Visible("Host: Osprey");
+  Assert.Focused("Host");
+}
+
+[Test(ManyHosts)]
+void A_row_picker_over_many_rows_searches_the_database_and_picks() {
+  Ui.Viewport(1440);
+  Ui.Visit("/dev/controls/row-picker");
+  Ui.Click("Host");
+  Assert.Visible("Host 00");
+  Assert.Hidden("Zephyr");
+  Ui.Fill("Search Host", "Zeph");
+  Ui.Click("Zephyr");
+  Assert.Expanded("Host", false);
+  Assert.Visible("Host: Zephyr");
+  Ui.Click("Host");
+  Ui.Fill("Search Host", "quokka");
+  Assert.Visible("Nothing matches “quokka”.");
+  Ui.Press("Escape");
+  Assert.Expanded("Host", false);
+  Assert.Focused("Host");
+  Ui.Viewport(390);
+  Ui.Visit("/dev/controls/row-picker");
+  Ui.Click("Host");
+  Assert.NoOverflow();
+  Ui.Shot("row-picker-390");
+}
+
+[Test(FewHosts)]
+void A_dropdown_in_a_drawer_down_the_page_opens_its_list_at_its_field() {
+  foreach (var width in [1440, 390]) {
+    Ui.Viewport(width);
+    Ui.Visit("/dev/controls/select-in-sheet");
+    Ui.Focus("Done");
+    Ui.Click("Check runs when");
+    Assert.Below("Every slice", "Check runs when");
+    Assert.Inside("Never", "Edit the check");
+    Assert.Clickable("Never");
+    Ui.Shot("select-in-drawer-" + width);
+    Assert.Below("Every slice", "Check runs when");
+    Assert.Inside("Never", "Edit the check");
+    Ui.Press("Escape");
+    Ui.Click("Check line");
+    Assert.Below("Preview", "Check line");
+    Assert.Inside("Preview", "Edit the check");
+    Assert.Clickable("Preview");
+    Ui.Press("Escape");
+    Ui.Click("Check host");
+    Assert.Below("Osprey", "Check host");
+    Assert.Inside("Osprey", "Edit the check");
+    Assert.Clickable("Osprey");
+  }
+}
+
+[Test]
+void A_dropdown_in_a_scrolled_dialog_opens_its_list_at_its_field() {
+  foreach (var width in [1440, 390]) {
+    Ui.Viewport(width);
+    Ui.Visit("/dev/controls/select-in-sheet");
+    Ui.Click("Open the dialog");
+    Ui.Click("Dialog runs when");
+    Assert.Inside("Every slice", "A scrolled dialog");
+    Assert.Clickable("Every slice");
+    Assert.Clickable("Never");
+    Ui.Shot("select-in-dialog-" + width);
+    Assert.Inside("Every slice", "A scrolled dialog");
+  }
+}
+
+/// A dropdown in a sheet that opens below the window: a press on the field reaches it as a person's does, scrolled to
+/// first, so its list opens in the window, at the field, and an option takes a press. A whole-page shot before it
+/// leaves the page as it was.
+[Test]
+void A_dropdown_in_a_drawer_opened_below_the_window_takes_a_press() {
+  Ui.Viewport(1440);
+  Ui.Visit("/dev/controls/select-in-opened-sheet");
+  Ui.Click("Edit the check");
+  Ui.Shot("select-in-opened-sheet-1440");
+  Ui.Click("Check runs when");
+  Assert.Expanded("Check runs when", true);
+  Assert.Inside("Every slice", "The check");
+  Assert.Clickable("Every slice");
+  Ui.Click("Every slice");
+  Assert.Expanded("Check runs when", false);
+  Ui.Click("Check runs when");
+  Assert.Selected("Every slice", true);
+}

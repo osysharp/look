@@ -1,0 +1,15 @@
+namespace Osysharp.Look;
+
+/// A section's title: 18/700, level 2 ("Contents · 4 slices").
+[Composable]
+component SectionTitle(string text) {
+  variants {
+    base {
+      FontSize = FontSize.SectionTitle;
+      FontWeight = FontWeight.Heavy;
+      Color = Colors.OnSurface;
+      LineHeight = "normal";
+    }
+  }
+  render { Text(text, role: UiRole.Heading, level: 2); }
+}

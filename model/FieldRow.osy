@@ -1,0 +1,40 @@
+namespace Osysharp.Look;
+
+/// One field of an edit form (SagaArcEdit's field rows): its label 14/600 over what it is for (13, Ink 3, 1.45) on the
+/// left, the control on the right in a column `controlW` wide at most (the board's 300 px; a long text wants more),
+/// `8px 18px` apart, `12px 20px` under a Line 2 rule. `changed` marks it as SagaArcEdit marks a changed field: the
+/// row on the accent's second tint and "● Changed" after the label, with `was` when there is a short old value. `note`
+/// is the provenance line under the control (12, Ink 3). Under 640 px the two columns stack. In a test it is the
+/// region `label`. `helpMono`: the line under the label is an address, a slug or a key (console v6's organisation
+/// address under "Address"), set in the key face at 12/500 in Ink 2 and broken anywhere rather than run out of the row.
+/// e.g. `FieldRow("Address", help: "https://northwind.osyrin.app", helpMono: true) { LookInput(…); }`
+[Composable]
+component FieldRow(string label, string help = "", string note = "", bool changed = false, string was = "", string controlW = "300px",
+                   bool helpMono = false) {
+  render {
+    Box(display: Display.Grid, cols: "repeat(auto-fit, minmax(min(240px, 100%), 1fr))", gap: "8px 18px", py: "12px", px: "20px", borderTW: 1,
+        border: Colors.Line2, bg: changed ? Colors.AccentTint2 : Colors.Transparent, align: Align.Start, minW: "0", label: label) {
+      Stack(gap: "3px", minW: "0") {
+        Row(gap: "6px 8px", wrap: Wrapping.Wrap, align: Align.Center) {
+          Text(label, fontSize: FontSize.Body, fontWeight: FontWeight.Semibold, color: Colors.OnSurface, lineHeight: "normal");
+          if (changed) {
+            Text(was != "" ? "● Changed · was " + was : "● Changed", fontSize: FontSize.Caption, fontWeight: FontWeight.Semibold, color: Colors.Ink2,
+                 whiteSpace: WhiteSpace.NoWrap, lineHeight: "normal");
+          }
+        }
+        if (help != "" && helpMono) {
+          Text(help, fontSize: FontSize.Caption, fontFamily: Font.KeyFace, fontWeight: FontWeight.Medium, color: Colors.Ink2, lineHeight: "1.45",
+               wordBreak: WordBreak.BreakAll, minW: "0");
+        } else if (help != "") {
+          Text(help, fontSize: FontSize.Label, color: Colors.Ink3, lineHeight: "1.45");
+        }
+      }
+      Stack(gap: "5px", minW: "0", maxW: controlW, w: "100%", justifySelf: "end") {
+        Slot;
+        if (note != "") {
+          Text(note, fontSize: FontSize.Caption, color: Colors.Ink3, lineHeight: "1.4");
+        }
+      }
+    }
+  }
+}

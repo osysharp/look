@@ -1,0 +1,31 @@
+// The signed-out frame (`LookSignedOutFrame`) at /dev/signed-out: the artwork with the brand, a two-line headline and
+// a lede; the heading, the form, and the box under the form; and on a phone the artwork as a band above them.
+
+using Osysharp.Look;
+using OsyrinLookTests;
+
+[Test]
+void The_signed_out_frame_draws_the_headline_the_lede_the_form_and_the_box_below() {
+  Ui.Viewport(1440);
+  Ui.Visit("/dev/signed-out");
+  Assert.Visible("Osyrin Admin");
+  Assert.Visible("Run your apps.");
+  Assert.Visible("See every change.");
+  Assert.Visible("The platform's own console: organisations, plans, hosts and the releases they run.");
+  Assert.Visible("With the address your organisation invited.");
+  Assert.Visible("The platform installs on your own servers with one command.", within: "Run it yourself");
+  Assert.Above("Run your apps.", "See every change.");
+  Assert.Above("With the address your organisation invited.", "The platform installs on your own servers with one command.");
+  Assert.NoOverflow();
+  Ui.Shot("signed-out-frame-1440");
+  Ui.Fill("Email", "ada@example.com");
+  Ui.Click("Sign in");
+  Assert.Visible("Signing in as ada@example.com");
+
+  Ui.Viewport(390);
+  Ui.Visit("/dev/signed-out");
+  Assert.Visible("Run your apps.");
+  Assert.Visible("The platform installs on your own servers with one command.", within: "Run it yourself");
+  Assert.NoOverflow();
+  Ui.Shot("signed-out-frame-390");
+}

@@ -1,0 +1,12 @@
+namespace Osysharp.Look;
+
+/// A 44 px icon-only button on the rail's colour, named by `label`; the icon is its slot.
+[Composable, Part]
+component ConsoleIconButton(string label, Action onPress) {
+  render {
+    Pressable(onClick: onPress, label: label, w: "44px", h: "44px", minW: "44px", display: Display.Flex, align: Align.Center, justify: Justify.Center, rounded: Radius.ConsoleCorner,
+              color: Colors.ConsoleRailInk, bg: Colors.Transparent) {
+      Slot;
+    }
+  }
+}

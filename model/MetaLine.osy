@@ -1,0 +1,19 @@
+namespace Osysharp.Look;
+
+/// Metadata: 13/400 in Ink 3, its facts joined with " · " and the empty ones left out, one weight throughout.
+[Composable]
+component MetaLine(List<string> facts) {
+  variants {
+    base {
+      FontSize = FontSize.Label;
+      Color = Colors.Ink3;
+      LineHeight = "normal";
+    }
+  }
+  render { Text(MetaJoined(facts)); }
+}
+
+/// The facts of a metadata line, the empty ones left out, joined with " · ".
+public string MetaJoined(List<string> facts) {
+  return string.Join(" · ", facts.Where(fact => fact != null && fact != "").ToList());
+}

@@ -1,0 +1,37 @@
+namespace OsyrinLookTests;
+
+using Osysharp.Look;
+
+// ProductReleases (canvas2) lines 61–98, the release cards: the lead "Next · planned" card, a "Then" card and the
+// "Released" list, drawn with `StageCard` and `ListCard` and the board's words (its forecast, bars and disclosures are
+// data the parts leave to the page). Not in the pixel budget: compared by eye against the rendered board.
+
+/// The release cards of the ProductReleases board.
+[Route("/dev/page-parts/releases")]
+[AllowAnonymous]
+[Title("ProductReleases cards")]
+[Render(CSR)]
+component ReleasesReplicaPage() {
+  action Nothing() { }
+  render {
+    BoardFrame("Patient Portal releases") {
+      StageCard("Patient Portal 2.4", "/dev/page-parts/release", eyebrow: "Next · planned",
+                sub: "stable · Public · target Thu 12 Nov · share 40 % · 4 lanes now", lead: true) {
+        slot tags { ProposedTag(small: true); }
+        slot side {
+          LookButton("Open release", Nothing);
+          LookButton("Release plan", Nothing);
+        }
+      }
+      StageCard("Patient Portal 2.5", "/dev/page-parts/plan", eyebrow: "Then",
+                sub: "stable · Public · target Thu 26 Nov · no share yet · 6 slices not started · 4 not estimated") {
+        slot side { StatusChip("Not enough history yet", StatusTone.Wait); }
+      }
+      ListCard("Released · last 14 days") {
+        ListCardRow("Patient Portal 2.3", "/dev/page-parts/release", ["stable", "published Fri 30 Oct 16:05", "9 slices", "put back possible"]) {
+          slot side { StatusChip("Published", StatusTone.Ok); }
+        }
+      }
+    }
+  }
+}

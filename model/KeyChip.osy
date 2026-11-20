@@ -1,0 +1,24 @@
+namespace Osysharp.Look;
+
+/// The object's own key in its header, not a link: mono 13/600 Ink on Line 2, `3px 8px`, radius 6 ("BOOK-12",
+/// "9c41e7a").
+[Composable]
+component KeyChip(string key) {
+  variants {
+    base {
+      Display = Display.InlineFlex;
+      W = "fit-content";
+      Px = "8px";
+      Py = "3px";
+      Rounded = Radius.Chip;
+      Bg = Colors.Line2;
+      FontFamily = Font.KeyFace;
+      FontSize = FontSize.Label;
+      FontWeight = FontWeight.Semibold;
+      Color = Colors.OnSurface;
+      WhiteSpace = WhiteSpace.Nowrap;
+      LineHeight = "normal";
+    }
+  }
+  render { Text(key); }
+}

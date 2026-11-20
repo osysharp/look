@@ -1,0 +1,39 @@
+namespace Osysharp.Look;
+
+// The decisions trail of a plan part (plan-part.dc.html `.step`): each decision a step on a vertical line — an open ring
+// while it waits, a check once taken — what was chosen and weighed under its question, and a superseded decision struck
+// through under the one that replaced it. DECISIONS 13 Nov (D4): decisions are rows, superseded never edited.
+
+/// One step: a 20 px column holding the mark (`DoneMark`, 14 px, 3 px down) and, unless `last`, a 1 px control-line line
+/// down to the next step; then, 14 px over, the `title` 15/600/1.45 and the block (what was chosen 14/1.55, a meta line,
+/// an "Answer it ›", a `SupersededLine`), parts 4 apart, 24 px under it before the next step.
+/// `console`: in the console look — the mark the console's 6 px dot (ok taken, neutral waiting; named as `DoneMark` is),
+/// 7 px down, the title 13.5/600 in the console's ink, the line the console's border.
+/// In a test the step is the group of its title: `Assert.Visible("Chosen:", within: "Which sender sends the text?")`.
+[Composable]
+component TrailStep(string title, bool done, bool last = false, bool console = false) {
+  render {
+    Row(gap: "14px", align: Align.Stretch, minW: "0", role: UiRole.Group, label: title) {
+      Stack(gap: "4px", w: "20px", minW: "20px", align: Align.Center) {
+        if (console) {
+          Box(pt: "7px", pb: "3px", display: Display.Flex, role: UiRole.Graphic, label: done ? "taken" : "waiting") {
+            ConsoleDot(done ? ConsoleDotTone.Ok : ConsoleDotTone.Neutral);
+          }
+        } else {
+          Box(pt: "3px") { DoneMark(done, size: 14, doneWords: "taken", openWords: "waiting"); }
+        }
+        if (!last) {
+          Box(w: "1px", grow: 1, bg: console ? Colors.ConsoleBorder : Colors.ControlLine, decorative: true);
+        }
+      }
+      Stack(gap: "4px", minW: "0", grow: 1, basis: "0", pb: last ? "0" : "24px") {
+        if (console) {
+          Text(title, fontSize: FontSize.ConsolePanelTitle, fontWeight: 600, lineHeight: "1.5", color: Colors.ConsoleText);
+        } else {
+          Text(title, fontSize: FontSize.Summary, fontWeight: FontWeight.Semibold, lineHeight: "1.45", color: Colors.OnSurface);
+        }
+        Slot;
+      }
+    }
+  }
+}

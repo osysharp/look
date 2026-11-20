@@ -1,0 +1,16 @@
+namespace Osysharp.Look;
+
+/// A card while it is being edited (ReleaseEditing's "Release" card): white inside a 2 px accent line, radius 14,
+/// `18px 20px`, its parts 12 apart; the title 18/700 (an h2), then the block — the editor, then its buttons.
+/// In a test it is the region of its title.
+[Composable]
+component EditingCard(string title) {
+  render {
+    Stack(gap: "12px", py: "18px", px: "20px", bg: Colors.Surface, borderW: 2, border: Colors.Primary, rounded: Radius.Panel, minW: "0",
+          label: title) {
+      Text(title, role: UiRole.Heading, level: 2, fontSize: FontSize.SectionTitle, fontWeight: FontWeight.Heavy, color: Colors.OnSurface,
+           lineHeight: "normal");
+      Slot;
+    }
+  }
+}

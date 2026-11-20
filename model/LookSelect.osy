@@ -1,0 +1,134 @@
+namespace Osysharp.Look;
+
+// The board's dropdown over strings (Components §22, as `LookEnumSelect` draws it over an enum): the field frame closed,
+// the 2 px accent line open with the list under it, the chosen row ticked, the lit row on Line 2, the same keyboard.
+// It replaces the browser's own select (`package.osy`: `replaces "Select"`), which cannot be drawn so.
+
+/// A choice of a short closed list of strings: `value` a two-way `Binding<string>`, its rows `options`, each shown as
+/// itself or as `words(option)` (a slug the page stores, words the person reads). `label` is drawn 13/600 above it and is
+/// its name (`inRow`: a `FieldRow` draws it); `placeholder` what the box says while `value` is ""; `state` and `message`
+/// as on `LookInput` (refused: the bad dot's line and the message in the bad ink), `linkLabel`/`linkTo` a link ending
+/// the message; `help` a 12 px Ink 3 line under it; `small` the toolbar's 36 px box. The keyboard: ↓/↑ open it and move,
+/// Home/End, Enter picks, Escape closes (focus stays); a press outside closes it. `onChanged` runs after the choice is
+/// written.
+/// `console`: the console's form control (as `ConsoleInput` beside it) — the 30 px face on a desktop (44 on a phone), its label
+/// 12.5/500 in the console's text colour and `help` 12 px in its text-2, as `ConsoleField` draws them.
+/// In a test: `Ui.Select("Line", "Preview")`, or `Ui.Click("Line")`, `Ui.Press("ArrowDown")`,
+/// `Ui.Press("Enter")`, then `Assert.Visible(…)`.
+[Composable]
+component LookSelect(string label, Binding<string> value, List<string> options, string w = "100%", FieldState state = FieldState.Normal,
+                     string message = "", string linkLabel = "", string linkTo = "", Func<string, string>? words = null,
+                     string placeholder = "", string help = "", bool inRow = false, bool disabled = false, bool small = false,
+                     Action? onChanged = null, bool console = false) {
+  bool open = false;
+  int at = 0;
+
+  int IndexOf(string option) {
+    int i = 0;
+    int found = 0;
+    foreach (var o in options) {
+      if (o == option) { found = i; }
+      i = i + 1;
+    }
+    return found;
+  }
+  action Toggle() {
+    if (open) {
+      open = false;
+    } else {
+      OpenAtValue();
+    }
+  }
+  action Close() { open = false; }
+  action OpenAtValue() {
+    if (options.Count == 0) { return; }
+    at = IndexOf(value);
+    open = true;
+  }
+  action Choose(string option) {
+    value = option;
+    open = false;
+    if (onChanged != null) { onChanged(); }
+  }
+  action ChooseAt() {
+    int i = 0;
+    foreach (var o in options) {
+      if (i == at) {
+        value = o;
+      }
+      i = i + 1;
+    }
+    open = false;
+    if (onChanged != null) { onChanged(); }
+  }
+  action Key(string name) {
+    var key = name.Replace("Arrow", "");
+    if (key == "Escape") {
+      open = false;
+    } else if (!open) {
+      if (key == "Down" || key == "Up" || key == "Enter" || key == "Space") { OpenAtValue(); }
+    } else if (key == "Down") {
+      if (at < options.Count - 1) { at = at + 1; }
+    } else if (key == "Up") {
+      if (at > 0) { at = at - 1; }
+    } else if (key == "Home") {
+      at = 0;
+    } else if (key == "End") {
+      at = options.Count - 1;
+    } else if (key == "Enter" || key == "Space") {
+      ChooseAt();
+    }
+  }
+
+  render {
+    var desk = console && Viewport.AtLeast(Tablet);
+    Stack(gap: "6px", w: w, maxW: "100%", minW: "0") {
+      if (!inRow && console) {
+        Text(label, fontSize: FontSize.ConsoleControl, fontWeight: 500, lineHeight: "1.3", fontFamily: Font.ConsoleSans, decorative: true,
+             color: state == FieldState.Refused ? Colors.ConsoleCriticalInk : Colors.ConsoleText);
+      } else if (!inRow) {
+        Text(label, fontSize: FontSize.Label, fontWeight: FontWeight.Semibold, lineHeight: "normal", decorative: true,
+             color: state == FieldState.Refused ? Colors.BadInk : Colors.OnSurface);
+      }
+      Box(position: Position.Relative, w: "100%") {
+        Pressable(onClick: Toggle, disabled: disabled, role: UiRole.ComboBox, expanded: open, label: label, keys: [Up, Down, Enter, Space, Escape, Home, End],
+                  onKeyDown: Key, w: "100%") {
+          LookSelectFace(open, disabled, refused: state == FieldState.Refused, small: small && !desk, console: desk, consoleOpen: desk && open) {
+            if (value == "") {
+              Text(placeholder, grow: 1, minW: "0", color: Colors.Ink3, overflow: Overflow.Hidden, textOverflow: TextOverflow.Ellipsis,
+                   whiteSpace: WhiteSpace.Nowrap, textAlign: TextAlign.Left);
+            } else {
+              Text(words != null ? words(value) : value, grow: 1, minW: "0", overflow: Overflow.Hidden, textOverflow: TextOverflow.Ellipsis, whiteSpace: WhiteSpace.Nowrap,
+                   textAlign: TextAlign.Left);
+            }
+            Text("▾", color: Colors.Ink3, shrink: 0, decorative: true);
+          }
+        }
+        if (open) {
+          Backdrop(Close);
+          Stack(role: UiRole.ListBox, position: Position.Absolute, top: "100%", left: "0", right: "0", mt: "4px", z: ZIndex.Popover, bg: Colors.Surface,
+                borderW: 1, border: Colors.ControlLine, rounded: Radius.Control, shadow: Shadow.DrawerLift, p: "4px", gap: 0,
+                maxH: "320px", overflowY: Overflow.Auto) {
+            foreach (var o in options) {
+              Pressable(onClick: () => Choose(o), w: "100%") {
+                LookSelectRow(words != null ? words(o) : o, o == value, IndexOf(o) == at);
+              }
+            }
+          }
+        }
+      }
+      if (message != "" || linkLabel != "") {
+        Row(gap: "0 4px", wrap: Wrapping.Wrap, align: Align.Baseline, fontSize: FontSize.Caption, lineHeight: "normal", minW: "0",
+            color: state == FieldState.Refused ? Colors.BadInk : Colors.OnSurface) {
+          if (message != "") { Text(message); }
+          if (linkLabel != "") { ConsoleLink(linkLabel, linkTo); }
+        }
+      }
+      if (help != "" && console) {
+        Text(help, fontSize: FontSize.ConsoleSmall, color: Colors.ConsoleText2, lineHeight: "1.4", fontFamily: Font.ConsoleSans);
+      } else if (help != "") {
+        Text(help, fontSize: FontSize.Caption, color: Colors.Ink3, lineHeight: "normal");
+      }
+    }
+  }
+}

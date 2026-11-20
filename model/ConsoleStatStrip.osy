@@ -1,0 +1,134 @@
+namespace Osysharp.Look;
+
+/// The console's stat strip (spec "Components", Stat strip): ONE panel that is a grid of equal cells `16px 20px`, split
+/// by 1 px divider lines. On a phone a 2-column grid of `14px 16px` cells; an odd last cell spans both as one
+/// label/value row. In a test it is the region `label`, each cell the region "Label: Value" (or "Label: Nothing yet"),
+/// or, for a stat with `To`, the link "Label: Value, Sub" (or "Label: Value").
+/// The strip decides desk or phone once, from the window (`Viewport.AtLeast(Tablet)`), and hands it to its cells: a
+/// cell is narrower than a tablet on any desk, so a cell that asked its own room drew the phone's padding (LK7).
+/// ST1: every cell spans three of the strip's rows as a subgrid (label, value, sub), so in one line of cells the labels
+/// share the top row, the subs the bottom row and the values the middle one, centred: a label or sub that wraps moves
+/// no value off its neighbours' line, and the cells of a line are the same height (on a phone, per line of two).
+[Composable]
+component ConsoleStatStrip(string label, List<ConsoleStat> stats) {
+  render {
+    var wide = Viewport.AtLeast(Tablet);
+    var count = stats.Count();
+    Box(display: Display.Grid, cols: wide ? count : 2, minW: "0", bg: Colors.ConsoleSurface, borderW: 1, border: Colors.ConsoleBorder,
+        rounded: Radius.ConsoleCorner, overflow: Overflow.Hidden, role: UiRole.Region, label: label) {
+      foreach (var index in Enumerable.Range(0, count)) {
+        ConsoleStatCell(stats[index], wide ? index > 0 : index % 2 == 1, !wide && index >= 2, !wide && index == count - 1 && count % 2 == 1, wide);
+      }
+    }
+  }
+}
+
+/// A cell: its left divider (`left`), its top divider on a phone's second line on (`top`), or the phone's spanning
+/// last cell (`span`); `wide` the strip's answer, desk or phone. A stat with `To` is one link over the whole cell.
+[Composable, Part]
+component ConsoleStatCell(ConsoleStat stat, bool left, bool top, bool span, bool wide) {
+  string Shown() => stat.Value != "" ? stat.Value : stat.Empty;
+  string LinkName() => stat.Label + ": " + Shown() + (stat.Sub != "" ? ", " + stat.Sub : "");
+  render {
+    if (stat.To != "") {
+      ConsoleStatLink(stat.To, LinkName(), span) { ConsoleStatFace(stat, left, top, span, "", wide); }
+    } else {
+      ConsoleStatFace(stat, left, top, span, stat.Label + ": " + Shown(), wide);
+    }
+  }
+}
+
+/// A linked cell's box: the cell's own place in the grid (`span` across both phone columns; three rows, passed on to its
+/// face as a subgrid, so the face fills the cell's whole height and its divider runs from top to bottom when a neighbour
+/// is taller), the sunken ground on hover and the ring on keyboard focus, as a `ConsoleRowLink` row.
+[Composable, Part]
+component ConsoleStatLink(string to, string name, bool span = false) {
+  variants {
+    base {
+      Display = Display.Grid;
+      Rows = "subgrid";
+      RowSpan = "span 3";
+      MinW = "0";
+      Color = Colors.ConsoleText;
+      TextDecoration = TextDecoration.None;
+      Hover { Bg = Colors.ConsoleSunken; }
+      Focus { Shadow = Shadow.Ring; }
+    }
+    span {
+      ColSpan = "1 / -1";
+    }
+  }
+  render {
+    Link(to, label: name) { Slot; }
+  }
+}
+
+/// A cell's words: the label at the top, the value (or `Empty`) centred in the middle row and the sub line at the bottom,
+/// on the strip's rows (subgrid); the value's band is the region "Label figure". The phone's spanning cell keeps them on one
+/// line. `name` names the cell's region (empty when the link around it carries the name); `wide` the strip's answer.
+[Composable, Part]
+component ConsoleStatFace(ConsoleStat stat, bool left, bool top, bool span, string name, bool wide) {
+  render {
+    if (span) {
+      Row(colSpan: "1 / -1", rowSpan: "span 3", justify: Justify.Between, align: Align.Baseline, gap: "12px", py: "14px", px: "16px", minW: "0",
+          borderTW: top ? 1 : 0, border: Colors.ConsoleDivider, label: name) {
+        ConsoleStatLabel(stat);
+        Text(stat.Value != "" ? stat.Value + (stat.Sub != "" ? " · " + ConsoleStatSubWords(stat.Sub) : "") : stat.Empty + (stat.Sub != "" ? " · " + ConsoleStatSubWords(stat.Sub) : ""),
+             fontSize: FontSize.ConsoleSmall, color: Colors.ConsoleText2, textAlign: TextAlign.Right, minW: "0");
+      }
+    } else {
+      Box(display: Display.Grid, rows: "subgrid", rowSpan: "span 3", py: wide ? "16px" : "14px", px: wide ? "20px" : "16px", minW: "0",
+          borderLW: left ? 1 : 0, borderTW: top ? 1 : 0, border: Colors.ConsoleDivider, label: name) {
+        ConsoleStatLabel(stat);
+        // The value's band: the strip's middle row, centred in it, so a row's values sit on one line whatever wraps.
+        Row(align: Align.Center, mt: wide ? "8px" : "6px", minW: "0", label: stat.Label + " figure") {
+          if (stat.Value != "") {
+            Text(stat.Value, fontSize: stat.Mono ? "18px" : FontSize.ConsoleStat, fontWeight: stat.Mono ? 500 : 600,
+                 fontFamily: stat.Mono ? Font.ConsoleMono : Font.ConsoleSans, letterSpacing: stat.Mono ? "0" : "-0.01em", lineHeight: "1.2",
+                 wordBreak: WordBreak.BreakWord, minW: "0");
+          } else {
+            Text(stat.Empty, fontSize: "16px", fontWeight: 500, lineHeight: "1.2", color: Colors.ConsoleText2, minW: "0");
+          }
+        }
+        if (stat.Sub != "") {
+          Text(ConsoleStatSubWords(stat.Sub), mt: "2px", alignSelf: AlignSelf.End, fontSize: FontSize.ConsoleSmall, color: Colors.ConsoleText2);
+        }
+      }
+    }
+  }
+}
+
+/// A stat's sub line as it is drawn: each count of a " · "-joined sub kept with its first word by a no-break space ("1 healthy"), so a
+/// narrow cell breaks the line between its parts or inside a part's words, never between a count and its word ("1 / healthy" on a 1280
+/// desk). A test reads the same words: its text match treats a no-break space as a space.
+public string ConsoleStatSubWords(string sub) {
+  return string.Join(" · ", sub.Split(" · ").Select(p => ConsoleStatCountKept(p)).ToList());
+}
+
+/// One part of a sub with its leading count joined to the word after it ("3 failing" → "3\u00a0failing"); a part that does not start
+/// with a count is left as it is.
+string ConsoleStatCountKept(string part) {
+  var gap = part.IndexOf(" ");
+  if (gap <= 0 || !char.IsDigit(part[0])) { return part; }
+  return part.Substring(0, gap) + "\u00a0" + part.Substring(gap + 1);
+}
+
+/// A cell's label: 12 text-2, its dot 6 before it.
+[Composable, Part]
+component ConsoleStatLabel(ConsoleStat stat) {
+  render {
+    if (stat.Mark != "") {
+      // A marked label (FOUNDRY-212): the mark follows it, and wraps under it in a narrow cell.
+      Row(gap: "4px 6px", align: Align.Center, alignSelf: AlignSelf.Start, wrap: Wrapping.Wrap, minW: "0") {
+        if (stat.Dot) { ConsoleDot(stat.DotTone); }
+        Text(stat.Label, fontSize: FontSize.ConsoleSmall, color: Colors.ConsoleText2);
+        StatusChip(stat.Mark, StatusTone.Bad);
+      }
+    } else {
+      Row(gap: "6px", align: Align.Center, alignSelf: AlignSelf.Start, minW: "0") {
+        if (stat.Dot) { ConsoleDot(stat.DotTone); }
+        Text(stat.Label, fontSize: FontSize.ConsoleSmall, color: Colors.ConsoleText2);
+      }
+    }
+  }
+}

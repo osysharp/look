@@ -1,0 +1,64 @@
+namespace OsyrinLookTests;
+
+using Osysharp.Look;
+
+// `PageColumn` in the two parents an app gives it (P2.D14b): Admin's content region — a column of fixed height that
+// scrolls — and Foundry's — a row beside the rail. In both the cards keep their whole height.
+
+/// A frame with a 64 px top band and, under it, a content region 560 px high — shorter than the page — a column that
+/// scrolls and that stretches its one child to its own height (a grid row `minmax(0, 1fr)`, as a shell's region often
+/// is): the old PageColumn took that height and squeezed its cards to their heads. Admin's 20 px of ground.
+[Route("/dev/parts/column")]
+[AllowAnonymous]
+[Title("Page column in a column")]
+[Render(CSR)]
+component ColumnParentPage() {
+  render {
+    Stack(gap: 0, h: "100vh", bg: Colors.Bg, color: Colors.OnSurface, fontFamily: Font.Sans, lineHeight: "normal", overflow: Overflow.Hidden) {
+      Row(h: "64px", minH: "64px", px: "20px", align: Align.Center, bg: Colors.Surface, borderBW: 1, border: Colors.Border) {
+        Text("Fixed band", fontWeight: FontWeight.Heavy);
+      }
+      Box(display: Display.Grid, rows: "minmax(0, 1fr)", h: "560px", minH: "0", overflowY: Overflow.Auto, label: "Content region") {
+        PageColumn("Network policies", landmark: true, ground: "20px") { ColumnSampleCards(); }
+      }
+    }
+  }
+}
+
+/// The same page in a row beside a 248 px rail, as Foundry's shell holds it.
+[Route("/dev/parts/row")]
+[AllowAnonymous]
+[Title("Page column in a row")]
+[Render(CSR)]
+component RowParentPage() {
+  render {
+    Row(gap: "24px", align: Align.Start, p: "20px", bg: Colors.Bg, color: Colors.OnSurface, fontFamily: Font.Sans, lineHeight: "normal", minH: "100vh") {
+      Box(w: "248px", minW: "248px", h: "320px", bg: Colors.Surface, borderW: 1, border: Colors.Border, rounded: Radius.Panel, label: "Rail");
+      PageColumn("Network policies", landmark: true) { ColumnSampleCards(); }
+    }
+  }
+}
+
+/// A header and three cards tall enough to overflow the content region at 1440 × 900.
+[Composable]
+component ColumnSampleCards() {
+  render {
+    AreaTitle("Network policies");
+    AreaCard("Outbound hosts", count: "4 hosts") {
+      AreaSampleRow("*.vercel.com", "Deploy preview and production");
+      AreaSampleRow("api.stripe.com", "Payments");
+      AreaSampleRow("hooks.slack.com", "Release notices");
+      AreaSampleRow("nuget.org", "Refused · from its .egress file");
+    }
+    AreaCard("Package sources", count: "2 sources") {
+      AreaSampleRow("nuget.org", "Public packages, pinned by hash");
+      AreaSampleRow("Organisation feed", "Internal packages");
+    }
+    SectionCard("Who may change these", sub: "Org admins sign a new bundle; two governors approve it.") {
+      AreaSampleRow("Org admins", "Jonas Lindqvist, Olive Owner");
+      AreaSampleRow("Governors", "Elif Demir, Anna Berg");
+      AreaSampleRow("Last signed", "Bundle v14 · Tue 10 Nov");
+    }
+    DashedNote("Not yet governable", "Production data copied into test environments.");
+  }
+}

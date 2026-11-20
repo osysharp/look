@@ -1,0 +1,56 @@
+namespace Osysharp.Look;
+
+/// One line that says how something went, in a form or a card: the tone's dot, `lead` strong, then `text`, on the
+/// tone's tint in its ink — 13/1.45, `8px 12px`, radius 8 (the tinted strip's values, drawn in the six tones of
+/// `LookTone`: `ToneStrip` keeps its four strip tones for a note under a row). `Neutral` is the floor's grey.
+/// A status region, so a screen reader says it when it changes. On no board as such: drawn in §21's result lines' tones.
+/// e.g. `InlineMessage("Saved 09:41 · the planner re-reads it on its next pass.", LookTone.Ok, lead: "Saved.")`
+[Composable]
+component InlineMessage(string text, LookTone tone = LookTone.Neutral, string lead = "") {
+  variants {
+    base {
+      Display = Display.Flex;
+      Py = "8px";
+      Px = "12px";
+      Rounded = Radius.Control;
+      FontSize = FontSize.Label;
+      LineHeight = "1.45";
+      Bg = Colors.FloorTint;
+      Color = Colors.FloorInk;
+    }
+    tone {
+      Ok {
+        Bg = Colors.OkTint;
+        Color = Colors.OkInk;
+      }
+      Run {
+        Bg = Colors.RunTint;
+        Color = Colors.RunInk;
+      }
+      Wait {
+        Bg = Colors.WaitTint;
+        Color = Colors.WaitInk;
+      }
+      You {
+        Bg = Colors.YouTint;
+        Color = Colors.YouInk;
+      }
+      Bad {
+        Bg = Colors.BadTint;
+        Color = Colors.BadInk;
+      }
+      Neutral { }
+    }
+  }
+  render {
+    Row(gap: "8px", align: Align.Start, role: UiRole.Status, minW: "0") {
+      Box(mt: "6px", shrink: 0) { LookToneDot(tone); }
+      Box(minW: "0") {
+        if (lead != "") {
+          Text(lead + " ", fontWeight: FontWeight.Heavy, whiteSpace: WhiteSpace.PreWrap);
+        }
+        Text(text, whiteSpace: WhiteSpace.PreWrap);
+      }
+    }
+  }
+}

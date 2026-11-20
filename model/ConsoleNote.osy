@@ -1,0 +1,17 @@
+namespace Osysharp.Look;
+
+/// A note that is not an alarm: the warning tint, a 1 px control line, radius 6, `10px 14px`; the `lead` bold, the words
+/// after it, wrapping. For what a reader should know and cannot mend from here (a permission they do not hold, a part that
+/// is cut). The alert banner (`ConsoleAlert`) is for what is critical.
+[Composable]
+component ConsoleNote(string words, string lead = "") {
+  render {
+    Row(gap: "6px", wrap: Wrapping.Wrap, py: "10px", px: "14px", bg: Colors.ConsoleWarnBg, borderW: 1, border: Colors.ConsoleControlLine,
+        rounded: Radius.ConsoleCorner, color: Colors.ConsoleWarnInk, minW: "0", role: UiRole.Status, label: lead != "" ? lead : words) {
+      if (lead != "") {
+        Text(lead, fontWeight: 600);
+      }
+      Text(words, minW: "0", wordBreak: WordBreak.BreakWord);
+    }
+  }
+}

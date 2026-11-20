@@ -1,0 +1,65 @@
+namespace Osysharp.Look;
+
+// The board's checkbox (Components §22 "Checkbox, switch, radio"; PolicyFloorEdit's rows): an 18 px box, radius 4, the
+// proposed line (#A8A396) on white, the accent filled with a white tick when ticked, 14 px words 8 after it, at least
+// 32 high. The kit's `Checkbox` draws its box on the Border hairline and takes only a binding, so the look draws it
+// here on the `Pressable` atom with the board's values, in both forms.
+
+/// A checkbox, CONTROLLED: the page says whether it is `checked` and what a press does (`onToggle`), for a state that
+/// is not a plain field ("is this override set?"). `help` is a 13 px Ink 3 line under the words; `disabled` draws it
+/// in Ink 4 on Line 2 and stops the press. The words are part of the control, so pressing them ticks it; a visible
+/// focus ring. In a test: `Ui.Click("Run docs checks")`, `Assert.Checked("Run docs checks", true)`.
+[Composable]
+component LookCheckbox(string label, bool checked, Action onToggle, string help = "", bool disabled = false) {
+  render {
+    LookCheckFace(label, checked, help, disabled, onToggle);
+  }
+}
+
+/// A checkbox BOUND to a field: the press writes `value` itself, then runs `onToggle` (the commit, never a second
+/// flip). Drawn as `LookCheckbox`. In a test: `Ui.Check("Email me")`.
+[Composable]
+component LookCheckboxBound(string label, Binding<bool> value, Action onToggle = null, string help = "", bool disabled = false) {
+  action Flip() {
+    value = !value;
+    if (onToggle != null) { onToggle(); }
+  }
+  render {
+    LookCheckFace(label, value, help, disabled, Flip);
+  }
+}
+
+/// The checkbox's press, box and words.
+[Composable, Part]
+component LookCheckFace(string label, bool checked, string help, bool disabled, Action onPress) {
+  variants {
+    base {
+      Display = Display.InlineFlex;
+      MinH = "32px";
+      Rounded = Radius.Tag;
+      Cursor = Cursor.Pointer;
+      Focus { Shadow = Shadow.Ring; }
+    }
+    disabled { Cursor = Cursor.Default; }
+  }
+  render {
+    Pressable(onClick: onPress, disabled: disabled, role: UiRole.Checkbox, checked: checked, label: label, align: Align.Start, gap: "8px") {
+      Box(mt: help != "" ? "1px" : "7px", shrink: 0, decorative: true) {
+        if (checked) {
+          Box(w: "18px", h: "18px", rounded: "4px", bg: disabled ? Colors.Ink4 : Colors.Primary, color: Colors.OnPrimary, display: Display.InlineFlex,
+              align: Align.Center, justify: Justify.Center) {
+            Icon(Icons.Check, size: 14);
+          }
+        } else {
+          Box(w: "18px", h: "18px", rounded: "4px", borderW: 1, border: disabled ? Colors.Border : Colors.ProposedLine, bg: disabled ? Colors.Line2 : Colors.Surface);
+        }
+      }
+      Stack(gap: "2px", minW: "0", pt: help != "" ? "0" : "6px", pb: help != "" ? "0" : "6px") {
+        Text(label, fontSize: FontSize.Body, lineHeight: "normal", color: disabled ? Colors.Ink4 : Colors.OnSurface, textAlign: TextAlign.Left);
+        if (help != "") {
+          Text(help, fontSize: FontSize.Label, lineHeight: "1.4", color: Colors.Ink3, textAlign: TextAlign.Left);
+        }
+      }
+    }
+  }
+}

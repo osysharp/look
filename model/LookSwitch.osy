@@ -1,0 +1,48 @@
+namespace Osysharp.Look;
+
+/// An on/off switch for a setting that takes effect at once (Components §22 "State"): a 34 × 20 pill track — the accent
+/// when on, the control line when off — with a 16 px white knob at its end, then its word ("On"/"Off", 14 Ink), at least
+/// 32 high. `label` is its name and is drawn 13/600 above it as a field's label; `inRow`: a `FieldRow` draws the label,
+/// so only the switch is drawn (it keeps the label as its name). CONTROLLED: `on` is the state, `onToggle` makes the
+/// change (a server call); `help` a 12 px Ink 3 line under it; `disabled` stops the press.
+/// In a test: `Ui.Click("Live updates")`, `Assert.Checked("Live updates", true)`.
+[Composable]
+component LookSwitch(string label, bool on, Action onToggle, string onWord = "On", string offWord = "Off", string help = "", bool inRow = false,
+                     bool disabled = false) {
+  render {
+    Stack(gap: "6px", minW: "0") {
+      if (!inRow) {
+        Text(label, fontSize: FontSize.Label, fontWeight: FontWeight.Semibold, color: Colors.OnSurface, lineHeight: "normal", decorative: true);
+      }
+      LookSwitchFace(label, on, on ? onWord : offWord, disabled, onToggle);
+      if (help != "") {
+        Text(help, fontSize: FontSize.Caption, color: Colors.Ink3, lineHeight: "normal");
+      }
+    }
+  }
+}
+
+/// The switch's press: the track and its word.
+[Composable, Part]
+component LookSwitchFace(string label, bool on, string word, bool disabled, Action onPress) {
+  variants {
+    base {
+      Display = Display.InlineFlex;
+      AlignSelf = AlignSelf.Start;
+      MinH = "32px";
+      Rounded = Radius.Tag;
+      Cursor = Cursor.Pointer;
+      Focus { Shadow = Shadow.Ring; }
+    }
+    disabled { Cursor = Cursor.Default; }
+  }
+  render {
+    Pressable(onClick: onPress, disabled: disabled, role: UiRole.Switch, checked: on, label: label, align: Align.Center, gap: "8px") {
+      Box(w: "34px", h: "20px", shrink: 0, rounded: Radius.Pill, px: "2px", display: Display.InlineFlex, align: Align.Center,
+          justify: on ? Justify.End : Justify.Start, bg: disabled ? Colors.Border : (on ? Colors.Primary : Colors.ControlLine), decorative: true) {
+        Box(w: "16px", h: "16px", rounded: Radius.Pill, bg: on ? Colors.OnPrimary : Colors.Surface);
+      }
+      Text(word, fontSize: FontSize.Body, lineHeight: "normal", color: disabled ? Colors.Ink4 : Colors.OnSurface, decorative: true);
+    }
+  }
+}

@@ -1,0 +1,41 @@
+namespace Osysharp.Look;
+
+/// The inside of one segment of a console `SegmentedFilter`, a console button's size (spec "Buttons"): the words 12.5/500
+/// at least 30 high on a desk, 14/500 at least 44 high on a phone (`phone`), `0 12px`, the count plain 12/400 text-2
+/// words after them; `on` the chosen one as the rail's current row, rail-active with white words.
+[Composable, Part]
+component ConsoleSegmentFace(string words, string count, bool on, bool phone = false) {
+  variants {
+    base {
+      Display = Display.Flex;
+      MinH = "30px";
+      Px = "12px";
+      Bg = Colors.ConsoleSurface;
+      Color = Colors.ConsoleText;
+      FontFamily = Font.ConsoleSans;
+      FontSize = FontSize.ConsoleControl;
+      FontWeight = 500;
+      LineHeight = "normal";
+      WhiteSpace = WhiteSpace.Nowrap;
+      Cursor = Cursor.Pointer;
+      Hover { Bg = Colors.ConsoleSunken; }
+    }
+    phone {
+      MinH = "44px";
+      FontSize = FontSize.ConsoleBodyPhone;
+    }
+    on {
+      Bg = Colors.ConsoleRailActive;
+      Color = Colors.ConsoleRailInk;
+      Hover { Bg = Colors.ConsoleRailActive; }
+    }
+  }
+  render {
+    Row(gap: "6px", align: Align.Center, justify: Justify.Center) {
+      Text(words);
+      if (count != "") {
+        Text(count, fontSize: FontSize.ConsoleSmall, fontWeight: 400, color: on ? Colors.ConsoleRailText2 : Colors.ConsoleText2);
+      }
+    }
+  }
+}

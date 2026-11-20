@@ -1,0 +1,52 @@
+namespace Osysharp.Look;
+
+// "Check a value" (canvas4/PolicyFloorEffective "Check a value against the floor"): one input, and under it what the
+// check says — an outcome chip and the sentence, its lead strong, with an optional link. The sentence is also what a
+// refused add says under its field (`HostAddField`), and the "Also checked" lines.
+
+/// A check's sentence, 13/1.5. Refused (`ok` false): the bad ink, `lead` strong, the `rest` after it, then the links
+/// (`linkLabel` → `linkTo`, `link2Label` → `link2To`, " · " between), 600 and underlined in the same ink. Allowed: the
+/// ok ink, 13/600, after a ✓.
+/// e.g. `CheckSentence("hooks.example-analytics.com is not on the outbound hosts.", "Only an Owner or Admin can widen it.", ok: false, linkLabel: "Ask for an exception ›", linkTo: "/exceptions/new")`
+[Composable]
+component CheckSentence(string lead, string rest = "", bool ok = false, string linkLabel = "", string linkTo = "", string link2Label = "",
+                        string link2To = "") {
+  render {
+    if (ok) {
+      Row(gap: "6px", align: Align.Center, fontSize: FontSize.Label, fontWeight: FontWeight.Semibold, color: Colors.OkInk, lineHeight: "1.5") {
+        Text("✓", decorative: true, w: "14px", minW: "14px", textAlign: TextAlign.Center);
+        Text(lead + (rest != "" ? " " + rest : ""));
+      }
+    } else {
+      Box(fontSize: FontSize.Label, color: Colors.BadInk, lineHeight: "1.5", role: UiRole.Alert) {
+        if (lead != "") {
+          Text(lead, fontWeight: FontWeight.Heavy);
+        }
+        if (rest != "") {
+          Text((lead != "" ? " " : "") + rest + " ", whiteSpace: WhiteSpace.PreWrap);
+        }
+        if (linkTo != "") {
+          SentenceLink(linkLabel, linkTo);
+        }
+        if (link2To != "") {
+          Text(" · ", whiteSpace: WhiteSpace.PreWrap);
+          SentenceLink(link2Label, link2To);
+        }
+      }
+    }
+  }
+}
+
+/// A link inside a refused sentence: 600, underlined, in the sentence's ink.
+[Composable]
+component SentenceLink(string label, string to) {
+  variants {
+    base {
+      FontWeight = FontWeight.Semibold;
+      Color = Colors.BadInk;
+      TextDecoration = TextDecoration.Underline;
+    }
+  }
+  render { Link(to, label: label) { Text(label); } }
+}
+

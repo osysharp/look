@@ -1,0 +1,24 @@
+namespace Osysharp.Look;
+
+/// The × inside a search field while it holds text: 32 × 32, Ink 3, radius 6, Line 2 when hovered, the focus ring.
+/// `name` is what it is called ("Clear Search hosts"). Drawn by `LookInput(…, search: true)`.
+[Composable]
+component LookInputClear(Action onPress, string name) {
+  variants {
+    base {
+      Display = Display.InlineFlex;
+      W = "32px";
+      H = "32px";
+      P = "0";
+      Rounded = Radius.Chip;
+      Bg = Colors.Surface;
+      Color = Colors.Ink3;
+      Cursor = Cursor.Pointer;
+      Hover { Bg = Colors.Line2; Color = Colors.OnSurface; }
+      Focus { Shadow = Shadow.Ring; }
+    }
+  }
+  render {
+    Pressable(onClick: onPress, label: name, align: Align.Center, justify: Justify.Center) { Icon(Icons.Close, size: 14); }
+  }
+}

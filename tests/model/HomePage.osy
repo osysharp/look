@@ -1,0 +1,12 @@
+namespace OsyrinLookTests;
+
+/// The front door of the tests app: it says what the app is and leads to the gallery.
+[Route("/")]
+[AllowAnonymous]
+[Title("Look tests")]
+[Render(CSR)]
+component HomePage() {
+  render {
+    Link("/dev/components", label: "The gallery of the Osyrin look") { Text("The gallery of the Osyrin look"); }
+  }
+}

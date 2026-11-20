@@ -1,0 +1,5 @@
+namespace Osysharp.Look;
+
+/// How a plan item's level is drawn, strongest to weakest as items get smaller: saga solid accent, arc light accent,
+/// slice outlined, bit plain grey (Foundry-Product.dc.html, `.ty`).
+public enum ConsoleTypeKind { Saga, Arc, Slice, Bit }

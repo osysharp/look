@@ -1,0 +1,181 @@
+// The look's display parts (P2.D18b): a row pressed as a whole with the open one marked, the compact tiles, a clamped
+// text, a person in a cell, a relative date, the 34 px row.
+
+using Osysharp.Look;
+using OsyrinLookTests;
+
+[Test]
+void A_pressed_row_opens_as_a_whole_is_marked_open_and_its_own_button_opens_nothing() {
+  Ui.Viewport(1440);
+  Ui.Visit("/dev/controls/display");
+  // Pressed rows are still the table's data rows, each read under its column.
+  Assert.Items("Rules table", 5);
+  Assert.Cell("AF-06", "30 d", "2", within: "Rules table");
+  // The open row is found by its state.
+  Assert.Selected("AF-04", true);
+  Assert.Selected("AF-05", false);
+  // A press anywhere on a row opens it.
+  Ui.Click("Required fields say so in text, not colour alone");
+  Assert.Selected("AF-05", true);
+  Assert.Selected("AF-04", false);
+  Assert.Visible("Open: AF-05");
+  // The row's own button does its own thing and opens nothing.
+  Ui.Click("Flag AF-03");
+  Assert.Visible("Open: AF-05 · Flagged: AF-03");
+  Assert.Selected("AF-03", false);
+  Ui.Shot("display-rows-1440", within: "Rules");
+}
+
+[Test]
+void A_pressed_row_is_one_focus_stop_and_Enter_opens_it() {
+  Ui.Viewport(1440);
+  Ui.Visit("/dev/controls/display");
+  // The first stop on the page is the first row, as a whole; the next is that row's own button, and Enter there does
+  // not open the row (the button's own press is the click in the test above: the driver's Enter presses no button).
+  Ui.Press("Tab");
+  Assert.Focused("AF-03");
+  Ui.Press("Tab");
+  Assert.Focused("Flag AF-03");
+  Ui.Press("Enter");
+  Assert.Visible("Open: AF-04");
+  Assert.Selected("AF-03", false);
+  // AF-04 has no button: one stop, then AF-05's row; Enter opens it.
+  Ui.Press("Tab");
+  Assert.Focused("AF-04");
+  Ui.Press("Tab");
+  Assert.Focused("AF-05");
+  Ui.Press("Enter");
+  Assert.Selected("AF-05", true);
+  Assert.Visible("Open: AF-05");
+}
+
+[Test]
+void Compact_tiles_are_about_70_high_keep_their_sub_line_and_bar_and_wrap_on_a_phone() {
+  Ui.Viewport(1440);
+  Ui.Visit("/dev/controls/display");
+  // Between the 64 and 80 px marks (the comparisons allow a pixel), a tile with a sub, a bar or a chip alike.
+  Assert.Taller("Items done: 8 of 12, 4 still open", "64 px mark");
+  Assert.Shorter("Items done: 8 of 12, 4 still open", "80 px mark");
+  Assert.Shorter("Compact tiles without tones", "80 px mark");
+  Assert.SameHeight("Items done: 8 of 12, 4 still open", "Blocked: 2");
+  Assert.Visible("4 still open");
+  Assert.Visible("Gate refused", within: "Blocked: 2");
+  Assert.Clickable("Not ready: 2, waiting on BOOK-21");
+  Ui.Shot("display-tiles-1440", within: "Compact tiles");
+  Ui.Viewport(390);
+  Ui.Visit("/dev/controls/display");
+  Assert.NoOverflow();
+  Assert.Inside("Items done: 8 of 12, 4 still open", "Compact tiles");
+  Assert.Inside("patient-portal-2.5.0-rc.3", "Candidate: patient-portal-2.5.0-rc.3, not yet released");
+  Ui.Shot("display-tiles-390", within: "Compact tiles");
+  Ui.Click("Items done: 8 of 12, 4 still open");
+  Assert.OnPage("/dev/components");
+}
+
+[Test]
+void A_long_list_row_is_34_high_with_text_or_a_chip() {
+  Ui.Viewport(1440);
+  Ui.Visit("/dev/controls/display");
+  Assert.Items("Zones table", 12);
+  Assert.Cell("zone-04", "State", "Draining", within: "Zones table");
+  // Text rows and chip rows alike, as high as the 34 px mark.
+  Assert.SameHeight("Row zone-01", "34 px mark");
+  Assert.SameHeight("Row zone-04", "34 px mark");
+  Assert.SameHeight("Row zone-01", "Row zone-04");
+  Ui.Shot("display-long-1440", within: "Zones");
+}
+
+[Test]
+void Relative_words_hold_at_every_boundary() {
+  var now = new DateTime(2026, 11, 12, 15, 0, 0);
+  Assert.Equal("just now", RelativeWords(now, now));
+  Assert.Equal("just now", RelativeWords(now.AddSeconds(-59), now));
+  Assert.Equal("1 min ago", RelativeWords(now.AddSeconds(-60), now));
+  Assert.Equal("59 min ago", RelativeWords(now.AddSeconds(-3599), now));
+  Assert.Equal("1 h ago", RelativeWords(now.AddSeconds(-3600), now));
+  Assert.Equal("15 h ago", RelativeWords(new DateTime(2026, 11, 12, 0, 0, 0), now));
+  Assert.Equal("yesterday", RelativeWords(new DateTime(2026, 11, 11, 23, 59, 59), now));
+  Assert.Equal("yesterday", RelativeWords(new DateTime(2026, 11, 11, 0, 0, 0), now));
+  Assert.Equal("10 Nov", RelativeWords(new DateTime(2026, 11, 10, 23, 59, 59), now));
+  Assert.Equal("1 Jan", RelativeWords(new DateTime(2026, 1, 1, 0, 0, 0), now));
+  Assert.Equal("31 Dec 2025", RelativeWords(new DateTime(2025, 12, 31, 23, 59, 59), now));
+  // Just past midnight, a moment before it is minutes ago, not yesterday; an hour before it is yesterday.
+  var night = new DateTime(2026, 11, 12, 0, 10, 0);
+  Assert.Equal("20 min ago", RelativeWords(new DateTime(2026, 11, 11, 23, 50, 0), night));
+  Assert.Equal("yesterday", RelativeWords(new DateTime(2026, 11, 11, 23, 10, 0), night));
+  // Ahead of now, the same wording turned round.
+  Assert.Equal("just now", RelativeWords(now.AddSeconds(59), now));
+  Assert.Equal("in 5 min", RelativeWords(now.AddMinutes(5), now));
+  Assert.Equal("in 2 h", RelativeWords(now.AddHours(2), now));
+  Assert.Equal("tomorrow", RelativeWords(new DateTime(2026, 11, 13, 8, 0, 0), now));
+  Assert.Equal("20 Nov", RelativeWords(new DateTime(2026, 11, 20, 8, 0, 0), now));
+  Assert.Equal("Thu 12 Nov 2026, 09:05 UTC", ExactWhen(new DateTime(2026, 11, 12, 9, 5, 0)));
+}
+
+[Test]
+void A_relative_date_reads_the_pinned_clock_and_shows_the_exact_time_on_hover() {
+  TestClock.Set(new DateTime(2026, 11, 12, 15, 0, 0));
+  Ui.Viewport(1440);
+  Ui.Visit("/dev/controls/display");
+  Assert.Items("Recent changes table", 5);
+  Assert.Cell("Anna Berg raised the floor's contrast rule", "When", "3 min ago", within: "Recent changes table");
+  Assert.Cell("Chen Wei opened draft v4", "When", "3 h ago", within: "Recent changes table");
+  Assert.Cell("The gate refused 2.4.0-rc.11", "When", "yesterday", within: "Recent changes table");
+  Assert.Cell("Patient Portal 2.3 released", "When", "3 Nov", within: "Recent changes table");
+  Assert.Cell("The accessibility floor adopted", "When", "31 Dec 2025", within: "Recent changes table");
+  Ui.Hover("3 Nov");
+  Ui.Focus("3 Nov");
+  Assert.Visible("Tue 3 Nov 2026, 09:05 UTC", within: "Exact time");
+  Ui.Shot("display-dates-1440", within: "Recent changes");
+}
+
+[Test]
+void A_hover_title_opens_on_keyboard_focus_and_closes_on_Escape_and_on_leaving() {
+  TestClock.Set(new DateTime(2026, 11, 12, 15, 0, 0));
+  Ui.Viewport(1440);
+  Ui.Visit("/dev/controls/display");
+  // The keyboard arrives at the date (a stop, as `focusable` makes it): its exact time opens as hovering opens it.
+  Ui.Focus("3 Nov");
+  Assert.Visible("Tue 3 Nov 2026, 09:05 UTC", within: "Exact time");
+  // Escape closes it without moving the keyboard.
+  Ui.Press("Escape");
+  Assert.Hidden("Tue 3 Nov 2026, 09:05 UTC");
+  Assert.Focused("3 Nov");
+  // Arriving again opens it again; Tab on to the next row's change closes it and opens that one's whole text.
+  Ui.Press("Shift+Tab");
+  Ui.Press("Tab");
+  Assert.Visible("Tue 3 Nov 2026, 09:05 UTC", within: "Exact time");
+  Ui.Press("Tab");
+  Assert.Hidden("Tue 3 Nov 2026, 09:05 UTC");
+  Assert.Visible("The accessibility floor adopted", within: "Whole text");
+}
+
+[Test]
+void Long_words_are_cut_inside_their_cells_and_whole_on_hover() {
+  Ui.Viewport(1440);
+  Ui.Visit("/dev/controls/display");
+  Assert.Items("People table", 3);
+  // The whole name and address are on the page (a reader hears them), cut inside the person column.
+  Assert.Inside("bartholomew.featherstonehaugh-llewellyn@northwind-health.example", "People");
+  Assert.Cell("Chen Wei", "Note", "On leave until 30 Nov.", within: "People table");
+  // A person with a page is one link, named by the name.
+  Assert.Clickable("Anna Berg");
+  // Hovering the cut note shows the whole of it as its hover title.
+  Ui.Hover("Leads the release; signs the gate for Public.", within: "Anna Berg");
+  // The pointer opened the whole text, and its words are then on the page twice (the cut cell and the open title), so it
+  // is the title itself, by its label, that is asked: it is laid out within the section. happy-dom has no pointer and says so.
+  Assert.Inside("Whole text", "People");
+  Ui.Shot("display-people-hover-1440");
+  // Escape closes the open title, so the cut text is the only one on the page when the keyboard arrives at it;
+  // focus opens the whole text again (the keyboard path, the one happy-dom can check, as it has no pointer).
+  Ui.Press("Escape");
+  Ui.Focus("Leads the release; signs the gate for Public.", within: "Anna Berg");
+  Assert.Visible("Leads the release; signs the gate for Public.", within: "Whole text");
+  Ui.Shot("display-people-1440", within: "People");
+  Ui.Viewport(390);
+  Ui.Visit("/dev/controls/display");
+  Assert.NoOverflow();
+  Ui.Shot("display-people-390", within: "People");
+  // The whole section at a phone's width.
+  Ui.Shot("display-390");
+}

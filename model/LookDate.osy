@@ -1,0 +1,75 @@
+namespace Osysharp.Look;
+
+/// A date field: `LookField`'s frame (the group of its label, the 12/400 message under it, red when `state` is
+/// `Refused`) around the kit's `DatePicker` (a real month calendar), which draws the 13/600 label itself so the control
+/// keeps it as its name. `clearable` adds "Clear" for an optional date; `placeholder` shows while it is empty; `w` its
+/// width. In a test it is filled by its label in ISO form: `Ui.Fill("Target date", "2026-11-20")`.
+/// `console`: the console's form control, as the dropdowns' `console` — `ConsoleField`'s frame (label 12.5/500, `help` or
+/// `message` 12 px in text-2, a refusal in the critical ink) around the dropdowns' face: 30 px on a desktop window
+/// (`Viewport.AtLeast(Tablet)`), the 44 px tap target on a phone. It opens the same month calendar (the Ui kit's
+/// `CalendarPanel`, `MonthHeader`, `WeekdayRow`, `MonthGrid`), so `Ui.Fill` walks it the same way; a refused save's message for its
+/// field shows under it as `DatePicker` shows it.
+[Composable]
+component LookDate(string label, Binding<DateOnly?> value, string w = "100%", FieldState state = FieldState.Normal, string message = "",
+                   bool clearable = false, string placeholder = "Pick a date", bool console = false, string help = "") {
+  bool open = false;
+  // An empty date opens on this month (as DatePicker does): there is no chosen day to open on.
+  DateOnly month = FirstOfMonth(value ?? DateOnly.FromDateTime(DateTime.UtcNow));
+
+  DateOnly FirstOfMonth(DateOnly d) { return new DateOnly(d.Year, d.Month, 1); }
+
+  action Toggle() { open = !open; }
+  action Close() { open = false; }
+  action Prev() { month = month.AddMonths(-1); }
+  action Next() { month = month.AddMonths(1); }
+  action PrevYear() { month = month.AddYears(-1); }
+  action NextYear() { month = month.AddYears(1); }
+  action Pick(DateOnly d) { value = d; month = new DateOnly(d.Year, d.Month, 1); open = false; }
+  action Clear() { value = null; open = false; }
+
+  // A refused save's message for the field this date edits lands here by itself, as `DatePicker` shows it (field-messages-in-kit);
+  // a `Refused` state's `message` wins.
+  live var modelError = Validation.MessageFor(value);
+
+  render {
+    if (console) {
+      var desk = Viewport.AtLeast(Tablet);
+      var refusal = state == FieldState.Refused ? message : modelError;
+      var refused = state == FieldState.Refused || modelError != "";
+      ConsoleField(label, help: refused ? "" : (message != "" ? message : help), error: refused ? refusal : "") {
+        Box(position: Position.Relative, w: w, maxW: "100%", minW: "0") {
+          Row(gap: "8px", align: Align.Center, w: "100%", minW: "0") {
+            Pressable(onClick: Toggle, role: UiRole.ComboBox, expanded: open, label: label, invalid: refused, grow: 1, minW: "0") {
+              LookSelectFace(open, false, refused: refused, console: desk, consoleOpen: desk && open) {
+                Text(value == null ? placeholder : (value ?? month).ToString("d MMM yyyy"), grow: 1, minW: "0", overflow: Overflow.Hidden,
+                     textOverflow: TextOverflow.Ellipsis, whiteSpace: WhiteSpace.Nowrap, textAlign: TextAlign.Left,
+                     color: value == null ? Colors.Ink3 : Colors.ConsoleText);
+                Text("▾", color: Colors.Ink3, shrink: 0, decorative: true);
+              }
+            }
+            // "Clear" beside the face, not under it: the field stays one console row among its neighbours.
+            if (clearable && value != null) {
+              Pressable(onClick: Clear, label: $"Clear {label}", shrink: 0) {
+                Text("Clear", fontSize: FontSize.ConsoleSmall, color: Colors.ConsoleText2, fontFamily: Font.ConsoleSans);
+              }
+            }
+          }
+          if (open) {
+            Backdrop(Close);
+            CalendarPanel(label: label) {
+              MonthHeader(month: month, onPrev: Prev, onNext: Next, onPrevYear: PrevYear, onNextYear: NextYear);
+              WeekdayRow();
+              MonthGrid(month: month, selected: value, onPick: Pick);
+            }
+          }
+        }
+      }
+    } else {
+      LookField(label, state: state, message: message, inRow: true) {
+        Box(w: w, maxW: "100%", fontWeight: FontWeight.Regular) {
+          DatePicker(label, value: value, hint: help, clearable: clearable, placeholder: placeholder);
+        }
+      }
+    }
+  }
+}

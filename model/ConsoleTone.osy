@@ -1,0 +1,5 @@
+namespace Osysharp.Look;
+
+/// The console's badge kinds (spec "Components", Badge; the gap 5 as Foundry-Product.dc.html has it): ok (green), warn (orange: needs somebody), neutral (grey),
+/// outline (a 1 px line on white) and solid (ink with white words, a hard boundary).
+public enum ConsoleTone { Ok, Warn, Neutral, Outline, Solid }

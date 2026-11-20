@@ -1,0 +1,20 @@
+namespace Osysharp.Look;
+
+/// The look's hover title, for a part that shows less than it knows (`ClampText`, `RelativeDate`): a small dark label
+/// under its owner (12/500, `6px 8px`, at most 360 wide, radius 6, the page's ink as its ground), a `tooltip` named
+/// `name`, from its owner's left edge (`end`: its right edge, for an owner in a right-aligned column; `across`: as wide
+/// as its owner, 8 px in from each side, for a mark in a narrow pane whose own label would pass the pane's edge). Its
+/// owner shows it while hovered and stands `position: relative`; Escape closes it (`onEscape: shown ? Hide : null`), and an
+/// owner standing on its own (`focusable: true` on the six owners) is a keyboard stop that shows it on focus too and
+/// hides it when focus leaves (`onFocus`/`onBlur`, WCAG 1.4.13). The platform has no `title` attribute.
+[Composable]
+component HoverTitle(string text, string name, bool end = false, bool across = false) {
+  render {
+    Box(role: UiRole.Tooltip, label: name, position: Position.Absolute, top: "100%", left: across ? "8px" : end ? "auto" : "0",
+        right: across ? "8px" : end ? "0" : "auto", mt: "4px", z: ZIndex.Popover, maxW: across ? "none" : "360px",
+        w: across ? "auto" : "max-content", py: "6px", px: "8px", rounded: "6px", bg: Colors.OnSurface, color: Colors.Surface, fontSize: FontSize.Caption,
+        fontWeight: FontWeight.Medium, lineHeight: "1.4", whiteSpace: WhiteSpace.Normal, textAlign: TextAlign.Left, pointerEvents: PointerEvents.None) {
+      Text(text);
+    }
+  }
+}

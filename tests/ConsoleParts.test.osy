@@ -1,0 +1,382 @@
+// The console parts LC2 added (the gap list G6–G17 of the Admin console plan) at /dev/console-parts, read by their
+// words and photographed at 1440 and 390, light and dark; the token bridge (G14) read through OsyrinV3's tokens.
+
+using Osysharp.Look;
+using OsyrinLookTests;
+
+[Test]
+void The_v3_tokens_carry_the_console_values() {
+  Assert.Token("Colors.Bg", "#F4F3F0");
+  Assert.Token("Colors.Surface", "#FFFFFF");
+  Assert.Token("Colors.Border", "#E2E0DA");
+  Assert.Token("Colors.Primary", "#3730A3");
+  Assert.Token("Colors.Ink3", "#5F5C57");
+  Assert.Token("Radius.Panel", "6px");
+  Assert.Token("Radius.Control", "5px");
+  Assert.Token("Radius.Chip", "4px");
+  Assert.Token("FontSize.Body", "13px");
+  Assert.Font("JetBrains Mono");
+  Ui.Viewport(1440);
+  Ui.Visit("/dev/components");
+  Ui.Shot("lc2-components-1440");
+  Ui.Theme("dark");
+  Ui.Shot("lc2-components-dark-1440");
+}
+
+// The kit's settings controls wear the console's settings panel (S1): a white card on the console border with 6 px
+// corners, 13 px names in the console ink, help in Ink 3, the indigo track for a switch that is on, 30 px boxes.
+[Test]
+void The_kit_setting_controls_wear_the_console_values() {
+  Assert.Token("Colors.SettingsCardBg", "#FFFFFF");
+  Assert.Token("Colors.SettingsCardLine", "#E2E0DA");
+  Assert.Token("Colors.SettingHelpInk", "#5F5C57");
+  Assert.Token("Colors.SettingSwitchOn", "#3730A3");
+  Assert.Token("Radius.SettingsCard", "6px");
+  Assert.Token("FontSize.SettingName", "13px");
+  Ui.Viewport(1440);
+  Ui.Visit("/dev/components");
+  Assert.Disabled("Only allowed hosts");
+  Assert.Visible("Set for Patient Portal", within: "Idle after");
+  Assert.Visible("Always on", within: "Audit trail");
+  Ui.Shot("S1-kit-settings-1440", within: "Lane settings");
+  Ui.Theme("dark");
+  Ui.Shot("S1-kit-settings-dark-1440", within: "Lane settings");
+  Ui.Theme("light");
+  Ui.Viewport(390);
+  Ui.Visit("/dev/components");
+  Ui.Shot("S1-kit-settings-390", within: "Lane settings");
+}
+
+[Test]
+void A_console_button_comes_as_danger_and_as_a_link() {
+  Ui.Viewport(1440);
+  Ui.Visit("/dev/console-parts");
+  Assert.Clickable("Revoke…");
+  Assert.Clickable("Give up the zone");
+  Assert.Readable("Revoke…");
+  Assert.Readable("Give up the zone");
+  Assert.SameHeight("Revoke…", "Save");
+  Assert.SameHeight("New organization", "Save");
+  Ui.Shot("lc2-buttons-1440", within: "Button kinds");
+  Ui.Theme("dark");
+  Assert.Readable("Give up the zone");
+  Ui.Shot("lc2-buttons-dark-1440", within: "Button kinds");
+  Ui.Theme("light");
+  Ui.Viewport(390);
+  Ui.Visit("/dev/console-parts");
+  Assert.SameHeight("Open the plan", "Cancel");
+  Ui.Shot("lc2-buttons-390", within: "Button kinds");
+  Ui.Click("New organization");
+  Assert.OnPage("/dev/console");
+}
+
+// A console filter is a row of buttons: as tall as a console button beside it, 30 px on a desk and 44 px on a phone
+// (spec "Buttons"), its words the button's.
+[Test]
+void A_console_filter_is_as_tall_as_a_console_button() {
+  Ui.Viewport(1440);
+  Ui.Visit("/dev/console-parts");
+  Assert.SameHeight("Firing", "Save");
+  Ui.Viewport(390);
+  Ui.Visit("/dev/console-parts");
+  Assert.SameHeight("Firing", "Cancel");
+}
+
+// A dropdown in a console form is the console's control (7g b, admin-finish-look 20): as tall as a console button on a
+// desk — 30 px, not the look's 44 px field — and the 44 px tap target on a phone.
+[Test]
+void A_console_dropdown_is_as_tall_as_a_console_button() {
+  Ui.Viewport(1440);
+  Ui.Visit("/dev/console-parts");
+  Assert.SameHeight("Runs when", "Save");
+  Assert.Visible("A dropdown in a console form is the console's control.", within: "Form");
+  Ui.Shot("console-dropdown-1440");
+  Ui.Viewport(390);
+  Ui.Visit("/dev/console-parts");
+  Assert.SameHeight("Runs when", "Cancel");
+}
+
+// A date and a number in a console form are the console's control too (7i, admin-finish-look 22): as tall as a console
+// button on a desk and the 44 px tap target on a phone; the date still opens the month calendar `Ui.Fill` walks.
+[Test]
+void A_console_date_and_number_are_as_tall_as_a_console_button() {
+  Ui.Viewport(1440);
+  Ui.Visit("/dev/console-parts");
+  Assert.SameHeight("Starts on", "Save");
+  Assert.SameHeight("A console number's box", "Save");
+  Ui.Fill("Starts on", "2026-12-03");
+  Assert.Visible("3 Dec 2026", within: "Form");
+  Ui.Fill("Keep for", "14");
+  Ui.Shot("console-date-number-1440");
+  Ui.Viewport(390);
+  Ui.Visit("/dev/console-parts");
+  Assert.SameHeight("Starts on", "Cancel");
+  Assert.SameHeight("A console number's box", "Cancel");
+}
+
+// A console date bound to an entity's field shows the field's refused-save sentence under itself, as DatePicker does
+// (field-messages-in-kit) — another booking already has the day, which only the server knows; the page has no validation code (7i, admin-finish-look 22, the reviewer's finding).
+[Test]
+void A_console_date_says_under_itself_why_its_save_was_refused() {
+  new ConsoleBooking { Name = "Winter fair", Day = new DateOnly(2026, 12, 10) };
+  var booking = new ConsoleBooking { Name = "Spring fair", Day = new DateOnly(2026, 12, 3) };
+  Ui.Viewport(1440);
+  Ui.Visit("/dev/console-date-save/" + booking.Id);
+  Assert.Visible("3 Dec 2026");
+  Ui.Fill("Day", "2026-12-10");
+  Ui.Click("Save");
+  Assert.TextIs("Another booking is on that day.");
+}
+
+// A badge longer than its cell stays in the cell (B-Organizations: the plan's long name ran into the next column).
+[Test]
+void A_long_console_badge_stays_inside_its_cell() {
+  Ui.Viewport(1440);
+  Ui.Visit("/dev/console-parts");
+  Assert.Inside("Internal organisation (unlimited)", "Narrow cell");
+  // …and beside a long name in a row (a phone's tap row) the badge keeps its words whole: the name wraps instead.
+  Assert.FitsOn("Acknowledged");
+}
+
+// A table narrower than its columns scrolls sideways inside its panel (spec "wrap the table in overflow-x: auto"); its
+// flexible column keeps a readable width instead of being crushed to a word a line beside the fixed ones.
+[Test]
+void A_narrow_console_table_scrolls_rather_than_crushing_its_name_column() {
+  Ui.Viewport(1440);
+  Ui.Visit("/dev/console-parts");
+  Assert.Wider("Incident", "Stage");
+  Assert.NoOverflow();
+}
+
+// A word longer than a wrapping cell (an identifier, no spaces) breaks inside the cell, never running past it (Alert
+// causes at 1024: "MailSendCeilingReached" 16 px past its column).
+[Test]
+void A_long_word_in_a_wrapping_cell_stays_inside_its_column() {
+  Ui.Viewport(1440);
+  Ui.Visit("/dev/console-parts");
+  Assert.FitsOn("MailSendCeilingReached");
+}
+
+[Test]
+void A_console_field_shows_its_label_its_help_and_its_error() {
+  Ui.Viewport(1440);
+  Ui.Visit("/dev/console-parts");
+  Assert.Visible("Lower-case letters, digits and dashes.", within: "Slug");
+  Assert.Visible("A name is required.", within: "Display name");
+  Assert.Hidden("Shown to the organization's owners.", within: "Display name");
+  Ui.Fill("Display name", "Northwind Health");
+  Assert.Value("Display name", "Northwind Health");
+  Ui.Fill("Why", "Moved to the new plan.");
+  Assert.Value("Why", "Moved to the new plan.");
+  Ui.Shot("lc2-form-1440", within: "Form");
+  Ui.Viewport(390);
+  Ui.Visit("/dev/console-parts");
+  Assert.NoOverflow();
+  Ui.Shot("lc2-form-390", within: "Form");
+}
+
+[Test]
+void The_console_states_say_empty_loading_failed_read_only_and_not_found() {
+  Ui.Viewport(1440);
+  Ui.Visit("/dev/console-parts");
+  Assert.Visible("A release appears here when the first build of a line is published.", within: "No releases yet");
+  Assert.Visible("Open the lines", within: "No releases yet");
+  Assert.Inside("Loading hosts", "Loading panel");
+  Assert.Visible("The host has not answered for 4 minutes. The lanes it reported last are kept.", within: "Could not load the lanes on nw-mini-ios");
+  Assert.Visible("Try again", within: "Could not load the lanes on nw-mini-ios");
+  Assert.Visible("Who are the admins?", within: "You can view this policy. To change it, ask an org admin.");
+  Assert.Readable("You can view this policy. To change it, ask an org admin.");
+  Ui.Shot("lc2-states-1440", within: "Console parts");
+  Ui.Theme("dark");
+  Ui.Shot("lc2-states-dark-1440", within: "Console parts");
+  Ui.Theme("light");
+  Ui.Visit("/dev/console-parts/missing");
+  Assert.Visible("Not found", within: "There is no organization called acme");
+  Assert.Visible("It may have been renamed or closed. Every organization you can see is in the list.");
+  Ui.Shot("lc2-page-state-1440");
+  Ui.Viewport(390);
+  Ui.Visit("/dev/console-parts/missing");
+  Assert.NoOverflow();
+  Ui.Shot("lc2-page-state-390");
+  Ui.Click("All organizations");
+  Assert.OnPage("/dev/console");
+}
+
+[Test]
+void An_inline_message_says_saved_to_know_or_refused() {
+  Ui.Viewport(1440);
+  Ui.Visit("/dev/console-parts");
+  Assert.Visible("The plan is saved.", within: "Saved");
+  Assert.Visible("Undo", within: "Saved");
+  Assert.Visible("Changes take effect on the next build.");
+  Assert.Visible("Another owner changed the plan while you edited it.", within: "Not saved");
+  Assert.Readable("The plan is saved.");
+  Assert.Readable("Changes take effect on the next build.");
+  Assert.Readable("Another owner changed the plan while you edited it.");
+  Ui.Shot("lc2-messages-1440", within: "Messages");
+  Ui.Theme("dark");
+  Assert.Readable("The plan is saved.");
+  Assert.Readable("Changes take effect on the next build.");
+  Assert.Readable("Another owner changed the plan while you edited it.");
+  Ui.Shot("lc2-messages-dark-1440", within: "Messages");
+  Ui.Theme("light");
+  Ui.Viewport(390);
+  Ui.Visit("/dev/console-parts");
+  Assert.NoOverflow();
+  Ui.Shot("lc2-messages-390", within: "Messages");
+}
+
+[Test]
+void A_console_meter_says_its_amount_and_turns_at_its_line() {
+  Ui.Viewport(1440);
+  Ui.Visit("/dev/console-parts");
+  Assert.Visible("312 of 500 GB", within: "Storage: 312 of 500 GB");
+  Assert.Visible("430 of 500 · over the warning line", within: "Builds this month: 430 of 500 · over the warning line");
+  Assert.Visible("12 of 12", within: "Seats: 12 of 12");
+  Assert.Readable("430 of 500 · over the warning line");
+  Ui.Shot("lc2-meters-1440", within: "Meters");
+  Ui.Theme("dark");
+  Ui.Shot("lc2-meters-dark-1440", within: "Meters");
+  Ui.Theme("light");
+  Ui.Viewport(390);
+  Ui.Visit("/dev/console-parts");
+  Ui.Shot("lc2-meters-390", within: "Meters");
+}
+
+[Test]
+void A_console_panel_has_a_foot_and_a_chart_card_its_legend_axis_and_empty_state() {
+  Ui.Viewport(1440);
+  Ui.Visit("/dev/console-parts");
+  Assert.Visible("View all organizations ›", within: "Panel with a foot");
+  Assert.Below("View all organizations ›", "Osyrin Preview");
+  Assert.Visible("Bundle", within: "Legend");
+  Assert.Visible("Assets", within: "Legend");
+  Assert.LeftOf("20 builds ago", "newest");
+  Assert.Visible("Costs appear the day after the first invoice is imported.", within: "No costs imported yet");
+  Assert.Hidden("Bundle", within: "Cost by day");
+  Ui.Shot("lc2-panel-foot-1440", within: "Panel with a foot");
+  Ui.Shot("lc2-chart-1440", within: "Size over time");
+  Ui.Shot("lc2-chart-empty-1440", within: "Cost by day");
+  Ui.Viewport(390);
+  Ui.Visit("/dev/console-parts");
+  Assert.NoOverflow();
+  Ui.Shot("lc2-panel-foot-390", within: "Panel with a foot");
+  Ui.Shot("lc2-chart-390", within: "Size over time");
+  Ui.Click("View all organizations ›");
+  Assert.OnPage("/dev/console");
+}
+
+[Test]
+void The_signed_out_frame_reads_on_the_console_tokens() {
+  Assert.Font("Inter");
+  Ui.Viewport(1440);
+  Ui.Visit("/dev/signed-out");
+  Assert.Readable("Run your apps.");
+  Assert.Readable("With the address your organisation invited.");
+  Ui.Shot("lc2-signed-out-1440");
+  Ui.Theme("dark");
+  Assert.Readable("Run your apps.");
+  Ui.Shot("lc2-signed-out-dark-1440");
+  Ui.Theme("light");
+  Ui.Viewport(390);
+  Ui.Visit("/dev/signed-out");
+  Assert.NoOverflow();
+  Ui.Shot("lc2-signed-out-390");
+}
+
+// SH1: the Ui kit's base tokens carry the console's values, so a kit's page (the user manager's People, API keys) stands
+// in the console shell with the console's tables, fields and buttons: the line of a card, the meta text, the corners,
+// and a kit button as high as a console button, 30 on a tablet and wider, 44 on a phone.
+[Test]
+void The_kits_base_tokens_carry_the_console_values() {
+  Assert.Token("Colors.CardLine", "#E2E0DA");
+  Assert.Token("Colors.MetaText", "#5F5C57");
+  Assert.Token("Radius.Sm", "4px");
+  Assert.Token("Radius.Md", "5px");
+  Assert.Token("Radius.Lg", "6px");
+  Ui.Viewport(1440);
+  Ui.Visit("/dev/console-parts");
+  Assert.SameHeight("Invite someone", "Console twin");
+  Assert.SameHeight("Kit cancel", "Console twin");
+  Ui.Shot("sh1-kit-controls-1440", within: "Kit controls");
+  Ui.Viewport(390);
+  Ui.Visit("/dev/console-parts");
+  Assert.SameHeight("Invite someone", "Console twin");
+  Ui.Shot("sh1-kit-controls-390", within: "Kit controls");
+}
+
+// A plan key is a chip in its level's colours (WS1): a saga's key is white on the accent, so it reads only while the chip
+// keeps its ground — a chip that lost its level's colours draws white words on the white panel, in a tree row as alone.
+[Test]
+void A_plan_key_keeps_its_levels_colours_in_a_tree_row_and_alone() {
+  Ui.Viewport(1440);
+  Ui.Visit("/dev/console-parts");
+  Ui.Within("Plan keys") {
+    Assert.Visible("FOUNDRY-1");
+    Assert.Readable("FOUNDRY-1");
+    Assert.Readable("FOUNDRY-2");
+    Assert.Readable("FOUNDRY-3");
+  }
+}
+
+// An amount in a console form is the console's control (AFL23-2, admin-finish-look 24): as tall as a console button on a desk and
+// the 44 px tap target on a phone, its prefix and unit inside the box, a value out of range refused under it in words.
+[Test]
+void A_console_amount_is_as_tall_as_a_console_button_and_refuses_out_of_range() {
+  Ui.Viewport(1440);
+  Ui.Visit("/dev/console-parts");
+  Assert.SameHeight("A console amount's box", "Save");
+  Assert.Visible("An amount: a decimal, its unit inside the box.", within: "Form");
+  Ui.Fill("Daily cap", "150.5");
+  Assert.Visible("At most 100 a day.", within: "Form");
+  Assert.Hidden("An amount: a decimal, its unit inside the box.");
+  Ui.Shot("console-amount-refused-1440");
+  Ui.Fill("Daily cap", "12.75");
+  Assert.Hidden("At most 100 a day.");
+  Assert.Value("Daily cap", "12.75");
+  Ui.Viewport(390);
+  Ui.Visit("/dev/console-parts");
+  Assert.SameHeight("A console amount's box", "Cancel");
+}
+
+// A console field's help or refusal line is what a screen reader hears after the input's name — tied to the input, not only drawn
+// beside it (AFL24-2, admin-finish-look 26): the text input, the text area, the amount (in its field and in a row) and the console number.
+[Test]
+void A_console_fields_line_is_its_inputs_description() {
+  Ui.Viewport(1440);
+  Ui.Visit("/dev/console-parts");
+  Assert.Described("Slug", "Lower-case letters, digits and dashes.");
+  Assert.Described("Display name", "A name is required.");
+  Assert.Described("Why", "Shown to the organization's owners.");
+  Assert.Described("Daily cap", "An amount: a decimal, its unit inside the box.");
+  Ui.Fill("Daily cap", "150.5");
+  Assert.Described("Daily cap", "At most 100 a day.");
+  Ui.Fill("Weekly cap", "-1");
+  Assert.Described("Weekly cap", "At least 0 tokens.");
+  Ui.Fill("Keep for", "0");
+  Assert.Described("Keep for", "At least 1 days.");
+}
+
+// A console button the caller may not press is drawn refused in the console's own face — as tall as its neighbours — and says
+// why to a screen reader and a test (AFL25: the Look `ActionButton` was the only refused button, so a console page fell back
+// to the Look face for it).
+[Test]
+void A_refused_console_button_says_why_in_the_consoles_face() {
+  Ui.Viewport(1440);
+  Ui.Visit("/dev/console-parts");
+  Assert.DisabledBecause("Rename", "Only an owner renames it.");
+  Assert.SameHeight("Rename", "Save");
+  Ui.Viewport(390);
+  Ui.Visit("/dev/console-parts");
+  Assert.DisabledBecause("Rename", "Only an owner renames it.");
+  Assert.SameHeight("Rename", "Cancel");
+}
+
+// A refused button that is also busy stays refused and says why (AFL25-5): busy is about a press, and the reader may not press it.
+[Test]
+void A_refused_busy_console_button_keeps_its_reason() {
+  Ui.Viewport(1440);
+  Ui.Visit("/dev/console-parts");
+  Assert.DisabledBecause("Archive", "Only an owner archives it.");
+  Assert.Hidden("Archiving…");
+}

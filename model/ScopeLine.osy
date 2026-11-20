@@ -1,0 +1,25 @@
+namespace Osysharp.Look;
+
+/// The one-line scope header over a settings area's section list (Components §13): 13 px Ink 2, `title` strong in Ink,
+/// " · " and the `summary`, the `help` link (13/600 accent, no underline) on the right, a Line 2 rule under it with 10
+/// below. `ruled: false`: no rule, as a settings area's page draws it under its title (canvas4 settings pages). The kit's
+/// `ScopeHeader` is the boxed one with a scope chain (Components §5); this is the line above a section list.
+/// In a test it is the group "Scope": `Assert.Visible("6 set here", within: "Scope")`.
+/// e.g. `ScopeLine("Patient Portal settings", "inherits Northwind Health defaults · 6 set here", help: "How scopes combine ›", helpTo: "/docs/scopes")`
+[Composable]
+component ScopeLine(string title, string summary = "", string help = "", string helpTo = "", bool ruled = true) {
+  render {
+    Row(gap: "8px", wrap: Wrapping.Wrap, align: Align.Center, justify: Justify.Between, pb: ruled ? "10px" : "0", borderBW: ruled ? 1 : 0, border: Colors.Line2,
+        fontSize: FontSize.Label, color: Colors.Ink2, lineHeight: "normal", role: UiRole.Group, label: "Scope") {
+      Box {
+        Text(title, fontWeight: FontWeight.Heavy, color: Colors.OnSurface);
+        if (summary != "") {
+          Text(" · " + summary, whiteSpace: WhiteSpace.PreWrap);
+        }
+      }
+      if (helpTo != "") {
+        GoLink(help, helpTo, small: true);
+      }
+    }
+  }
+}

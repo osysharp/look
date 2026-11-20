@@ -1,0 +1,119 @@
+namespace OsyrinLookTests;
+
+using Osysharp.Look;
+
+/// ProductPlan.dc.html from its header down through the first release card ("Next · Patient Portal 2.4").
+[Route("/dev/page-parts/plan")]
+[AllowAnonymous]
+[Title("Patient Portal · Plan")]
+[Render(CSR)]
+component PlanReplicaPage() {
+  action Nothing() { }
+  render {
+    BoardFrame("Patient Portal") {
+      ObjectHeader("Patient Portal", [new Crumb { Label = "Products", To = "/dev/page-parts" }, new Crumb { Label = "Patient Portal" }],
+                   situation: "2.3 is live · 2.4 expected Thu 12 – Mon 16 Nov (80 %) · 2 building · 2 reviewing · nothing waits on you.", lead: true) {
+        slot chips {
+          KeyLink("PORTAL", "/dev/page-parts/plan");
+          PlainChip("Next.js web app");
+          PersonChip("Anna Berg · lead", "AB", quiet: true);
+        }
+        LookButton("Edit product", Nothing);
+        LookButton("New idea", Nothing);
+        LookButton("Open in Plan", Nothing, kind: ButtonKind.Primary);
+      }
+      TabBar("Patient Portal sections", PlanTabs(), "/dev/page-parts/plan");
+      Row(justify: Justify.Between, align: Align.Center, wrap: Wrapping.Wrap, gap: "8px") {
+        Box(fontSize: FontSize.Body, color: Colors.Ink2) {
+          KeyLink("BOOK", "/dev/page-parts/plan");
+          Text(" Online appointment booking · 15 slices · 7 merged · 3 running · 13 ride 2.4; with the fix BOOK-10, 8 of 2.4’s 14 are merged",
+               whiteSpace: WhiteSpace.PreWrap);
+        }
+        Row(gap: "8px", wrap: Wrapping.Wrap) {
+          LookButton("Add from the Backlog", Nothing);
+          LookButton("Reorder in Plan", Nothing, kind: ButtonKind.Primary);
+        }
+      }
+      CalloutBand("The planner proposes moving BOOK-21 to 2.5.",
+                  "Checked this order at 09:38: nothing in 2.4 needs BOOK-21; 2.4 then has 150k headroom against 1 unestimated slice. Recommended by the planner agent, acting for Jonas Lindqvist.",
+                  mark: true) {
+        LookButton("Evidence", Nothing, small: true);
+        LookButton("Review the move in Plan", Nothing, kind: ButtonKind.Primary, small: true);
+      }
+      SectionCard("Patient Portal 2.4 · Thu 12 Nov", eyebrow: "Next", sub: "Expected Thu 12 – Mon 16 Nov (80 %) ·", linkLabel: "Release plan ›",
+                  linkTo: "/dev/page-parts/release", band: true) {
+        slot sub { StatusChip("At risk · headroom smaller than the uncertainty", StatusTone.You); }
+        Box(px: "20px", pb: "10px") {
+          Disclosure("Why this forecast · updated 09:38 by the planner") {
+            Text("Assumes 40 % of the lanes that build Patient Portal until Thu 12 Nov.");
+          }
+          Disclosure("Predicted token use") {
+            Text("1.23M estimated + 2 not estimated (≈240k) against capacity ≈1.5M by Thu 12 Nov.");
+          }
+        }
+        CardTable("Arcs of Patient Portal 2.4", ArcColumns(), ["#", "Arc · your priority", "Progress", "Release"], roomy: true) {
+          ArcRow(1, "BOOK-SLOTS", "Show free slots", "Patients see every free slot for the next 14 days at the clinic they pick.", 2, 1, 1, 0,
+                 "2 merged · 1 running · 1 waiting",
+                 "Will merge after UIKIT-8 because BOOK-12’s slot picker needs the Northwind UI kit date-range picker (due Fri 6 Nov).",
+                 "Predicted token use 270k · 1 of 4 not estimated (BOOK-18).");
+          ArcRow(2, "BOOK-CONFIRM", "Book and confirm", "A patient holds a slot for 10 minutes, confirms it and gets a mail with a calendar file.", 3, 2, 0, 0,
+                 "3 merged · 2 running", "BOOK-14 merges after BOOK-12 because it holds the slot that BOOK-12’s picker shows.",
+                 "Predicted token use 470k · all estimated.");
+          ArcRow(3, "BOOK-REMIND", "Reminders", "Patients get a reminder 24 hours before the visit, and can cancel or move it from the link.", 2, 0, 1, 1,
+                 "2 merged · 1 waiting · 1 blocked",
+                 "BOOK-19 waits for Anna Berg’s answer on Reminder mail v1; BOOK-21 will run after BOOK-19 because it is blocked by it.",
+                 "Predicted token use 300k + 1 not estimated (≈120k).");
+        }
+        CardFoot("Also in 2.4: ") {
+          KeyLink("BOOK-10", "/dev/page-parts/slice");
+          Text(" Visit history pages by 25 (fix for INC-12, merged Sat 31 Oct) · outside dependency ", whiteSpace: WhiteSpace.PreWrap);
+          KeyLink("UIKIT-8", "/dev/page-parts/slice");
+          Text(" Date-range picker component, counted in Northwind UI kit 0.6. Not ready: BOOK-19 (waiting for Anna Berg’s answer), BOOK-21 (blocked by BOOK-19). Left out on purpose, set to 2.5: BOOK-22, BOOK-23.",
+               whiteSpace: WhiteSpace.PreWrap);
+        }
+      }
+    }
+  }
+}
+
+/// One arc of a release card: rank, key and title over its goal, progress, its release, then its amber note and its
+/// details under the title, inside the row.
+[Composable]
+component ArcRow(int rank, string key, string title, string goal, int merged, int running, int waiting, int notStarted, string counts, string note,
+                 string more) {
+  render {
+    CardTableRow(ArcColumns(), roomy: true, label: key + " " + title) {
+      RankNumber(rank);
+      Stack(gap: "2px", minW: "0") {
+        Row(gap: "4px 10px", wrap: Wrapping.Wrap, align: Align.Baseline) {
+          KeyLink(key, "/dev/page-parts/plan");
+          RowTitle(title, "/dev/page-parts/plan");
+        }
+        Text(goal, fontSize: FontSize.Label, color: Colors.Ink3, lineHeight: "normal");
+      }
+      ProgressShares(merged, running, waiting, notStarted, counts);
+      Box { PlainChip("2.4 · set on the arc"); }
+      slot under {
+        AmberNote(note);
+        Disclosure("Details and predicted token use", ruled: false, indent: true) { Text(more); }
+      }
+    }
+  }
+}
+
+/// ProductPlan's arc columns: rank, arc, progress, release.
+string ArcColumns() {
+  return "34px minmax(0, 1fr) 190px 150px";
+}
+
+/// A product's tabs, Plan in view.
+List<TabItem> PlanTabs() {
+  return [
+    new TabItem { Label = "Home", To = "/dev/page-parts/plan/home" },
+    new TabItem { Label = "Releases", To = "/dev/page-parts/plan/releases" },
+    new TabItem { Label = "Plan", To = "/dev/page-parts/plan" },
+    new TabItem { Label = "Designs", To = "/dev/page-parts/plan/designs" },
+    new TabItem { Label = "History", To = "/dev/page-parts/plan/history" },
+    new TabItem { Label = "Settings", To = "/dev/page-parts/plan/settings" },
+  ];
+}

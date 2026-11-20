@@ -1,0 +1,29 @@
+namespace Osysharp.Look;
+
+/// What the app hands its `ConsoleFrame`: the context switcher (`Product` over `Context`, the 24 px tile with `Mark`,
+/// else `Product`'s first letter, leading to `Home`), the rail's groups, and the person (`Address` in the avatar's
+/// title, `Initials` in it, the avatar leading to `Account`). `Badge` (with `BadgeTone`) is the top bar's optional badge.
+public class ConsoleChrome {
+  public string Product = "";
+  public string Context = "";
+  /// The section in view, under the product in the phone's switcher (the rail is not on screen to say it).
+  public string Section = "";
+  public string Mark = "";
+  public string Home = "/";
+  /// The places the switcher opens a list of, headed (LA3's `LookSwitcherGroup`, `AppLink.Current` the one in view);
+  /// none: the switcher leads to `Home`.
+  public List<LookSwitcherGroup> Switcher = new List<LookSwitcherGroup>();
+  public List<ConsoleNavGroup> Groups = new List<ConsoleNavGroup>();
+  public string Address = "";
+  public string Initials = "";
+  public string Account = "";
+  public string Badge = "";
+  public ConsoleTone BadgeTone = ConsoleTone.Ok;
+  /// The search dialog's field: its name ("Search Foundry") and its placeholder ("Search products, plan items and hosts").
+  public string SearchLabel = "Search";
+  public string SearchPlaceholder = "Search";
+  /// The avatar's menu, under the address (the Ui kit's `MenuAction`: `Label` with `To`, or `OnPress`); none: Your
+  /// account (to `Account`), Light or dark, Sign out. An `OnPress` is set only at a call site, so a chrome with a menu is
+  /// built where the bar is drawn (`ConsoleShellBar(new ConsoleChrome { …, Menu = [ … ] })`, or `ConsoleFrame(new …)`).
+  public List<MenuAction> Menu = new List<MenuAction>();
+}

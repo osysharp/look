@@ -1,0 +1,15 @@
+namespace Osysharp.Look;
+
+/// A text shown exactly as it is kept — a signed rule file, a config, a command (orgsettings/EditData "The signed text,
+/// for code review"): JetBrains Mono 12/1.6 in the page ground's colour on Ink, radius 10, `12px 14px`, its lines kept
+/// (`pre`), scrolling sideways rather than wrapping.
+/// In a test it is the group named by `label`: `Assert.Visible("default: never", within: "The signed text")`.
+/// e.g. `DarkTextCard("llm.data:\n  default: never", label: "The signed text")`
+[Composable]
+component DarkTextCard(string text, string label = "Text") {
+  render {
+    Box(bg: Colors.OnSurface, color: Colors.Bg, rounded: Radius.Inner, py: "12px", px: "14px", overflowX: Overflow.Auto, role: UiRole.Group, label: label) {
+      Text(text, fontFamily: Font.KeyFace, fontSize: FontSize.Caption, lineHeight: "1.6", whiteSpace: WhiteSpace.Pre);
+    }
+  }
+}

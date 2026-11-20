@@ -1,0 +1,83 @@
+namespace OsyrinLookTests;
+
+using Osysharp.Look;
+
+/// Components §2: the type scale, each line in its part.
+[Composable]
+component GalleryType() {
+  render {
+    BoardCard("2 · Type", gap: "12px") {
+      Box(display: Display.Grid, cols: "190px minmax(0, 1fr)", gap: "12px 16px", align: Align.Baseline, label: "Type scale") {
+        TypeLine("Page title · 28/700") { AreaTitle("Patient Portal 2.4", tight: false); }
+        TypeLine("Section · 18/700") { SectionTitle("Problems threatening delivery"); }
+        TypeLine("Decision, item title · 17/600") { ItemTitle("Approve Claims Desk 1.8.1 for production"); }
+        TypeLine("Summary body · 15/400 · 1.55") { SummaryText("The release waits for one approval before it deploys to Public."); }
+        TypeLine("Dense table · 14/400") { DenseText("BOOK-14 Hold a slot for 10 minutes · In review · 38 min"); }
+        TypeLine("Metadata · 13/400 Ink 3") { MetaLine(["Claims Desk", "waiting 2 h 30 min", "31 duplicates cleared by hand last week"]); }
+        TypeLine("Overline · 11/600 (table heads)") { Overline("Release · Target · Confidence"); }
+        TypeLine("Mono · 13/600") { KeyText("BOOK-14 · develop · 9c41e7a"); }
+        TypeLine("Rules") {
+          Text("One weight per line: no bold labels inside metadata; facts joined with “ · ”. 24 px between separate ideas, 8 px within one. Decisions and release summaries get room; dense tables only for execution inspection.",
+               fontSize: FontSize.Label, color: Colors.Ink2, lineHeight: "1.5");
+        }
+      }
+    }
+  }
+}
+
+/// One line of the type scale: what it is (12 Ink 3), and a sample in it (the block).
+[Composable]
+component TypeLine(string what) {
+  render {
+    Text(what, fontSize: FontSize.Caption, color: Colors.Ink3);
+    Slot;
+  }
+}
+
+/// Components "Radius, space, shadow".
+[Composable]
+component GalleryRadius() {
+  render {
+    BoardCard("Radius, space, shadow", gap: "14px") {
+      Row(gap: "12px", align: Align.End) {
+        RadiusSample("6", "6px");
+        RadiusSample("8", "8px");
+        RadiusSample("10", "10px");
+        RadiusSample("14", "14px");
+        RadiusSample("pill", "999px", w: "59px");
+      }
+      Row(gap: "10px", align: Align.End) {
+        foreach (var size in new[] { 4, 8, 12, 16, 20, 24, 32 }) {
+          SpaceSample(size);
+        }
+      }
+      Box(fontSize: FontSize.Label, lineHeight: "1.5", color: Colors.Ink2) {
+        Text("Shadow only on a dragged or selected card: ");
+        Text("0 10px 24px rgba(31,30,27,0.14)", fontFamily: Font.KeyFace, fontSize: FontSize.Caption);
+        Text(". Page side padding 32; card padding 16–20.");
+      }
+    }
+  }
+}
+
+/// A radius sample: 47 px (a pill 59) with a 1.5 px accent outline on the accent's second tint, and its name.
+[Composable]
+component RadiusSample(string name, string radius, string w = "47px") {
+  render {
+    Stack(gap: "6px", align: Align.Center) {
+      Box(w: w, h: "47px", rounded: radius, bg: Colors.AccentTint2, borderW: "1.5px", border: Colors.Primary, decorative: true);
+      Text(name, fontSize: FontSize.Caption, color: Colors.Ink2);
+    }
+  }
+}
+
+/// A space sample: an n × n accent square and its size.
+[Composable]
+component SpaceSample(int size) {
+  render {
+    Stack(gap: "6px", align: Align.Center) {
+      Box(w: size + "px", h: size + "px", rounded: "2px", bg: Colors.Primary, decorative: true);
+      Text(size + "", fontSize: FontSize.Caption, color: Colors.Ink2);
+    }
+  }
+}

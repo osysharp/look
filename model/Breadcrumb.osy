@@ -1,0 +1,46 @@
+namespace Osysharp.Look;
+
+// The area and object header with its tabs (Components §12 "Object header and tab bar", §3 "Tabs").
+//
+// An object with its own address and an area open the same way: breadcrumb (every crumb but the last a link), title,
+// its chips, one situation line, one primary action — then 3–7 tabs. A tab carries a count only while it needs you
+// (amber) or while a draft has changes (accent). Tabs are links in a nav, each view its own address, the current one
+// `aria-current="page"`. Never tabs inside tabs.
+
+/// The breadcrumb over a title: 13 px crumbs, the links 500 in the accent, "›" between them in Ink 3.
+/// In a test it is the region "Breadcrumb".
+[Composable]
+component Breadcrumb(List<Crumb> trail) {
+  render {
+    Row(gap: "6px", wrap: Wrapping.Wrap, align: Align.Center, role: UiRole.Navigation, label: "Breadcrumb") {
+      foreach (var index in Enumerable.Range(0, trail.Count())) {
+        if (index > 0) {
+          Text("›", fontSize: FontSize.Label, color: Colors.Ink3, decorative: true);
+        }
+        if (trail[index].To != "") {
+          CrumbLink(trail[index]);
+        } else {
+          Text(trail[index].Label, fontSize: FontSize.Label, color: Colors.Ink3);
+        }
+      }
+    }
+  }
+}
+
+/// A crumb that opens its level.
+[Composable]
+component CrumbLink(Crumb crumb) {
+  variants {
+    base {
+      FontSize = FontSize.Label;
+      FontWeight = FontWeight.Medium;
+      Color = Colors.Primary;
+      TextDecoration = TextDecoration.None;
+      Hover {
+        Color = Colors.AccentInk;
+        TextDecoration = TextDecoration.Underline;
+      }
+    }
+  }
+  render { Link(crumb.To, label: crumb.Label) { Text(crumb.Label); } }
+}

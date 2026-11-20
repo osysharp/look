@@ -1,0 +1,6 @@
+namespace Osysharp.Look;
+
+/// The heads as `HeadCell`s, in order — for the head row and for a row stacked on a phone, which labels its cells.
+public List<HeadCell> HeadCells(List<string> heads) {
+  return Enumerable.Range(0, heads.Count).Select(i => new HeadCell { Words = heads[i], Index = i }).ToList();
+}

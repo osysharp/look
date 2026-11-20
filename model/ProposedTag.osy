@@ -1,0 +1,30 @@
+namespace Osysharp.Look;
+
+/// The small dashed tag on something proposed and not yet agreed: 12/600 Ink 2, `2px 7px`, radius 5, a dashed outline.
+/// `small`: 11/600 `1px 6px`, beside a card's heading (Slice "Right now", "Waits on · Unlocks").
+[Composable]
+component ProposedTag(string label = "Proposed", bool small = false) {
+  variants {
+    base {
+      Display = Display.InlineFlex;
+      W = "fit-content";
+      Px = "7px";
+      Py = "2px";
+      Rounded = "5px";
+      BorderW = 1;
+      BorderStyle = BorderStyle.Dashed;
+      Border = Colors.ProposedLine;
+      FontSize = FontSize.Caption;
+      FontWeight = FontWeight.Semibold;
+      Color = Colors.Ink2;
+      WhiteSpace = WhiteSpace.Nowrap;
+      LineHeight = "normal";
+    }
+    small {
+      Px = "6px";
+      Py = "1px";
+      FontSize = FontSize.Overline;
+    }
+  }
+  render { Text(label); }
+}

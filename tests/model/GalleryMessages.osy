@@ -1,0 +1,110 @@
+namespace OsyrinLookTests;
+
+using Osysharp.Look;
+
+// The look's messages: an inline line in each tone, a toast with Undo, and the confirmation (the only red filled
+// button). In the gallery and alone at /dev/controls/messages.
+
+/// The gallery's "Messages and confirmation" section.
+[Composable]
+component GalleryMessages() {
+  render {
+    Stack(gap: "16px", label: "Messages and confirmation") {
+      H2("Messages and confirmation");
+      Caption("A line that says how something went, in its tone; a toast that confirms and offers Undo; a confirmation before an action that cannot be taken back.");
+      MessageSample();
+    }
+  }
+}
+
+/// Six lines, a host list that a confirmation removes from and a toast undoes.
+[Composable]
+component MessageSample() {
+  bool asking = false;
+  bool removed = false;
+  string notice = "";
+  action Ask() { asking = true; }
+  action Cancel() { asking = false; }
+  action Retire() {
+    asking = false;
+    removed = true;
+    notice = "Retired host-3 · its 2 lanes went back to the pool.";
+  }
+  action Undo() {
+    removed = false;
+    notice = "";
+  }
+  action Clear() { notice = ""; }
+  render {
+    Stack(gap: "12px", maxW: "720px", minW: "0") {
+      InlineMessage("Saved 09:41 · the planner re-reads it on its next pass.", LookTone.Ok, lead: "Saved.");
+      InlineMessage("3 slices are building on host-2.", LookTone.Run);
+      InlineMessage("Waiting on BOOK-19 before this can merge.", LookTone.Wait);
+      InlineMessage("Anna Berg must approve 2.4 before it can ship.", LookTone.You, lead: "Needs you.");
+      InlineMessage("The gate refused the build: 2 tests failed in app/booking.", LookTone.Bad, lead: "Refused.");
+      InlineMessage("Nothing has changed since Monday.", LookTone.Neutral);
+      Row(gap: "12px", align: Align.Center, wrap: Wrapping.Wrap, py: "4px") {
+        Text(removed ? "host-3 is retired" : "host-3 takes work", fontSize: FontSize.Body, role: UiRole.Status);
+        if (!removed) {
+          LookButton("Retire host-3", Ask, kind: ButtonKind.Danger, small: true);
+        }
+      }
+      if (asking) {
+        ConfirmDialog("Retire host-3?", "Its 2 running lanes stop and go back to the pool. A retired host takes no new work until it joins again.",
+                      "Retire host-3", Retire, Cancel, danger: true);
+      }
+      // The page's foot: tall enough that its last control sits at the bottom of a phone's window when scrolled to.
+      Box(h: "900px");
+      LookButton("Back to hosts", Cancel, kind: ButtonKind.Secondary, small: true);
+      LookToast(notice, undoLabel: "Undo", onUndo: Undo, onDismiss: Clear);
+    }
+  }
+}
+
+/// The confirmation asked from a part between it and the page: the part's own action hands the press on, and the press
+/// lasts until the page's slow action has ended. While a test holds the server, the test can press again, as a person can.
+[Composable]
+component SlowConfirmAsk(Action onRetire, Action onCancel, bool busy) {
+  action HandOn() { onRetire(); }
+  render { ConfirmDialog("Retire host-4?", "Its lanes go back to the pool.", "Retire host-4", HandOn, onCancel, danger: true, busy: busy); }
+}
+
+/// A confirmation whose action waits on the server and keeps the dialog open while it runs: a second press on the red
+/// button must not reach the action. Not in the gallery; at /dev/controls/slow-confirm for its test.
+[Composable]
+component SlowConfirmSample() {
+  bool asking = true;
+  int runs = 0;
+  string said = "";
+  action Retire() {
+    runs = SlowAnswer(runs);
+    said = "Retired host-4";
+  }
+  action Cancel() { asking = false; }
+  render {
+    Stack(gap: "12px", maxW: "720px", minW: "0") {
+      Text("Ran " + runs + " times" + (said != "" ? " · " + said : "") + (Retire.Pending ? " · retiring" : ""), fontSize: FontSize.Body,
+           role: UiRole.Status);
+      if (asking) {
+        SlowConfirmAsk(Retire, Cancel, Retire.Pending);
+      }
+    }
+  }
+}
+
+[Route("/dev/controls/slow-confirm")]
+[AllowAnonymous]
+[Title("Slow confirmation")]
+[Render(CSR)]
+component SlowConfirmPage() {
+  render { ControlsFrame("Slow confirmation") { SlowConfirmSample(); } }
+}
+
+/// The messages alone.
+[Route("/dev/controls/messages")]
+[AllowAnonymous]
+[Title("Messages")]
+[Render(CSR)]
+component MessagesPage() {
+  render { ControlsFrame("Messages and confirmation") { MessageSample(); } }
+}

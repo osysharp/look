@@ -1,0 +1,28 @@
+// The look's edit-form rows (`FieldGroupHead`, `FieldRow`): drawn in the gallery and alone, held inside the window at
+// 1440 and at a phone's 390, where the two columns stack, and photographed light and dark.
+
+using Osysharp.Look;
+using OsyrinLookTests;
+
+[Test]
+void Field_rows_show_a_label_its_help_and_the_control_and_mark_a_change() {
+  Ui.Viewport(1440);
+  Ui.Visit("/dev/components");
+  Assert.Visible("● Changed · was Online booking", within: "Field rows");
+  Ui.Visit("/dev/field-rows");
+  Assert.Visible("Shown everywhere BOOK-14 is named.");
+  Assert.Visible("Set by Ada Lovelace on Mon 9 Nov");
+  Assert.NoOverflow();
+  Ui.Shot("field-rows-1440");
+  Ui.Viewport(390);
+  Ui.Visit("/dev/field-rows");
+  Assert.NoOverflow();
+  Assert.Inside("Set by Ada Lovelace on Mon 9 Nov", "Sample form");
+  Ui.Shot("field-rows-390");
+  Ui.Theme("dark");
+  Ui.Viewport(1440);
+  Ui.Visit("/dev/field-rows");
+  Assert.Readable("Shown everywhere BOOK-14 is named.");
+  Ui.Shot("field-rows-dark");
+  Ui.Theme("light");
+}

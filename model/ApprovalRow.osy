@@ -1,0 +1,17 @@
+namespace Osysharp.Look;
+
+/// The approvals row (orgsettings/Bundle, under "Signing the content hash"): the block's `ApprovalSlot`s — the given ones,
+/// then one empty slot per approval still needed — as a list 8 apart, wrapping, and `slot action` (the one primary,
+/// `LookButton(…, kind: ButtonKind.Primary, small: true)`) at the row's right end.
+/// In a test the list is "Approvals": `Assert.Visible("Second approver", within: "Approvals")`.
+/// e.g. `ApprovalRow { ApprovalSlot("Elif Demir", detail: "approved 3be1…7d4a · 09:41", given: true); ApprovalSlot("Second approver"); slot action { LookButton("Review and approve", Approve, kind: ButtonKind.Primary, small: true); } }`
+[Composable]
+component ApprovalRow(string label = "Approvals") {
+  render {
+    Row(gap: "8px", wrap: Wrapping.Wrap, align: Align.Center) {
+      Row(gap: "8px", wrap: Wrapping.Wrap, align: Align.Center, role: UiRole.List, label: label) { Slot; }
+      Box(grow: 1, basis: "20px");
+      Slot("action");
+    }
+  }
+}

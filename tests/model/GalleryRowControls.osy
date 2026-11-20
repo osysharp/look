@@ -1,0 +1,82 @@
+namespace OsyrinLookTests;
+
+using Osysharp.Look;
+
+// The Plan board's row controls: a release chip that opens a menu and the ↑ ↓ square buttons, in a row of a card's
+// table, at /dev/parts/row-controls (as wide as the window, so it can be read at a phone's width).
+
+/// One row with the chip closed, one with its menu open.
+[Route("/dev/parts/row-controls")]
+[AllowAnonymous]
+[Title("Row controls")]
+[Render(CSR)]
+component RowControlsPage() {
+  bool open = true;
+  string said = "";
+
+  action Toggle() {
+    open = !open;
+  }
+
+  action Chose() {
+    said = "Chosen.";
+    open = false;
+  }
+
+  action Moved() {
+    said = "Moved.";
+  }
+
+  render {
+    Box(p: "24px", bg: Colors.Bg, color: Colors.OnSurface, fontSize: "16px", lineHeight: "normal", fontFamily: Font.Sans, minH: "100vh") {
+      SectionCard("Patient Portal 2.4", eyebrow: "Next", band: true) {
+        CardTable("Arcs", "34px minmax(0, 1fr) 130px 68px", ["#", "Arc", "Release", ""], roomy: true) {
+          CardTableRow("34px minmax(0, 1fr) 130px 68px", roomy: true, label: "BOOK-SLOTS Show free slots") {
+            RankNumber(1);
+            RowTitle("Show free slots", "/dev/components");
+            Box {
+              ChipMenu("Next · 2.4", open, Toggle, name: "Release of BOOK-SLOTS: Next · 2.4. Change it", menuLabel: "Choose a release for BOOK-SLOTS",
+                       popover: Layout.AtLeast(Tablet)) {
+                MenuAction("Next · 2.4", Chose);
+                MenuAction("Next+1 · 2.5", Chose);
+                MenuAction("Not scheduled", Chose);
+              }
+            }
+            Row(gap: "4px", justify: Justify.End) {
+              Box(w: "32px");
+              GlyphButton("↓", Moved, "Move BOOK-SLOTS down");
+            }
+          }
+          CardTableRow("34px minmax(0, 1fr) 130px 68px", roomy: true, label: "BOOK-REMIND Reminders") {
+            RankNumber(2);
+            RowTitle("Reminders", "/dev/components");
+            Box { PlainChip("2.4 · with BOOK-SLOTS"); }
+            Row(gap: "4px", justify: Justify.End) {
+              GlyphButton("↑", Moved, "Move BOOK-REMIND up");
+              Box(w: "32px");
+            }
+          }
+          // Rows under the first, so its open menu lies inside the card (a card clips what leaves it).
+          foreach (var n in Enumerable.Range(3, 3)) {
+            CardTableRow("34px minmax(0, 1fr) 130px 68px", roomy: true, label: "Row " + n) {
+              RankNumber(n);
+              RowTitle("Another arc", "/dev/components");
+              Box { PlainChip("2.5 · put in"); }
+              Box();
+            }
+          }
+        }
+      }
+      if (open && !Layout.AtLeast(Tablet)) {
+        MenuSheet("Choose a release for BOOK-SLOTS", Toggle) {
+          MenuAction("Next · 2.4", Chose);
+          MenuAction("Next+1 · 2.5", Chose);
+          MenuAction("Not scheduled", Chose);
+        }
+      }
+      if (said != "") {
+        Box(pt: "12px") { InlineMessage(said, LookTone.Ok); }
+      }
+    }
+  }
+}

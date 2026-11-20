@@ -1,0 +1,15 @@
+{
+  "platform": {
+    "version": "9999.0.0"
+  },
+  "entries": [],
+  "controls": [],
+  "fonts": [],
+  "bridges": {
+    "searched": [
+      "workspace",
+      "platform",
+      "github"
+    ]
+  }
+}

@@ -1,0 +1,24 @@
+namespace Osysharp.Look;
+
+/// A phone's menu: a sheet at the foot of the window over a dimmed page — white, radius 14, `12px 12px 20px`, the
+/// dialog's shadow, `label` as its 13/600 Ink 3 head, then its items (`MenuAction`s, the block); a press outside or
+/// Escape is `onClose`. Render it at the page's own level, never inside a card: a card is a containing block, so a
+/// sheet drawn in one stays inside it (the platform has no portal). `ChipMenu` on a phone draws only its chip, open, and
+/// the page draws this sheet for it.
+[Composable]
+component MenuSheet(string label, Action onClose) {
+  render {
+    Box {
+      Scrim(onClose);
+      // The box that sits at the foot is not the menu: a menu's own box is placed by the platform (it opened at the top
+      // of the window), so the sheet is a plain fixed box and the menu its content.
+      Box(position: Position.Fixed, left: "0", right: "0", bottom: "0", z: ZIndex.Modal, pt: "12px", px: "12px", pb: "20px",
+          bg: Colors.Surface, rounded: Radius.Panel, shadow: Shadow.Dialog, label: label + " sheet") {
+        Stack(gap: "2px", role: UiRole.Menu, label: label, onEscape: onClose) {
+          Box(px: "10px", pb: "6px", fontSize: FontSize.Label, fontWeight: FontWeight.Semibold, color: Colors.Ink3) { Text(label); }
+          Slot;
+        }
+      }
+    }
+  }
+}

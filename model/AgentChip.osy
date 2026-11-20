@@ -1,0 +1,16 @@
+namespace Osysharp.Look;
+
+/// Something an agent prepared or did (canvas4/PolicyFloorEdit "Prepared by a factory agent"): 12/600 in the accent on
+/// the accent's second tint, radius 6, `3px 8px`, the planner's hexagon before the words.
+/// In a test it is read by its words: `Assert.Visible("Prepared by a factory agent")`.
+/// e.g. `AgentChip("Prepared by a factory agent")` · `AgentChip("Planner agent")`
+[Composable]
+component AgentChip(string words) {
+  render {
+    Row(gap: "6px", align: Align.Center, w: "fit-content", py: "3px", px: "8px", rounded: Radius.Chip, bg: Colors.AccentTint2, color: Colors.Primary,
+        fontSize: FontSize.Caption, fontWeight: FontWeight.Semibold, lineHeight: "normal", whiteSpace: WhiteSpace.Nowrap) {
+      Text("⬡", decorative: true);
+      Text(words);
+    }
+  }
+}

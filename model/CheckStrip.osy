@@ -1,0 +1,24 @@
+namespace Osysharp.Look;
+
+/// A row of named checks that stand each on its own (outcome · tests named · fits a session · buildable): `StageStrip`'s
+/// cards, but no check is before or after another, so a passing check is drawn passed wherever it stands. The checks in
+/// equal shares at least 200 px each (`repeat(auto-fit, minmax(min(200px, 100%), 1fr))`), 10 apart, one a row on a
+/// phone. Each a card radius 12, `14px`, its parts 8 apart: a 28 px dot (passed: a white ✓ on the ok dot; failed: a ✕
+/// in the bad ink on the bad tint; not judged: a dashed 2 px control-line ring) 8 before the title 15/600; then `What`
+/// 13/1.45; the `State` line 12/600 (ok ink · bad ink · Ink 3); on a check not passed its `Rule` as an amber note (12/600
+/// 1.4 `5px 8px` radius 6 on the you tint). Passed is the wash in the Line hairline, failed white in a 2 px bad line,
+/// not judged white in a dashed control line. A list named `label`, each check a list item named "<title>: passed" (or
+/// "failed", "not judged"), so the state is read without the colour. On no board as such; SliceDesign's stage cards in
+/// the language of `ReadinessMarks`.
+/// e.g. `CheckStrip([new StripCheck { Title = "Tests named", Mark = MarkState.Failed, What = "Criterion 2 names no test.",
+///      State = "Fails", Rule = "Name a test on every criterion" }, …], label: "Readiness of BOOK-26")`
+[Composable]
+component CheckStrip(List<StripCheck> checks, string label = "Checks") {
+  render {
+    Box(display: Display.Grid, cols: "repeat(auto-fit, minmax(min(200px, 100%), 1fr))", gap: "10px", role: UiRole.List, label: label, minW: "0") {
+      foreach (var check in checks) {
+        CheckStripItem(check);
+      }
+    }
+  }
+}

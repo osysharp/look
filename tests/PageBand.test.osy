@@ -1,0 +1,142 @@
+// The owner's mock-up drawn with the look's parts: the rail at the window's edge, the header band with the primary
+// action on the tabs' line, the stat strip, the quiet table head (/dev/band), and three panes (/dev/panes), at 1440
+// and at a phone's 390.
+
+using Osysharp.Look;
+using OsyrinLookTests;
+
+[Test]
+void The_rail_stands_at_the_windows_edge_and_the_band_holds_the_action_on_the_tabs_line() {
+  Ui.Viewport(1440);
+  Ui.Visit("/dev/band");
+  Assert.LeftOf("Main navigation", "Test header");
+  Assert.Taller("Main navigation", "Test header");
+  Assert.Inside("Add to plan", "Test tabs line");
+  Assert.RightOf("Add to plan", "Designs");
+  Assert.Above("Edit product", "Add to plan");
+  Assert.Above("Test header", "Plan at a glance");
+  Assert.SameWidth("Test tabs line", "Plan at a glance");
+  Assert.Filled("Add to plan", true);
+  Assert.NoOverflow();
+  Ui.Shot("band-plan-1440");
+  Ui.Click("Add to plan");
+  Assert.Visible("Add opened");
+}
+
+[Test]
+void The_stat_strip_holds_its_cells_at_one_height_with_dividers() {
+  Ui.Viewport(1440);
+  Ui.Visit("/dev/band");
+  Assert.SameHeight("Open items: 1, 0 in progress · 0 waiting", "Done: 0 of 1");
+  Assert.SameHeight("Done: 0 of 1", "Next release: No release planned");
+  Assert.SameWidth("Done: 0 of 1", "Unscheduled: 1");
+  Assert.LeftOf("Open items: 1, 0 in progress · 0 waiting", "Done: 0 of 1");
+  Assert.Inside("Next release: No release planned", "Plan at a glance");
+  Assert.Clickable("Next release: No release planned");
+  Assert.Visible("Item · priority", within: "Not scheduled items");
+  Ui.Shot("stat-strip-1440", within: "Plan at a glance");
+  Ui.Click("Next release: No release planned");
+  Assert.OnPage("/dev/band/releases");
+}
+
+// LK7: the strip's cells follow the window. A cell is narrower than a tablet at any desk width, so a cell that asked
+// its own room drew the phone's one line (label and value side by side) at 1440.
+[Test]
+void The_stat_strip_lays_its_cells_out_by_the_window_not_by_each_cells_room() {
+  Ui.Viewport(1440);
+  Ui.Visit("/dev/band");
+  Assert.Above("Next release", "No release planned");
+  Assert.Above("Open items", "0 in progress · 0 waiting");
+  Assert.LeftOf("Open items", "Done");
+  Ui.Shot("stat-strip-window-1440", within: "Plan at a glance");
+  Ui.Viewport(390);
+  Ui.Visit("/dev/band");
+  Assert.NoOverflow();
+  Assert.LeftOf("Next release", "No release planned");
+  Assert.Above("Open items", "Done");
+  Ui.Shot("stat-strip-window-390", within: "Plan at a glance");
+}
+
+[Test]
+void At_390_the_band_the_strip_and_the_table_fit_the_phone() {
+  Ui.Viewport(390);
+  Ui.Visit("/dev/band");
+  Assert.NoOverflow();
+  Assert.Visible("Add to plan");
+  Assert.Inside("Done: 0 of 1", "Plan at a glance");
+  Assert.Above("Open items: 1, 0 in progress · 0 waiting", "Done: 0 of 1");
+  Assert.SameWidth("Test tabs line", "Plan at a glance");
+  Ui.Shot("band-plan-390");
+}
+
+[Test]
+void The_panes_fill_the_body_from_the_band_to_the_windows_foot_and_scroll_each_by_itself() {
+  Ui.Viewport(1440);
+  Ui.Visit("/dev/panes");
+  Assert.Visible("Waiting list", within: "Outline pane");
+  Assert.Visible("Desired outcomes", within: "Summary pane");
+  Assert.LeftOf("Outline pane", "Conversation pane");
+  Assert.LeftOf("Conversation pane", "Summary pane");
+  Assert.SameHeight("Outline pane", "Conversation pane");
+  Assert.SameHeight("Conversation pane", "Summary pane");
+  Assert.Below("Design of Patient Portal", "Reminders before a visit header");
+  Assert.SameWidth("Design of Patient Portal", "Reminders before a visit header");
+  Assert.Taller("Main navigation", "Design of Patient Portal");
+  Assert.Visible("Send", within: "Conversation pane");
+  Assert.Visible("Open questions · 2", within: "Outline pane");
+  Assert.Clickable("Resize Outline");
+  Assert.Clickable("Resize Summary");
+  Assert.NoOverflow();
+  Ui.Shot("panes-1440");
+}
+
+[Test]
+void A_side_pane_folds_to_a_tab_and_opens_again() {
+  Ui.Viewport(1440);
+  Ui.Visit("/dev/panes");
+  Ui.Click("Fold Outline");
+  Assert.Hidden("Book online");
+  Assert.Clickable("Open Outline");
+  Ui.Click("Fold Summary");
+  Assert.Clickable("Open Summary");
+  Ui.Shot("panes-folded-1440");
+  Ui.Click("Open Outline");
+  Assert.Visible("Waiting list", within: "Outline pane");
+  Ui.Click("Open Summary");
+  Assert.Visible("Desired outcomes", within: "Summary pane");
+}
+
+[Test]
+void The_summary_pane_widens_by_its_handle_and_the_conversation_keeps_its_measure() {
+  Ui.Viewport(1440);
+  Ui.Visit("/dev/panes");
+  // Back from the top of the page: past the summary's four Edit buttons and its fold button to its handle.
+  foreach (var step in Enumerable.Range(0, 7)) { Ui.Press("Shift+Tab"); }
+  Assert.Focused("Resize Summary");
+  Ui.Press("ArrowLeft");
+  Ui.Press("ArrowLeft");
+  Ui.Press("ArrowLeft");
+  Ui.Press("ArrowLeft");
+  Assert.Wider("Summary pane", "Outline pane");
+  Ui.Shot("panes-summary-wide-1440");
+}
+
+[Test]
+void On_a_phone_the_conversation_shows_and_the_side_panes_open_as_sheets_from_the_band() {
+  Ui.Viewport(390);
+  Ui.Visit("/dev/panes");
+  Assert.NoOverflow();
+  Assert.Visible("Send", within: "Talk about Waiting list composer");
+  Assert.Hidden("Book online");
+  Ui.Click("Summary", within: "Reminders before a visit header");
+  Assert.Dialog("Summary");
+  Assert.Visible("Desired outcomes");
+  Ui.Shot("panes-summary-sheet-390");
+  Ui.Click("Close Summary");
+  Assert.Hidden("Desired outcomes");
+  Ui.Click("Outline", within: "Reminders before a visit header");
+  Assert.Visible("Book online");
+  Ui.Press("Escape");
+  Assert.Hidden("Book online");
+  Ui.Shot("panes-390");
+}

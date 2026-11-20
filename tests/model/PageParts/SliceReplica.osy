@@ -1,0 +1,137 @@
+namespace OsyrinLookTests;
+
+using Osysharp.Look;
+
+/// Slice.dc.html: its item header and tabs, "Right now", and the right column's "Waits on · Unlocks" and "Acceptance".
+/// The left column under "Right now" (the stage stepper, the side cards) is not the look's yet and is left empty.
+[Route("/dev/page-parts/slice")]
+[AllowAnonymous]
+[Title("Slot picker shows the next 14 days")]
+[Render(CSR)]
+component SliceReplicaPage() {
+  action Nothing() { }
+  render {
+    BoardFrame("Slot picker shows the next 14 days", planner: true) {
+      ObjectHeader("Slot picker shows the next 14 days", SliceTrail(),
+                   situation: "Checks passed on nw-studio-1 · at its landing, held until UIKIT-8 is merged (forecast Fri 6 Nov) · then it rides Patient Portal 2.4 · no action needed",
+                   item: true) {
+        slot chips {
+          KeyChip("BOOK-12");
+          Text("#2209", fontFamily: Font.KeyFace, fontSize: FontSize.Label, color: Colors.Ink2);
+          StatusChip("Landing", StatusTone.Run);
+          RideChip("Patient Portal 2.4");
+          Text("#1 in BOOK-SLOTS · Web change v7", fontSize: FontSize.Label, color: Colors.Ink3);
+        }
+        LookButton("Edit slice", Nothing);
+        LookButton("Propose a split", Nothing);
+        LookButton("More ▾", Nothing);
+      }
+      TabBar("Slice sections", SliceTabs(), "/dev/page-parts/slice");
+      PlainCard("Right now", heading: "Right now") {
+        slot heading { ProposedTag(small: true); }
+        Box(display: Display.Grid, cols: "repeat(auto-fit, minmax(min(300px, 100%), 1fr))", gap: "10px 24px", fontSize: FontSize.Summary, lineHeight: "1.5") {
+          Stack(gap: 0) {
+            Text("Waiting for", color: Colors.Ink3);
+            Box {
+              Text("Its merge gate on patient-portal, and ", whiteSpace: WhiteSpace.PreWrap);
+              KeyLink("UIKIT-8", "/dev/page-parts/slice");
+              Text(" merged (forecast Fri 6 Nov).", whiteSpace: WhiteSpace.PreWrap);
+            }
+          }
+          Stack(gap: 0) {
+            Text("Moves on when", color: Colors.Ink3);
+            Text("It is merged when the gate passes; a red gate sends it back to its build by itself.");
+          }
+          Stack(gap: 0) {
+            Text("Next", color: Colors.Ink3);
+            Box {
+              Text("Release: it rides ", whiteSpace: WhiteSpace.PreWrap);
+              Link("/dev/page-parts/release", label: "Patient Portal 2.4") { Text("Patient Portal 2.4", fontWeight: FontWeight.Semibold, color: Colors.Primary); }
+              Text(", target Thu 12 Nov (at risk · expected Thu 12 – Mon 16 Nov, 80 %).", whiteSpace: WhiteSpace.PreWrap);
+            }
+          }
+        }
+      }
+      Row(gap: "18px", align: Align.Start, wrap: Wrapping.Wrap) {
+        Box(grow: 999, basis: "540px", minW: "0", label: "The stages and the side cards, not the look's yet");
+        Stack(gap: "14px", grow: 1, basis: "300px", minW: "0") {
+          SmallCard("Waits on · Unlocks", kind: SmallCardKind.Side, linkLabel: "Dependencies ›", linkTo: "/dev/page-parts/slice") {
+            slot title { ProposedTag(small: true); }
+            ChainRow("Waits · 1", "Date-range picker component · hard · met when merged · holds Merge only · nw-studio-1 build 4", key: "UIKIT-8", keyTo: Here(),
+                     state: "Running", tone: StatusTone.Run);
+            ChainRow("Waits · 1", "Booking record and its API · verified by the merge", key: "BOOK-7", keyTo: Here(), state: "Met · merged Tue 27 Oct",
+                     tone: StatusTone.Ok);
+            ChainRow("Unlocks · 1", "Hold a slot for 10 minutes · soft · lane 1 · #2214 · run 2", key: "BOOK-14", keyTo: Here(), state: "Running",
+                     tone: StatusTone.Run, lit: true);
+            ChainRow("Unlocks · 2", "Cancel from the reminder link · waits on BOOK-14 · #2 in BOOK-REMIND", key: "BOOK-21", keyTo: Here(),
+                     state: "Blocked by BOOK-19", tone: StatusTone.Wait, lit: true);
+            ChainRow("Unlocks · 2", "Confirmation mail · waits on BOOK-14 · soft", key: "BOOK-17", keyTo: Here(), state: "Running", tone: StatusTone.Run);
+            ChainRow("Unlocks · 3", "Patient Portal 2.4 · target Thu 12 Nov · 14 slices; BOOK-12 is on its longest chain", key: "2.4", keyTo: Here(),
+                     state: "At risk · Thu 12 – Mon 16 Nov, 80 %", tone: StatusTone.You, lit: true);
+            Text("Three layers each way. Highlighted: the path to the highest-ranked work waiting on BOOK-12.", fontSize: FontSize.Caption, color: Colors.Ink3,
+                 lineHeight: "1.4");
+          }
+          SmallCard("Acceptance", kind: SmallCardKind.Side, linkLabel: "Acceptance ›", linkTo: "/dev/page-parts/slice") {
+            Badge("Required by your organization: 3 of 3 met", tone: KitTone(ChipTone.Ok));
+            CriterionRow("The picker lists every free slot for the next 14 days at the chosen clinic.", "Client test · passed 08:50", true);
+            CriterionRow("Days are counted in the clinic’s time zone, across a clock change.", "Client test · passed on the second run", true);
+            CriterionRow("A screenshot of the picker before and after.", "Screenshot · required by your organization · attached", true);
+            CriterionRow("A patient never sees another clinic’s free times.", "Security test · runs in its landing’s gate", false);
+            CriterionRow("Keyboard and screen reader can pick a day and a time.", "Client test · runs in its landing’s gate", false);
+            Text("Done waits on the two tests its landing’s gate runs; no person signs off this one.", fontSize: FontSize.Caption, color: Colors.Ink2);
+          }
+        }
+      }
+    }
+  }
+}
+
+/// Where the replica's keys lead: back to itself.
+string Here() {
+  return "/dev/page-parts/slice";
+}
+
+/// One acceptance criterion: its mark, its words 13/1.45 and how it is proved (12/600 accent "· evidence ›" when met, 12
+/// Ink 3 otherwise), under a Line 2 rule with 6 above.
+[Composable]
+component CriterionRow(string criterion, string proof, bool met) {
+  render {
+    Box(display: Display.Grid, cols: "18px minmax(0, 1fr)", gap: "8px", fontSize: FontSize.Label, lineHeight: "1.45", borderTW: 1, border: Colors.Line2, pt: "6px",
+        label: criterion) {
+      CheckMark(met);
+      Stack(gap: 0) {
+        Text(criterion);
+        Box {
+          Link("/dev/page-parts/slice", label: proof) {
+            Text(met ? proof + " · evidence ›" : proof, fontSize: FontSize.Caption, fontWeight: met ? FontWeight.Semibold : FontWeight.Regular,
+                 color: met ? Colors.Primary : Colors.Ink3);
+          }
+        }
+      }
+    }
+  }
+}
+
+/// The breadcrumb of an item: Planning › Plan › its saga › its arc › the item.
+List<Crumb> SliceTrail() {
+  return [
+    new Crumb { Label = "Planning", To = "/dev/page-parts" },
+    new Crumb { Label = "Plan", To = "/dev/page-parts/plan" },
+    new Crumb { Label = "BOOK", To = "/dev/page-parts" },
+    new Crumb { Label = "BOOK-SLOTS", To = "/dev/page-parts" },
+    new Crumb { Label = "BOOK-12" },
+  ];
+}
+
+/// An item's tabs, Overview in view.
+List<TabItem> SliceTabs() {
+  return [
+    new TabItem { Label = "Overview", To = "/dev/page-parts/slice" },
+    new TabItem { Label = "Run", To = "/dev/page-parts/slice/run" },
+    new TabItem { Label = "Change", To = "/dev/page-parts/slice/change" },
+    new TabItem { Label = "Design", To = "/dev/page-parts/slice/design" },
+    new TabItem { Label = "Acceptance", To = "/dev/page-parts/slice/acceptance" },
+    new TabItem { Label = "Evidence", To = "/dev/page-parts/slice/evidence" },
+    new TabItem { Label = "History", To = "/dev/page-parts/slice/history" },
+  ];
+}

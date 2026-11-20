@@ -1,0 +1,21 @@
+namespace Osysharp.Look;
+
+/// A hash or a short version inside a line: mono 12 on Line 2, `1px 5px`, radius 4 ("4e1a07c").
+[Composable]
+component HashBox(string hash) {
+  variants {
+    base {
+      Display = Display.InlineFlex;
+      W = "fit-content";
+      Px = "5px";
+      Py = "1px";
+      Rounded = "4px";
+      Bg = Colors.Line2;
+      FontFamily = Font.KeyFace;
+      FontSize = FontSize.Caption;
+      Color = Colors.OnSurface;
+      WhiteSpace = WhiteSpace.Nowrap;
+    }
+  }
+  render { Text(hash); }
+}

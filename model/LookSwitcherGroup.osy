@@ -1,0 +1,8 @@
+namespace Osysharp.Look;
+
+/// One headed group of `LookShell`'s switcher list: `Label` over its places, in the kit's `AppLink` (`Label`, `To`,
+/// `Icon`, `Current`). e.g. `new LookSwitcherGroup { Label = "Your organisations", Apps = [ new AppLink { … } ] }`.
+public class LookSwitcherGroup {
+  public string Label = "";
+  public AppLink[] Apps = [];
+}

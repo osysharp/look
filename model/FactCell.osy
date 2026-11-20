@@ -1,0 +1,20 @@
+namespace Osysharp.Look;
+
+/// One fact (Release's facts card): its term 12/500 in Ink 3 over its value 14/500 in Ink, 2 apart; `mono` sets the
+/// value in the key face at the same 14/500 (a tag, a hash). The block, when given, is drawn in place of the value (a
+/// chip, a person). `ruled: true` is a cell of a `FactsGrid(ruled: true)`: `14px 16px`, a Line 2 rule above and on its
+/// left (the grid cuts the outer ones away).
+[Composable]
+component FactCell(string term, string value = "", bool mono = false, bool ruled = false) {
+  render {
+    Stack(gap: "2px", minW: "0", role: UiRole.ListItem, label: term, py: ruled ? "14px" : "0", px: ruled ? "16px" : "0", borderTW: ruled ? 1 : 0,
+          borderLW: ruled ? 1 : 0, border: Colors.Line2) {
+      Text(term, fontSize: FontSize.Caption, fontWeight: FontWeight.Medium, color: Colors.Ink3, lineHeight: "normal");
+      if (value != "") {
+        Text(value, fontSize: FontSize.Body, fontFamily: mono ? Font.KeyFace : Font.Sans, fontWeight: FontWeight.Medium, color: Colors.OnSurface,
+             lineHeight: "normal");
+      }
+      Slot;
+    }
+  }
+}

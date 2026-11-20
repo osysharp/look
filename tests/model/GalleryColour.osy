@@ -1,0 +1,71 @@
+namespace OsyrinLookTests;
+
+using Osysharp.Look;
+
+/// Components §1: the base colours and the six status tones.
+[Composable]
+component GalleryColour() {
+  render {
+    BoardCard("1 · Colour") {
+      Box(display: Display.Grid, cols: "repeat(6, minmax(0, 1fr))", gap: "12px", label: "Base colours") {
+        ColourSwatch("Ground", "#F4F3F0", "Page background", Colors.Bg, Colors.Border);
+        ColourSwatch("Surface", "#FFFFFF", "Cards, rail, tables", Colors.Surface, Colors.Border);
+        ColourSwatch("Surface 2", "#FAFAF8", "Table header, inset panels, hover", Colors.Wash, Colors.Border);
+        ColourSwatch("Line", "#E2E0DA", "Card borders", Colors.Border, Colors.Border);
+        ColourSwatch("Line 2", "#F0EEE9", "Row dividers, neutral chip ground", Colors.Line2, Colors.Border);
+        ColourSwatch("Accent", "#3730A3", "Links, primary, current, selection, editing", Colors.Primary, Colors.Primary);
+        ColourSwatch("Ink", "#1A1918", "Text", Colors.OnSurface, Colors.OnSurface);
+        ColourSwatch("Ink 2", "#4A4843", "Secondary text", Colors.Ink2, Colors.Ink2);
+        ColourSwatch("Ink 3", "#5F5C57", "Captions — the lightest grey for text", Colors.Ink3, Colors.Ink3);
+        ColourSwatch("Ink 4", "#6F6B61", "12 px uppercase overlines only", Colors.Ink4, Colors.Ink4);
+        ColourSwatch("Accent hover", "#26208A", "Hover, editing banner, current rail row text", Colors.AccentInk, Colors.AccentInk);
+        ColourSwatch("Accent tint", "#E7E5F6 · #F4F2FF", "Current rail row; selected row", Colors.AccentTint, Colors.AccentLine);
+      }
+      H3("Status tones — each also differs in lightness, never by hue alone", mt: "4px");
+      Box(display: Display.Grid, cols: "repeat(6, minmax(0, 1fr))", gap: "12px", label: "Tones") {
+        ToneSwatch(StatusTone.Ok, "ok", "Done", "#24561F / #E6F1E1", "Done, healthy, on track");
+        ToneSwatch(StatusTone.Run, "run", "Running", "#174E73 / #E3EEF7", "Running, in progress");
+        ToneSwatch(StatusTone.Wait, "wait", "Waiting for a free lane", "#3A3833 / #ECEAE3", "Waits on something neutral");
+        ToneSwatch(StatusTone.You, "you", "Waiting for your answer", "#7A3E0B / #FBEEDD", "Needs a person; at risk; stuck");
+        ToneSwatch(StatusTone.Bad, "bad", "Blocked by TRIAGE-9", "#8A2E12 / #FCE7DF", "Blocked, failed, silent, frozen, refused");
+        ToneSwatch(StatusTone.Floor, "policy", "Locked by policy floor v4", "#1F1E1B / #F1EFE8", "Set by the floor; stricter allowed");
+      }
+    }
+  }
+}
+
+/// One base colour: its 58 px swatch (radius 10, its own outline), name, hex and use.
+[Composable]
+component ColourSwatch(string name, string hex, string use, Color fill, Color line) {
+  render {
+    Stack(gap: "6px", label: name) {
+      Box(h: "58px", rounded: Radius.Inner, bg: fill, borderW: 1, border: line, decorative: true);
+      Text(name, fontSize: FontSize.Label, fontWeight: FontWeight.Semibold);
+      Text(hex, fontFamily: Font.KeyFace, fontSize: FontSize.Caption, color: Colors.Ink3);
+      Text(use, fontSize: FontSize.Caption, color: Colors.Ink2, lineHeight: "1.4");
+    }
+  }
+}
+
+/// One status tone: its chip, its name, its ink and tint, and what it means, in a soft-lined inner card. §1 shows
+/// every tone with its dot — the floor's too — so the floor's swatch draws the chip with the dot; on a page the floor's
+/// `StatusChip` has the lock (PolicyFloor, PolicyFloorEffective).
+[Composable]
+component ToneSwatch(StatusTone tone, string name, string word, string hex, string use) {
+  render {
+    Stack(gap: "8px", p: "12px", rounded: Radius.Inner, borderW: 1, border: Colors.SoftLine, label: name + " tone") {
+      if (tone == StatusTone.Floor) {
+        Row(gap: "6px", align: Align.Center, w: "fit-content", px: "8px", py: "3px", rounded: Radius.Chip, bg: Colors.FloorTint, color: Colors.FloorInk,
+            fontSize: FontSize.Caption, fontWeight: FontWeight.Semibold, whiteSpace: WhiteSpace.Nowrap, lineHeight: "normal") {
+          StatusDot(tone);
+          Text(word);
+        }
+      } else {
+        StatusChip(word, tone);
+      }
+      Text(name, fontSize: FontSize.Label, fontWeight: FontWeight.Semibold);
+      Text(hex, fontFamily: Font.KeyFace, fontSize: FontSize.Caption, color: Colors.Ink3);
+      Text(use, fontSize: FontSize.Caption, color: Colors.Ink2, lineHeight: "1.4");
+    }
+  }
+}

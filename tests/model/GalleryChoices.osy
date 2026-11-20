@@ -1,0 +1,84 @@
+namespace OsyrinLookTests;
+
+using Osysharp.Look;
+
+// The look's choice group (a radio group; with a second line, §21's option rows) and the segmented filter with counts
+// (canvas2/Backlog's "Show" strip), each segment its own address. In the gallery and alone at /dev/controls/choices/{show}.
+
+/// A role a person can be given, each with what it carries.
+public enum AccessRole {
+  [Label("Reader")] Reader,
+  [Label("Editor")] Editor,
+  [Label("Owner")] Owner
+}
+
+/// What a step does when a check fails.
+public enum FailPace {
+  [Label("Hold")] Hold,
+  [Label("Run")] Run,
+  [Label("Ask me")] Ask
+}
+
+/// What each role carries: the second line of its option.
+public string RoleCarries(AccessRole r) {
+  if (r == AccessRole.Reader) { return "Sees the product and its releases; changes nothing"; }
+  if (r == AccessRole.Editor) { return "Plans, edits items and asks for releases"; }
+  return "Everything an editor does, and who may do it";
+}
+
+/// The gallery's "Choices and filters" section.
+[Composable]
+component GalleryChoices() {
+  render {
+    Stack(gap: "16px", label: "Choices and filters") {
+      H2("Choices and filters");
+      Caption("One of a few, chosen by a press or the keyboard — with a second line where each option carries something; a filter strip with a count on each segment and its own address.");
+      ChoiceSample("all");
+    }
+  }
+}
+
+/// The filter's segments, each its own address under `/dev/controls/choices/`.
+public List<FilterSegment> ShowSegments() {
+  return [
+    new FilterSegment { Key = "all", Label = "All", Count = "12", To = "/dev/controls/choices/all" },
+    new FilterSegment { Key = "shaping", Label = "Needs shaping", Count = "3", To = "/dev/controls/choices/shaping" },
+    new FilterSegment { Key = "estimate", Label = "Needs an estimate", Count = "4", To = "/dev/controls/choices/estimate" },
+    new FilterSegment { Key = "ready", Label = "Ready for Plan", Count = "2", To = "/dev/controls/choices/ready" },
+    new FilterSegment { Key = "parked", Label = "Parked", Count = "", To = "/dev/controls/choices/parked" }
+  ];
+}
+
+/// A role group with second lines, a plain one, and two filter strips (by address and by press).
+[Composable]
+component ChoiceSample(string show) {
+  AccessRole role = AccessRole.Editor;
+  FailPace pace = FailPace.Hold;
+  string sort = "newest";
+  action SortBy(string key) { sort = key; }
+  render {
+    Stack(gap: "16px", maxW: "720px", minW: "0") {
+      Stack(gap: "16px", bg: Colors.Surface, borderW: 1, border: Colors.CardLine, rounded: Radius.Panel, px: "20px", py: "16px", label: "Give access") {
+        LookChoiceGroup("Role", role, detail: RoleCarries, help: "An owner can change this later.");
+        LookChoiceGroup("When a check fails", pace);
+        Text("Role " + role.Label + " · on a failed check " + pace.Label, fontSize: FontSize.Label, color: Colors.Ink3, role: UiRole.Status);
+      }
+      SegmentedFilter("Show", ShowSegments(), show);
+      SegmentedFilter("Sort", [
+        new FilterSegment { Key = "newest", Label = "Newest" },
+        new FilterSegment { Key = "rank", Label = "By rank" },
+        new FilterSegment { Key = "size", Label = "By size", Count = "5" }
+      ], sort, onSelect: SortBy);
+      Text("Showing " + show + " · sorted " + sort, fontSize: FontSize.Label, color: Colors.Ink3, role: UiRole.Status);
+    }
+  }
+}
+
+/// The choices alone; `show` is the filter's segment, kept by the address.
+[Route("/dev/controls/choices/{show}")]
+[AllowAnonymous]
+[Title("Choices and filters")]
+[Render(CSR)]
+component ChoicesPage(string show) {
+  render { ControlsFrame("Choices and filters") { ChoiceSample(show); } }
+}

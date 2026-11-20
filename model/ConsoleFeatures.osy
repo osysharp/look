@@ -1,0 +1,6 @@
+namespace Osysharp.Look;
+
+/// The console's OpenType features: Inter's open digits (cv11) and tabular numbers, so columns of numbers line up.
+public string ConsoleFeatures() {
+  return "\"cv11\", \"tnum\"";
+}

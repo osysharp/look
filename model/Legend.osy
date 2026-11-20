@@ -1,0 +1,14 @@
+namespace Osysharp.Look;
+
+/// The legend that explains a page's chips and marks (orgsettings/Policies, over the policy cards): white on the
+/// hairline, radius 10, `10px 14px`, 13 px Ink 2, its entries in a wrapping row `8px 18px` apart, centred. The block
+/// holds `LegendEntry`s, plain `Text` and links (`GoLink(…, small: true)`). A group named `label`.
+[Composable]
+component Legend(string label = "Legend") {
+  render {
+    Row(gap: "8px 18px", wrap: Wrapping.Wrap, align: Align.Center, bg: Colors.Surface, borderW: 1, border: Colors.Border, rounded: "10px", py: "10px",
+        px: "14px", fontSize: FontSize.Label, color: Colors.Ink2, lineHeight: "normal", minW: "0", role: UiRole.Group, label: label) {
+      Slot;
+    }
+  }
+}

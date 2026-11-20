@@ -1,0 +1,51 @@
+namespace Osysharp.Look;
+
+// The level of a part of a plan or a design, said wherever a thing is shown (DECISIONS 13 Nov: "we should just be clear
+// on what level we are on"). Each level has its own SHAPE, so the levels differ without colour: a saga a dark diamond,
+// an arc a blue ring, a slice a green square, a bit a grey dash (designer.dc.html `.mk`).
+
+/// How big a part is, biggest first — the plan's levels, as the look draws them. A page maps its own level onto this.
+public enum PartLevel {
+  [Label("Saga")] Saga,
+  [Label("Arc")] Arc,
+  [Label("Slice")] Slice,
+  [Label("Bit")] Bit,
+}
+
+/// A level's mark, in a 12 px cell on the text's line: saga ◆ in the ink, arc a 10 px ring 2 px in the run dot, slice a
+/// 7 px square radius 2 in the ok dot, bit an 8 × 2 dash in Ink 3. `word`: the level's word follows, 600 Ink 3, 5 px
+/// after ("◯ Arc"). Without it the mark is a picture named by its word, and hovering it shows the word.
+/// `onDark`: on a dark ground (the console's current row), the saga's ◆ in white.
+/// In a test: `Assert.Visible("Arc")` with `word`; otherwise the mark is the graphic named "Arc". Escape closes an open
+/// title. `focusable` (without `word`): the mark is a keyboard stop and its word opens on focus too, closing on Escape
+/// and when focus leaves; leave it off inside a tree, whose row is the keyboard's stop.
+[Composable]
+component LevelMark(PartLevel level, bool word = false, bool onDark = false, bool focusable = false) {
+  bool hovered = false;
+  action Enter() { hovered = true; }
+  action Leave() { hovered = false; }
+  render {
+    Box(display: Display.InlineFlex, align: Align.Center, gap: "5px", position: Position.Relative, verticalAlign: VerticalAlign.Middle,
+        whiteSpace: WhiteSpace.Nowrap, onPointerEnter: word ? null : Enter, onPointerLeave: word ? null : Leave,
+        onFocus: !word && focusable ? Enter : null, onBlur: !word && focusable ? Leave : null, onEscape: !word && hovered ? Leave : null) {
+      Box(display: Display.InlineFlex, align: Align.Center, justify: Justify.Center, w: "12px", h: "12px", shrink: 0,
+          role: word ? null : UiRole.Graphic, label: word ? "" : level.Label, decorative: word) {
+        if (level == PartLevel.Saga) {
+          Text("◆", fontSize: "11px", lineHeight: "1", color: onDark ? Colors.ConsoleRailInk : Colors.OnSurface);
+        } else if (level == PartLevel.Arc) {
+          Box(w: "10px", h: "10px", rounded: Radius.Pill, borderW: 2, border: Colors.RunDot);
+        } else if (level == PartLevel.Slice) {
+          Box(w: "7px", h: "7px", rounded: "2px", bg: Colors.OkDot);
+        } else {
+          Box(w: "8px", h: "2px", rounded: "1px", bg: Colors.Ink3);
+        }
+      }
+      if (word) {
+        Text(level.Label, fontWeight: FontWeight.Semibold, color: Colors.Ink3);
+      }
+      if (!word && hovered) {
+        HoverTitle(level.Label, level.Label + " level");
+      }
+    }
+  }
+}

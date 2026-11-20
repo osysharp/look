@@ -1,0 +1,7 @@
+namespace Osysharp.Look;
+
+/// The release a piece of work goes to: "→ Patient Portal 2.4", in the run tone (the kit's `Badge`).
+[Composable]
+component ReleaseChip(string release) {
+  render { Badge("→ " + release, tone: Tone.Info); }
+}

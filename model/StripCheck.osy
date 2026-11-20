@@ -1,0 +1,12 @@
+namespace Osysharp.Look;
+
+/// One check of a `CheckStrip`: its title ("Tests named"), where it stands (`Mark`), its sentence (why it passed or
+/// failed, one or two lines, may be empty), the words of its state ("Passes", "Not estimated"), and what to do about it
+/// (an amber note on a check not passed, may be empty).
+public class StripCheck {
+  public string Title = "";
+  public MarkState Mark = MarkState.NotJudged;
+  public string What = "";
+  public string State = "";
+  public string Rule = "";
+}

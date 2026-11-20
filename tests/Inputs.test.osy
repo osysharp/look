@@ -1,0 +1,197 @@
+// The look's input parts asked by Admin's rebuilt pages (P2.D18a): each driven as a person would — typed, stepped by the
+// keyboard, cleared, chosen, confirmed with a reason — held inside a phone's 390, and photographed light and dark.
+
+using Osysharp.Look;
+using OsyrinLookTests;
+
+[Test]
+void A_number_field_steps_by_its_arrows_and_says_a_refused_value_under_it() {
+  Ui.Viewport(1440);
+  Ui.Visit("/dev/controls/inputs");
+  Assert.Value("Never below", "10");
+  Ui.Fill("Bell after", "120");
+  Ui.Press("ArrowUp");
+  Ui.Press("ArrowUp");
+  Assert.Value("Bell after", "150");
+  Ui.Press("ArrowDown");
+  Assert.Value("Bell after", "135");
+  Ui.Fill("Never above", "20");
+  Assert.Visible("At most 14 slots.");
+  Ui.Fill("Never above", "13");
+  Assert.Hidden("At most 14 slots.");
+  // Two steps: the first value a key writes straight after a fill is held but not drawn (see the result's bugs).
+  Ui.Fill("Never below", "10");
+  Ui.Press("ArrowDown");
+  Ui.Press("ArrowDown");
+  Assert.Value("Never below", "8");
+  Assert.Visible("Below 8 · above 13 · triage 30 · bell 135");
+  Ui.Shot("inputs-1440");
+  Ui.Viewport(390);
+  Ui.Visit("/dev/controls/inputs");
+  Assert.NoOverflow();
+  Ui.Shot("inputs-390");
+  Ui.Theme("dark");
+  Ui.Visit("/dev/controls/inputs");
+  Assert.Readable("Never below");
+  Ui.Shot("inputs-dark");
+  Ui.Theme("light");
+}
+
+[Test]
+void A_text_field_hears_each_keystroke_and_Return_and_a_search_field_clears() {
+  Ui.Viewport(1440);
+  Ui.Visit("/dev/controls/inputs");
+  Ui.Fill("Add a host", "pypi.org");
+  Ui.Press("Enter");
+  Assert.Visible("added pypi.org");
+  Assert.Value("Add a host", "");
+  Ui.Fill("Search hosts", "npm");
+  Assert.Visible("finding npm");
+  Assert.Enabled("Clear Search hosts");
+  Ui.Click("Clear Search hosts");
+  Assert.Value("Search hosts", "");
+  Assert.Hidden("finding");
+  Ui.Fill("Search hosts", "maven");
+  Ui.Press("Escape");
+  Assert.Value("Search hosts", "");
+  Ui.Fill("Filter as you pause", "build");
+  Assert.Visible("asked 1");
+}
+
+[Test]
+void A_confirmation_shows_what_it_touches_and_stays_off_until_a_reason_is_typed() {
+  Ui.Viewport(1440);
+  Ui.Visit("/dev/controls/confirm-reason");
+  Ui.Click("Revoke key-7");
+  Assert.Dialog("Revoke key-7?");
+  Assert.Visible("Used by 2 deploy jobs", within: "What it touches");
+  Assert.DisabledBecause("Revoke key-7", "Say why first.");
+  Ui.Fill("Why (required)", "Leaked in a build log");
+  Assert.Enabled("Revoke key-7");
+  Ui.Shot("confirm-reason-1440");
+  Ui.Click("Revoke key-7", within: "Revoke key-7?");
+  Assert.Visible("key-7 revoked · Leaked in a build log");
+  Ui.Click("Revoke key-7");
+  Assert.DisabledBecause("Revoke key-7", "Say why first.");
+  Ui.Press("Escape");
+  Assert.Visible("key-7 revoked");
+  Ui.Viewport(390);
+  Ui.Visit("/dev/controls/confirm-reason");
+  Ui.Click("Revoke key-7");
+  Assert.NoOverflow();
+  Ui.Shot("confirm-reason-390");
+}
+
+[Test]
+void A_confirmation_over_a_long_list_keeps_its_question_and_its_buttons_in_view() {
+  // Twelve rows under the question, on a page longer than the window: the rows scroll inside the dialog, and the
+  // confirm button is inside the dialog's box (which is fixed in the window) without scrolling anything (P2.D19).
+  Ui.Viewport(1440);
+  Ui.Visit("/dev/controls/confirm-long");
+  Ui.Click("Release 3.2");
+  Assert.Dialog("Release 3.2?");
+  Assert.Items("Not done in 3.2", 12);
+  Assert.Inside("Release 3.2 now", "Release 3.2?");
+  Assert.Inside("Cancel", "Release 3.2?");
+  Assert.Clickable("Release 3.2 now");
+  Assert.NoOverflow();
+  Ui.Shot("confirm-long-1440");
+  Ui.Viewport(390);
+  Ui.Visit("/dev/controls/confirm-long");
+  Ui.Click("Release 3.2");
+  Assert.Inside("Release 3.2 now", "Release 3.2?");
+  Assert.Inside("Cancel", "Release 3.2?");
+  Assert.Clickable("Release 3.2 now");
+  Assert.NoOverflow();
+  Ui.Shot("confirm-long-390");
+  Ui.Click("Release 3.2 now", within: "Release 3.2?");
+  Assert.Visible("3.2 released · 12 items moved to 3.3");
+}
+
+[Test]
+void A_choice_group_is_chosen_by_a_press_and_by_its_arrows_and_Space() {
+  Ui.Viewport(1440);
+  Ui.Visit("/dev/controls/choices/all");
+  Assert.Checked("Editor", true);
+  Assert.Checked("Reader", false);
+  Assert.Visible("Sees the product and its releases; changes nothing", within: "Role");
+  Ui.Click("Reader");
+  Assert.Checked("Reader", true);
+  Assert.Checked("Editor", false);
+  // The group is one Tab stop; its keys move the lit option and choose it.
+  Ui.Visit("/dev/controls/choices/all");
+  Ui.Press("Tab");
+  Assert.Focused("Role");
+  Ui.Press("ArrowUp");
+  Ui.Press(" ");
+  Assert.Checked("Reader", true);
+  Ui.Press("ArrowDown");
+  Ui.Press("ArrowDown");
+  Assert.Checked("Reader", true);
+  Ui.Shot("choices-lit");
+  Ui.Press(" ");
+  Assert.Checked("Owner", true);
+  Assert.Visible("Role Owner · on a failed check Hold");
+  Ui.Press("Tab");
+  Assert.Focused("When a check fails");
+  Ui.Press("ArrowDown");
+  Ui.Press("Enter");
+  Assert.Checked("Run", true);
+  Ui.Press("End");
+  Ui.Press(" ");
+  Assert.Checked("Ask me", true);
+  Assert.Visible("Role Owner · on a failed check Ask me");
+  Ui.Shot("choices-1440");
+  Ui.Click("Hold");
+  Assert.Checked("Hold", true);
+  Ui.Theme("dark");
+  Ui.Visit("/dev/controls/choices/all");
+  Assert.Readable("Sees the product and its releases; changes nothing");
+  Ui.Shot("choices-dark");
+  Ui.Theme("light");
+}
+
+[Test]
+void A_segmented_filter_keeps_its_segment_in_the_address_and_scrolls_inside_itself_on_a_phone() {
+  Ui.Viewport(1440);
+  Ui.Visit("/dev/controls/choices/all");
+  Assert.Current("All", true);
+  Ui.Click("Needs shaping");
+  Assert.OnPage("/dev/controls/choices/shaping");
+  Assert.Current("Needs shaping", true);
+  Assert.Current("All", false);
+  Assert.Visible("Showing shaping · sorted newest");
+  Ui.Visit("/dev/controls/choices/shaping");
+  Assert.Current("Needs shaping", true);
+  Ui.Click("By rank");
+  Assert.Visible("Showing shaping · sorted rank");
+  Ui.Shot("filter-1440");
+  Ui.Viewport(390);
+  Ui.Visit("/dev/controls/choices/ready");
+  Assert.NoOverflow();
+  Assert.Current("Ready for Plan", true);
+  Ui.Shot("choices-390");
+}
+
+[Test]
+void A_secret_is_shown_once_copied_and_gone_once_stored() {
+  Ui.Viewport(1440);
+  Ui.Visit("/dev/controls/secret");
+  Assert.Visible("fake_sk_test_", within: "Deploy key");
+  Assert.Visible("Shown once", within: "Deploy key");
+  Ui.Click("Copy Deploy key");
+  Assert.Visible("Copied");
+  Ui.Shot("secret-1440");
+  Ui.Click("I have stored it");
+  Assert.Hidden("fake_sk_test_");
+  Assert.Visible("The key is stored");
+  Ui.Viewport(390);
+  Ui.Visit("/dev/controls/secret");
+  Assert.NoOverflow();
+  Ui.Shot("secret-390");
+  Ui.Theme("dark");
+  Ui.Visit("/dev/controls/secret");
+  Assert.Readable("fake_sk_test_");
+  Ui.Shot("secret-dark");
+  Ui.Theme("light");
+}

@@ -1,0 +1,24 @@
+namespace Osysharp.Look;
+
+/// The narrowest a `ConsoleTable` is laid out before it scrolls sideways inside its panel (spec "wrap the table in
+/// overflow-x: auto"): its fixed tracks (`"120px"`), 44 px for the rows' chevron when they open, 38 px for the detail
+/// chevron when they have `details`, and for each flexible
+/// track (`minmax(0, 1fr)`, `auto`) 160 px or the least it declares (`minmax(200px, 1.3fr)`: 200) — so on a narrow window
+/// a name column keeps a readable width beside the fixed ones instead of being crushed to a word a line — and never less
+/// than `minWidth` (`"760px"`).
+public string ConsoleTableFloor(List<ConsoleColumn> columns, bool opens, string minWidth, bool details = false) {
+  int floor = (opens ? 44 : 0) + (details ? 38 : 0);
+  foreach (var c in columns) {
+    var w = c.Width.Trim();
+    if (w.EndsWith("px") && !w.Contains("(")) { floor = floor + int.Parse(w.Substring(0, w.Length - 2)); }
+    else if (w.StartsWith("minmax(") && w.Contains("px,")) {
+      var least = int.Parse(w.Substring(7, w.IndexOf("px,") - 7).Trim());
+      floor = floor + (least > 160 ? least : 160);
+    }
+    else { floor = floor + 160; }
+  }
+  var given = minWidth.Trim();
+  if (given.EndsWith("px") && !given.Contains("(") && int.Parse(given.Substring(0, given.Length - 2)) >= floor) { return given; }
+  if (!given.EndsWith("px") || given.Contains("(")) { return $"max({given}, {floor}px)"; }
+  return $"{floor}px";
+}

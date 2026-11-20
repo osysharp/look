@@ -1,0 +1,28 @@
+namespace Osysharp.Look;
+
+/// A few lines of plain text in a console field (a reason, a note): `rows` lines high (20 px each), `8px 10px`, radius 5, 13 px,
+/// white in the control line; refused, the critical line. In a test it is filled by its label. Its help or refusal line is the box's
+/// description (`Assert.Described`), drawn here beside it.
+[Composable]
+component ConsoleTextArea(string label, Binding<string> value, string help = "", string error = "", string placeholder = "", int rows = 3,
+                          string w = "100%") {
+  render {
+    ConsoleField(label) {
+      Stack(gap: "6px", minW: "0") {
+        TextArea(value: value, label: label, placeholder: placeholder, h: (rows * 20 + 16) + "px", w: w, maxW: "100%", px: "10px", py: "8px",
+                 fontSize: Layout.AtLeast(Tablet) ? FontSize.ConsoleBody : FontSize.ConsoleBodyPhone, fontFamily: Font.ConsoleSans,
+                 color: Colors.ConsoleText, bg: Colors.ConsoleSurface, rounded: Radius.ConsoleButtonCorner, borderW: 1, invalid: error != "",
+                 border: error != "" ? Colors.ConsoleCriticalIcon : Colors.ConsoleControlLine, describedBy: note);
+        if (error != "" || help != "") {
+          Stack(id: note) {
+            if (error != "") {
+              Text(error, fontSize: FontSize.ConsoleSmall, color: Colors.ConsoleCriticalInk, lineHeight: "1.4", role: UiRole.Alert);
+            } else {
+              Text(help, fontSize: FontSize.ConsoleSmall, color: Colors.ConsoleText2, lineHeight: "1.4");
+            }
+          }
+        }
+      }
+    }
+  }
+}

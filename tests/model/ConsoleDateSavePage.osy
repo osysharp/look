@@ -1,0 +1,25 @@
+// A console date bound to an entity's field: a save the server refuses for the field's rule says so under the date itself, as the Ui
+// kit's own DatePicker does (field-messages-in-kit) — the page writes no validation code. Tests: ConsoleParts.test.osy.
+
+/// A booking whose day the console date edits.
+[Title(Name)]
+entity ConsoleBooking {
+  [Required, MaxLength(80)] string Name;
+  [Unique("Another booking is on that day.")] DateOnly? Day;
+  // A sample on the kit's own test pages, open to every visitor as the rest of /dev is.
+  security { allow read, create, update when IsAuthenticated || IsAnonymous; }
+}
+
+/// One booking, its day edited in place with Save beside its name.
+[Route("/dev/console-date-save/{id}")] [AllowAnonymous] [Render(CSR)] [Title("Console date save")]
+component ConsoleDateSavePage(Guid id) {
+  live var booking = ConsoleBooking.FirstOrDefault(b => b.Id == id);
+  render {
+    if (booking != null) {
+      Stack(gap: 4, p: 6) {
+        PageHead(booking.Name) { SaveActions(saved: "Booking saved."); }
+        LookDate("Day", booking.Day, w: "200px", clearable: true, console: true);
+      }
+    }
+  }
+}

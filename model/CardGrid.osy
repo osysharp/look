@@ -1,0 +1,10 @@
+namespace Osysharp.Look;
+
+/// A grid of cards (Release's summary and foot cards, Slice's side cards): as many columns as fit at `min` each (300px,
+/// 250px or 240px on the boards), `gap` apart (16px, or 14px in a column), every card as tall as its row.
+[Composable]
+component CardGrid(string min = "300px", string gap = "16px") {
+  render {
+    Box(display: Display.Grid, cols: "repeat(auto-fit, minmax(min(" + min + ", 100%), 1fr))", gap: gap) { Slot; }
+  }
+}

@@ -1,0 +1,81 @@
+namespace OsyrinLookTests;
+
+using Osysharp.Look;
+
+// The gallery of the look: a replica of docs/designs/factory-ui-v3/canvas1/Components.dc.html at its 1440 px frame,
+// its own 56 px padding and 28 px between sections, with the board's sample world (Northwind Health, Patient Portal 2.4,
+// BOOK-14 …). Each section the look draws is drawn where the board draws it; the board's sections that are the Ui kit's
+// own parts or later phases' (5–10, 13–22) are held as their height, so every part below them sits at the board's
+// offset and scripts/design/pixel-budget.sh can diff it part by part. The parts the board does not draw (the cards, the
+// table in a card, the bands and notes of the page boards) follow the board, under "The page boards' parts".
+//
+// The page root sets what the board's page inherits: Inter at the browser's 16 px with line-height `normal`.
+
+/// The gallery.
+[Route("/dev/components")]
+[AllowAnonymous]
+[Title("Components and tokens")]
+[Render(CSR)]
+component ComponentGalleryPage() {
+  render { ComponentGallery(); }
+}
+
+/// Every section of the Components board the look draws, in its order, then the page boards' parts.
+[Composable]
+component ComponentGallery() {
+  render {
+    Stack(gap: "28px", w: "1440px", p: "56px", bg: Colors.Bg, color: Colors.OnSurface, fontSize: "16px", lineHeight: "normal", fontFamily: Font.Sans,
+          label: "Components") {
+      Stack(gap: "8px", maxW: "1080px") {
+        Text("Shared parts · S100", fontSize: FontSize.Caption, fontWeight: FontWeight.Semibold, letterSpacing: "0.06em", textTransform: TextTransform.Uppercase,
+             color: Colors.Ink4);
+        Text("Components and tokens", role: UiRole.Heading, level: 1, fontSize: "34px", fontWeight: FontWeight.Heavy, letterSpacing: "-0.01em");
+        Text("Every board on the four canvases is built from these parts and nothing else; round 2 adds the page structure (12–16) and the owner-review patterns (7, 17–21). The same parts as the organization-settings designs, so the factory and the organization layer read as one product. Names here are the names used in the specs.",
+             fontSize: "16px", lineHeight: "1.55", color: Colors.Ink2);
+      }
+      GalleryColour();
+      BoardPair("minmax(0, 1.4fr) minmax(0, 1fr)") {
+        GalleryType();
+        GalleryRadius();
+      }
+      GalleryControls();
+      GalleryStatus();
+      // §5–6: the kit's editing parts under the look's tokens, and the look's diff.
+      GallerySettings();
+      GalleryHistory();
+      // Sections 7–10 of the board: the factory's and later phases' parts, held at their height (3184 → 4739 on the board).
+      Box(h: "1555px", label: "Sections 7 to 10, not the look's");
+      GalleryStates();
+      GalleryObjectHeader();
+      // §13–15: the section list, the impact preview, a list with a drawer.
+      GallerySections();
+      GalleryDrawer();
+      GalleryPageParts();
+      GallerySettingsParts();
+      GalleryStatTiles();
+      // The look's controls (P2.D12), each group a section of its own.
+      GalleryButtons();
+      GalleryChecks();
+      GallerySelect();
+      GalleryMessages();
+      // Meters, the floor's lock, legend, area card, dashed note (P2.D14b); the page states are alone at /dev/parts/*.
+      GalleryLookParts();
+      GalleryTables();
+      // The display parts Admin's rebuilt pages asked for (P2.D18b).
+      GalleryDisplay();
+      // The edit form's field rows (P2.D5, drawn in P2.D5b).
+      GalleryFieldRows();
+      // The look's input parts asked by Admin's rebuilt pages (P2.D18a).
+      GalleryInputs();
+      GalleryConfirmReason();
+      GalleryChoices();
+      GallerySecret();
+      // The design studio's parts (P3.6): a conversation, its changes and composer; stages and readiness marks.
+      GalleryConversation();
+      GalleryStages();
+      // Tables on a phone, row menus, card actions and empty cards (L1).
+      GalleryPhoneTables();
+      GalleryRowMenus();
+    }
+  }
+}

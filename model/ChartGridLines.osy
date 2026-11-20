@@ -1,0 +1,13 @@
+namespace Osysharp.Look;
+
+/// A chart's gridlines (MS2b; shared by the bar and line charts, MS2c): a light rule at each of the `ticks`, a firmer one
+/// at the base, over a plot `height` px tall whose top is the last tick.
+[Composable, Part]
+component ChartGridLines(List<double> ticks, int height) {
+  render {
+    foreach (var index in Enumerable.Range(0, ticks.Count).ToList()) {
+      Box(position: Position.Absolute, left: "0", right: "0", bottom: Math.Round((height - 1) * ticks[index] / ticks[ticks.Count - 1]).ToString("0") + "px", h: "1px",
+          bg: index == 0 ? Colors.ConsoleDivider : Colors.ConsoleRowRule, decorative: true);
+    }
+  }
+}

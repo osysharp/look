@@ -1,0 +1,20 @@
+namespace Osysharp.Look;
+
+/// The frame around a model turn's proposed changes (canvas2/PlannerPanel "3 changes to 3 items"): the accent line,
+/// radius 10, clipped; a head `8px 10px` on the accent's second tint — `title` 12/700 in the accent's deep ink at the
+/// left, `slot actions` at the right (Reject all · Accept all, small) — then its `ChangeBlock`s, each under a soft rule.
+/// In a test it is the group named `label` ("Proposed changes"): `Assert.Visible("BOOK-26", within: "Proposed changes")`.
+/// e.g. `ChangeList("3 changes to 3 items") { slot actions { LookButton("Reject all", …, small: true); } ChangeBlock(…); }`
+[Composable]
+component ChangeList(string title, string label = "Proposed changes") {
+  render {
+    Stack(gap: 0, minW: "0", bg: Colors.Surface, borderW: 1, border: Colors.AccentLine, rounded: Radius.Inner, overflow: Overflow.Hidden,
+          role: UiRole.Group, label: label) {
+      Row(justify: Justify.Between, align: Align.Center, gap: "6px", wrap: Wrapping.Wrap, py: "8px", px: "10px", bg: Colors.AccentTint2) {
+        Text(title, fontSize: FontSize.Caption, fontWeight: FontWeight.Heavy, color: Colors.AccentInk, lineHeight: "normal", minW: "0");
+        Row(gap: "6px", align: Align.Center, wrap: Wrapping.Wrap, ml: "auto") { Slot("actions"); }
+      }
+      Slot;
+    }
+  }
+}

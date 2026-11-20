@@ -1,0 +1,45 @@
+namespace OsyrinLookTests;
+
+using Osysharp.Look;
+
+/// A card of the Components board: white on the Line hairline, radius 14, 24 px in, `gap` between its parts. `label` is
+/// its heading, what a test's `within:` and the pixel diff find it by.
+[Composable]
+component BoardCard(string label, string gap = "18px") {
+  render {
+    Stack(gap: gap, p: "24px", bg: Colors.Surface, borderW: 1, border: Colors.Border, rounded: Radius.Panel, minW: "0", label: label) {
+      H2(label);
+      Slot;
+    }
+  }
+}
+
+/// Two cards side by side, 16 px apart, each as tall as the row.
+[Composable]
+component BoardPair(string cols = "minmax(0, 1fr) minmax(0, 1fr)") {
+  render { Box(display: Display.Grid, cols: cols, gap: "16px") { Slot; } }
+}
+
+/// A board section's title: 20/700.
+[Composable]
+component H2(string text) {
+  render { Text(text, role: UiRole.Heading, level: 2, fontSize: FontSize.Heading, fontWeight: FontWeight.Heavy, color: Colors.OnSurface); }
+}
+
+/// A heading inside a board section: 15/700 unless sized.
+[Composable]
+component H3(string text, string size = "15px", string mt = "0") {
+  render { Text(text, role: UiRole.Heading, level: 3, fontSize: size, fontWeight: FontWeight.Heavy, color: Colors.OnSurface, mt: mt); }
+}
+
+/// What a section shows: 13 in Ink 3.
+[Composable]
+component Caption(string text) {
+  render { Text(text, fontSize: FontSize.Label, color: Colors.Ink3); }
+}
+
+/// A row's name in the left column of §3: 13/600.
+[Composable]
+component RowName(string text) {
+  render { Text(text, fontSize: FontSize.Label, fontWeight: FontWeight.Semibold); }
+}

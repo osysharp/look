@@ -1,0 +1,22 @@
+// The Plan board's row controls (`GlyphButton`, `ChipMenu`, `MenuSheet`) at /dev/parts/row-controls. The menus' items
+// are proved on the page that uses them (Portfolio's PlanTabActions.test.osy): on this page they do not show yet (see
+// docs/findings/P2.D4b-result.md, "Bugs found, not fixed").
+
+[Test]
+void The_row_controls_press_by_their_names() {
+  foreach (var width in new List<int> { 1440, 390 }) {
+    Ui.Viewport(width);
+    Ui.Visit("/dev/parts/row-controls");
+    Assert.Expanded("Release of BOOK-SLOTS: Next · 2.4. Change it", true);
+    Assert.NoOverflow();
+    if (width == 390) {
+      // The phone's sheet sits at the foot of the window, under the table, not over its head (P2.D17).
+      Assert.Below("Choose a release for BOOK-SLOTS sheet", "Row 5");
+    }
+    Ui.Shot(width == 1440 ? "row-controls-1440" : "row-controls-390");
+    Ui.Click("Release of BOOK-SLOTS: Next · 2.4. Change it");
+    Assert.Expanded("Release of BOOK-SLOTS: Next · 2.4. Change it", false);
+    Ui.Click("Move BOOK-REMIND up");
+    Assert.Visible("Moved.");
+  }
+}

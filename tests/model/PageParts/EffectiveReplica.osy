@@ -1,0 +1,133 @@
+namespace OsyrinLookTests;
+
+using Osysharp.Look;
+
+/// canvas4/PolicyFloorEffective.dc.html: the settings area's title and scope line, its section list (kit
+/// `SectionList`), the section's head, "Effective policy of a product" (`SettingTableGroup` + `SettingTableRow` with
+/// `SourceCell`s) and "Check a value against the floor" (`CheckValue`, `CheckSentence`). Not drawn: "Refused in the
+/// last 7 days" (pixel-budgets/page-effective.json says why).
+[Route("/dev/page-parts/effective")]
+[AllowAnonymous]
+[Title("Effective policy")]
+[Render(CSR)]
+component EffectiveReplicaPage() {
+  string product = "Patient Portal";
+  string url = "https://hooks.example-analytics.com/v1/booking";
+  action Nothing() { }
+  render {
+    BoardFrame("Settings") {
+      AreaTitle("Settings");
+      ScopeLine("Northwind Health settings", "organization defaults for 4 products · settings serial 212 · policy floor v4 signed",
+                help: "How scopes combine ›", helpTo: "/dev/page-parts", ruled: false);
+      Row(gap: "24px", wrap: Wrapping.Wrap, align: Align.Start) {
+        Box(grow: 1, basis: "232px", maxW: "100%", minW: "0") {
+          SectionList("Settings sections", oneLine: true) {
+            SectionGroup("Organization", open: false, to: "/dev/page-parts");
+            SectionGroup("People and access", open: false, to: "/dev/page-parts");
+            SectionGroup("Decisions", open: false, to: "/dev/page-parts");
+            SectionGroup("Policy and audit") {
+              SectionLink("Policy floor", "/dev/page-parts");
+              SectionLink("Effective policy", "/dev/page-parts/effective", current: true);
+              SectionLink("Exceptions", "/dev/page-parts", badge: "1", badgeSays: "1 to approve");
+              SectionLink("Audit trail", "/dev/page-parts");
+              SectionLink("Compliance and evidence", "/dev/page-parts");
+              SectionLink("Why allowed or refused", "/dev/page-parts");
+            }
+            SectionGroup("Sessions", open: false, to: "/dev/page-parts");
+            SectionGroup("Execution and sandbox", open: false, to: "/dev/page-parts");
+            SectionGroup("Alarms and incidents", open: false, to: "/dev/page-parts", badge: "2", badgeTone: Tone.Danger, badgeSays: "2 open");
+            SectionGroup("Capacity and spend", open: false, to: "/dev/page-parts");
+            SectionGroup("Secrets", open: false, to: "/dev/page-parts", badge: "1", badgeSays: "1 missing");
+            SectionGroup("Code and merge", open: false, to: "/dev/page-parts", badge: "1", badgeTone: Tone.Danger, badgeSays: "1 lost");
+            SectionGroup("Releases and hosting", open: false, to: "/dev/page-parts");
+          }
+        }
+        Stack(gap: "16px", grow: 999, basis: "560px", minW: "0") {
+          Row(gap: "12px", wrap: Wrapping.Wrap, justify: Justify.Between, align: Align.Start) {
+            Stack(gap: "6px", grow: 1, basis: "420px", minW: "0") {
+              Row(gap: "8px", wrap: Wrapping.Wrap, align: Align.Center) {
+                Text("Effective policy", role: UiRole.Heading, level: 2, fontSize: "22px", fontWeight: FontWeight.Heavy, lineHeight: "normal");
+                StatusChip("floor v4", StatusTone.Floor);
+              }
+              Text("For one product: each control’s effective value, the restriction that produced it, and where to change it. Allowed models = floor ∩ product ∩ host; required reviews = floor ∪ product.",
+                   fontSize: FontSize.Label, color: Colors.Ink3, lineHeight: "1.5");
+            }
+            LookButton("The floor", Nothing);
+          }
+          EffectiveCard(product);
+          Stack(gap: "12px", py: "18px", px: "20px", bg: Colors.Surface, borderW: 1, border: Colors.CardLine, rounded: Radius.Panel,
+                role: UiRole.Region, label: "Check a value against the floor") {
+            Text("Check a value against the floor", role: UiRole.Heading, level: 3, fontSize: FontSize.SectionTitle, fontWeight: FontWeight.Heavy,
+                 lineHeight: "normal");
+            CheckValue("HTTP step URL · Post to analytics · Patient Portal", url, outcome: "Refused", outcomeTone: StatusTone.You,
+                       lead: "hooks.example-analytics.com is not on the floor’s outbound hosts.",
+                       rest: "Only a governor can widen the floor: Jonas Lindqvist or Erik Sund.", linkLabel: "Ask for an exception ›",
+                       linkTo: "/dev/page-parts", link2Label: "Why?", link2To: "/dev/page-parts");
+            Text("Also checked on Patient Portal", fontSize: FontSize.Caption, fontWeight: FontWeight.Semibold, letterSpacing: "0.06em",
+                 textTransform: TextTransform.Uppercase, color: Colors.Ink4, lineHeight: "normal");
+            CheckSentence("Removing nuget.org from Patient Portal’s outbound hosts is allowed: it only narrows.", ok: true);
+            CheckSentence("Limiting Patient Portal’s builders to Sonnet and Haiku is allowed: it only narrows.", ok: true);
+          }
+        }
+      }
+    }
+  }
+}
+
+/// "Effective policy of a product": its head with the product picker, then the four groups of rows.
+[Composable]
+component EffectiveCard(Binding<string> product) {
+  render {
+    Stack(gap: 0, bg: Colors.Surface, borderW: 1, border: Colors.CardLine, rounded: Radius.Panel, overflow: Overflow.Hidden, role: UiRole.Region,
+          label: "Effective policy of a product") {
+      Row(gap: "8px", wrap: Wrapping.Wrap, justify: Justify.Between, align: Align.Baseline, pt: "16px", px: "20px", pb: "10px", lineHeight: "normal") {
+        Stack(gap: "2px") {
+          Text("Effective policy of a product", role: UiRole.Heading, level: 3, fontSize: FontSize.SectionTitle, fontWeight: FontWeight.Heavy);
+          Text("Builders and reviewers on this product get exactly this.", fontSize: FontSize.Label, color: Colors.Ink3);
+        }
+        Row(gap: "6px", align: Align.Center, fontSize: FontSize.Label, fontWeight: FontWeight.Semibold, color: Colors.Ink2) {
+          Text("Product", decorative: true);
+          LookSelect("Product", product, ["Patient Portal", "Claims Desk"], w: "auto", inRow: true, small: true);
+        }
+      }
+      SettingTableGroup("Models");
+      EffectiveRow("Sonnet, Haiku", "Allowed", StatusTone.Ok, "Organization tiers: T1 Haiku · T2 Sonnet", "Inherited", SourceTone.Inherited, "Policy floor ›");
+      EffectiveRow("Opus for builders", "Refused", StatusTone.You, "T3 builders → Sonnet (product policy)", "Narrowed here", SourceTone.Narrowed, "Product policy ›");
+      EffectiveRow("Opus for reviewers", "Allowed", StatusTone.Ok, "Reviewers may use Opus (T3)", "Inherited", SourceTone.Inherited, "Policy floor ›");
+      SettingTableGroup("Outbound hosts");
+      EffectiveRow("*.vercel.com", "Allowed", StatusTone.Ok, "Deploy preview and production", "Inherited", SourceTone.Inherited, "Policy floor ›");
+      EffectiveRow("nuget.org", "Refused", StatusTone.You, "Not needed by a Next.js web app", "Narrowed here", SourceTone.Narrowed, "Product policy ›");
+      EffectiveRow("hooks.example-analytics.com", "Refused", StatusTone.You, "Not on the floor; Anna Berg asked for an exception today", "Exception waiting",
+                   SourceTone.Waiting, "The request ›");
+      SettingTableGroup("Reviews");
+      SettingTableRow("Security review", EffectiveCols(), spacing: TableSpacing.Tight) {
+        slot value { SolidChip("Gate"); }
+        SettingTableText("Required by the floor; cannot be removed");
+        SourceCell("Inherited", SourceTone.Inherited, "Policy floor ›", "/dev/page-parts");
+      }
+      SettingTableRow("Performance review", EffectiveCols(), spacing: TableSpacing.Tight) {
+        slot value { StatusChip("Advisory", StatusTone.Wait); }
+        SettingTableText("Web change v7; draft v8 (Anna Berg, 09:12) makes it a gate once published");
+        SourceCell("Set here", SourceTone.SetHere, "Workflow Web change ›", "/dev/page-parts");
+      }
+      SettingTableGroup("Releases");
+      EffectiveRow("Patient Portal 2.4", "Allowed", StatusTone.Ok, "1 approver: Jonas Lindqvist or Anna Berg, never a requester", "Inherited",
+                   SourceTone.Inherited, "Policy floor ›");
+    }
+  }
+}
+
+/// The board's columns: control · in effect · why · from.
+public string EffectiveCols() { return "minmax(0, 1fr) 82px minmax(0, 1.3fr) 130px"; }
+
+/// One row of the effective table with a status in effect.
+[Composable]
+component EffectiveRow(string name, string outcome, StatusTone tone, string why, string source, SourceTone sourceTone, string link) {
+  render {
+    SettingTableRow(name, EffectiveCols(), spacing: TableSpacing.Tight) {
+      slot value { StatusChip(outcome, tone); }
+      SettingTableText(why);
+      SourceCell(source, sourceTone, link, "/dev/page-parts");
+    }
+  }
+}

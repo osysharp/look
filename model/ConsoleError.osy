@@ -1,0 +1,18 @@
+namespace Osysharp.Look;
+
+/// "Try again", "Open the host"). An alert, so a screen reader says it.
+[Composable]
+component ConsoleError(string title, string body = "") {
+  render {
+    Row(gap: "10px", align: Align.Start, p: "16px", minW: "0", fontFamily: Font.ConsoleSans, role: UiRole.Alert, label: title) {
+      Box(color: Colors.ConsoleCriticalIcon, display: Display.Flex, pt: "1px", decorative: true) { Icon(Icons.Warning, size: 16); }
+      Stack(gap: "4px", minW: "0", grow: 1) {
+        Text(title, fontSize: FontSize.ConsoleBody, fontWeight: 600, color: Colors.ConsoleCriticalInk);
+        if (body != "") {
+          Text(body, fontSize: FontSize.ConsoleBody, color: Colors.ConsoleText2, lineHeight: "1.5", wordBreak: WordBreak.BreakWord);
+        }
+        Row(gap: "12px", wrap: Wrapping.Wrap, mt: "4px", fontSize: FontSize.ConsoleBody) { Slot; }
+      }
+    }
+  }
+}

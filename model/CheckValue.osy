@@ -1,0 +1,33 @@
+namespace Osysharp.Look;
+
+// "Check a value" (canvas4/PolicyFloorEffective "Check a value against the floor"): one input, and under it what the
+// check says — an outcome chip and the sentence, its lead strong, with an optional link. The sentence is also what a
+// refused add says under its field (`HostAddField`), and the "Also checked" lines.
+/// The check row: `label` 13/600 over a mono input (13 JetBrains Mono, at least 44 high, radius 8, `10px 12px` in the
+/// control line; refused a 2 px bad-dot line, `9px 11px`), and under it, once there is an `outcome`, the result line:
+/// the outcome as a `StatusChip` ("Allowed" Ok · "Refused" You · "Blocked" Bad) beside its `CheckSentence`. Refused and
+/// Blocked draw the sentence in the bad ink; Allowed in the ok ink.
+/// In a test it is filled by its label: `Ui.Fill("Check a host", "nuget.org")`, then `Assert.Visible("Refused")`.
+[Composable]
+component CheckValue(string label, Binding<string> value, string outcome = "", StatusTone outcomeTone = StatusTone.Ok, string lead = "",
+                     string rest = "", string linkLabel = "", string linkTo = "", string link2Label = "", string link2To = "",
+                     string placeholder = "") {
+  render {
+    var refused = outcome != "" && outcomeTone != StatusTone.Ok;
+    Stack(gap: "8px", minW: "0", role: UiRole.Group, label: label) {
+      Stack(gap: "6px") {
+        Text(label, fontSize: FontSize.Label, fontWeight: FontWeight.Semibold, lineHeight: "normal", decorative: true);
+        Input(value: value, label: label, placeholder: placeholder, w: "100%", minH: "44px", py: refused ? "9px" : "10px", px: refused ? "11px" : "12px",
+              fontFamily: Font.KeyFace, fontSize: FontSize.Label, color: Colors.OnSurface, bg: Colors.Surface, rounded: Radius.Control,
+              borderW: refused ? 2 : 1, border: refused ? Colors.BadDot : Colors.ControlLine);
+      }
+      if (outcome != "") {
+        Row(gap: "8px", align: Align.Start) {
+          Box(mt: "1px") { StatusChip(outcome, outcomeTone); }
+          CheckSentence(lead, rest, ok: !refused, linkLabel: linkLabel, linkTo: linkTo, link2Label: link2Label, link2To: link2To);
+        }
+      }
+    }
+  }
+}
+

@@ -1,0 +1,88 @@
+// Admin's asks of the look (SHOTS-1, SHOTS-3), on an organisation page drawn as console v6 draws it (/dev/organisation):
+// LK8 the warm row that needs somebody and the row's chevron; LK10 the band's state chip beside the title, the ruled
+// facts, an address in the key face under its label, a note after a card's title and an axis without numbers. Each at
+// 1440 and at a phone's 390.
+
+using Osysharp.Look;
+using OsyrinLookTests;
+
+[Test]
+void The_band_holds_the_state_chip_on_the_titles_line() {
+  Ui.Viewport(1440);
+  Ui.Visit("/dev/organisation");
+  Assert.Inside("Active", "Northwind Health header");
+  Assert.RightOf("Active", "Northwind Health");
+  Assert.Above("Active", "Team plan");
+  Assert.NoOverflow();
+  Ui.Shot("organisation-band-1440", within: "Northwind Health header");
+  Ui.Viewport(390);
+  Ui.Visit("/dev/organisation");
+  Assert.Inside("Active", "Northwind Health header");
+  Assert.Above("Active", "Team plan");
+  Assert.NoOverflow();
+  Ui.Shot("organisation-band-390", within: "Northwind Health header");
+}
+
+[Test]
+void The_account_facts_are_ruled_cells_and_the_address_is_in_the_key_face() {
+  Ui.Viewport(1440);
+  Ui.Visit("/dev/organisation");
+  Assert.LeftOf("Plan", "Slug");
+  Assert.LeftOf("Apps", "Created");
+  Assert.SameHeight("Plan", "Created");
+  Assert.Inside("Account facts", "Account");
+  Assert.Visible("https://northwind-health.eu-north.osyrin.app", within: "Address");
+  Assert.Visible("northwind-health", within: "Organisation slug");
+  Assert.NoOverflow();
+  Ui.Shot("organisation-account-1440", within: "Account");
+  Ui.Shot("organisation-settings-1440", within: "Organisation settings");
+  Ui.Viewport(390);
+  Ui.Visit("/dev/organisation");
+  Assert.LeftOf("Plan", "Slug");
+  Assert.Above("Plan", "Apps");
+  Assert.Inside("https://northwind-health.eu-north.osyrin.app", "Address");
+  Assert.NoOverflow();
+  Ui.Shot("organisation-account-390", within: "Account");
+  Ui.Shot("organisation-settings-390", within: "Organisation settings");
+}
+
+[Test]
+void A_trend_card_says_what_it_covers_after_its_title_and_its_axis_has_no_numbers() {
+  Ui.Viewport(1440);
+  Ui.Visit("/dev/organisation");
+  Assert.RightOf("newest 20 builds", "Size over time");
+  Assert.LeftOf("20 builds ago", "newest");
+  Assert.Inside("20 builds ago to newest", "Size over time");
+  Ui.Shot("trend-card-1440", within: "Size over time");
+  Ui.Viewport(390);
+  Ui.Visit("/dev/organisation");
+  Assert.LeftOf("20 builds ago", "newest");
+  Assert.Inside("20 builds ago to newest", "Size over time");
+  Assert.NoOverflow();
+  Ui.Shot("trend-card-390", within: "Size over time");
+}
+
+[Test]
+void A_row_that_needs_somebody_is_warm_and_every_row_ends_in_its_chevron_and_opens_whole() {
+  Ui.Viewport(1440);
+  Ui.Visit("/dev/organisation");
+  Assert.Items("Applications table", 3);
+  Assert.Cell("Patient Portal", "State", "No members", within: "Applications table");
+  Assert.Cell("Patient Portal", "Members", "0", within: "Applications table");
+  Assert.NoOverflow();
+  Ui.Shot("need-rows-1440", within: "Applications table");
+  Ui.Click("Patient Portal");
+  Assert.Visible("Patient Portal opened");
+  Ui.Viewport(390);
+  Ui.Visit("/dev/organisation");
+  Assert.Cell("Patient Portal", "State", "No members", within: "Applications table");
+  Assert.Above("Claims Desk", "Patient Portal");
+  Assert.NoOverflow();
+  Ui.Shot("need-rows-390", within: "Applications table");
+  Ui.Theme("dark");
+  Ui.Viewport(1440);
+  Ui.Visit("/dev/organisation");
+  Assert.Readable("No members");
+  Ui.Shot("need-rows-dark", within: "Applications table");
+  Ui.Theme("light");
+}

@@ -1,0 +1,29 @@
+namespace Osysharp.Look;
+
+/// The quiet "›" link of a section or a row ("Release plan ›"): 14/600 in the accent, no underline, its hover the
+/// accent's deep ink. `small`: 13/600, a Slice card's head link ("Dependencies ›"). `label` is written with its "›".
+/// `wrap`: a long label (a row's title, "Session 2 · SMS reminder for patients who booked…") wraps onto further lines,
+/// breaking a word longer than the line, instead of running past its box on a phone.
+[Composable]
+component GoLink(string label, string to, bool small = false, bool wrap = false) {
+  variants {
+    base {
+      FontSize = FontSize.Body;
+      FontWeight = FontWeight.Semibold;
+      Color = Colors.Primary;
+      TextDecoration = TextDecoration.None;
+      LineHeight = "normal";
+      WhiteSpace = WhiteSpace.Nowrap;
+      Hover { Color = Colors.AccentInk; }
+    }
+    small {
+      FontSize = FontSize.Label;
+    }
+    wrap {
+      WhiteSpace = WhiteSpace.Normal;
+      WordBreak = WordBreak.BreakWord;
+      LineHeight = "1.4";
+    }
+  }
+  render { Link(to, label: label) { Text(label); } }
+}

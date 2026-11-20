@@ -1,0 +1,83 @@
+namespace OsyrinLookTests;
+
+using Osysharp.Look;
+
+/// Components §11: empty, error and permission note, four up. The board's fourth card (the planner panel) is the
+/// factory's, drawn here as its words only.
+[Composable]
+component GalleryStates() {
+  action Nothing() { }
+  render {
+    Box(display: Display.Grid, cols: "repeat(4, minmax(0, 1fr))", gap: "16px", label: "11 · States") {
+      EmptyPanel("No releases planned on Main yet", "A release groups the work that ships together, with a target date.", overline: "11 · Empty") {
+        Box(alignSelf: AlignSelf.Start) { LookButton("Plan a release", Nothing, kind: ButtonKind.Primary); }
+      }
+      ErrorPanel("Could not load the lanes on nw-mini-ios", "The host has not reported for 6 minutes. The rest of the page is current.") {
+        StateLink("Try again", Nothing, first: true);
+        StateLink("Open host", Nothing);
+        StateLink("Diagnostics ▸", Nothing);
+      }
+      PermissionNote("settings.write", "Org admins: Jonas Lindqvist", mono: true) {
+        StateLink("Explain this decision ›", Nothing, first: true);
+      }
+      Box(h: "100%", label: "Planner panel") {
+        StateCard(StateKind.Empty) {
+          StateOverline("Planner panel");
+          Text("Docked right, 380 px; collapses to a 40 px tab.", fontSize: FontSize.Body, color: Colors.Ink2, lineHeight: "1.5");
+        }
+      }
+    }
+  }
+}
+
+/// Components §12: the editing banner (the kit's), the object header, and the tab bar, on the page's ground.
+[Composable]
+component GalleryObjectHeader() {
+  action Nothing() { }
+  render {
+    BoardCard("12 · Object header and tab bar", gap: "14px") {
+      Caption("An object with its own address: breadcrumb, title, status, one primary action, then 3–7 tabs. First tab Overview. A count only while it needs you (amber) or while a draft has changes (accent). Tabs are links in a nav with aria-current.");
+      Stack(gap: "14px", pt: "18px", px: "20px", rounded: "12px", bg: Colors.Bg, borderW: 1, border: Colors.SoftLine, label: "Object header sample") {
+        EditingBanner("Editing Accessible forms · draft v4 · 3 changes · saved as a draft revision at 09:38", onDiscard: Nothing, onSave: Nothing,
+                      discard: "Discard draft", save: "Review and publish");
+        ObjectHeader("Accessible forms",
+                     [new Crumb { Label = "Settings", To = "/dev/components" }, new Crumb { Label = "Standards", To = "/dev/components" }, new Crumb { Label = "Accessible forms" }],
+                     situation: "12 rules · applies to 3 products · 2 proposals from reviews wait on you") {
+          LookButton("Edit", Nothing, kind: ButtonKind.Primary);
+          slot chips {
+            Badge("Published", tone: Tone.Success);
+            KeyText("v3");
+            Badge("editing draft v4", tone: Tone.Primary);
+          }
+        }
+        TabBar("Accessible forms sections", SampleTabs(), "/dev/components/rules");
+      }
+      Box(display: Display.Grid, cols: "repeat(3, minmax(0, 1fr))", gap: "12px", fontSize: FontSize.Label, lineHeight: "1.5", color: Colors.Ink2) {
+        Box() {
+          Text("Editing banner", fontWeight: FontWeight.Heavy, color: Colors.OnSurface);
+          Text(" stays above every tab while the draft has changes, so one draft spans tabs. Review and save (or publish) opens the impact dialog.");
+        }
+        Box() {
+          Text("Overview tab", fontWeight: FontWeight.Heavy, color: Colors.OnSurface);
+          Text(" is cards, each with the one or two numbers that say whether to open its tab, and a link into it.");
+        }
+        Box() {
+          Text("Never", fontWeight: FontWeight.Heavy, color: Colors.OnSurface);
+          Text(" tabs inside tabs, a section list under a non-settings tab, or a tab per state.");
+        }
+      }
+    }
+  }
+}
+
+/// The sample object's tabs: Rules with a draft's changes, Proposals waiting on you.
+List<TabItem> SampleTabs() {
+  return [
+    new TabItem { Label = "Overview", To = "/dev/components" },
+    new TabItem { Label = "Rules", To = "/dev/components/rules", Count = "3 changed", CountTone = Tone.Primary },
+    new TabItem { Label = "Versions", To = "/dev/components/versions" },
+    new TabItem { Label = "Proposals", To = "/dev/components/proposals", Count = "2", CountTone = Tone.Warning },
+    new TabItem { Label = "Findings", To = "/dev/components/findings" },
+    new TabItem { Label = "History", To = "/dev/components/history" },
+  ];
+}

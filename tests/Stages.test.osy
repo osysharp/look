@@ -1,0 +1,62 @@
+// Stages and readiness marks (P3.6): the stages read in order with the current one said, a stage that is a link opens
+// its address, a failed mark is read with its reason and shows it on hover; all held inside 390.
+
+using Osysharp.Look;
+using OsyrinLookTests;
+
+[Test]
+void A_stage_strip_reads_in_order_and_says_which_stage_is_current() {
+  Ui.Viewport(1440);
+  Ui.Visit("/dev/parts/stages");
+  Assert.Visible("Ready to build", within: "Design stages");
+  Assert.RightOf("Waiting for Anna Berg’s answer · asked Sun 1 Nov 18:40", "by Design agent · Opus · Sun 1 Nov 17:05");
+  Assert.RightOf("The public doc, the implementation doc and the criteria go to the builder as its brief.", "after stage 2");
+  Assert.Visible("Needs the screenshot criterion first — 1 suggested, not accepted yet", within: "Design approved");
+  Assert.Hidden("not accepted yet", within: "Drafted");
+  Assert.Visible("v4 · 9 slices · 7 ready", within: "Breakdown");
+  Assert.Clickable("Brief");
+  Ui.Click("Breakdown");
+  Assert.OnPage("/dev/components");
+}
+
+[Test]
+void Independent_checks_draw_each_on_its_own() {
+  Ui.Viewport(1440);
+  Ui.Visit("/dev/parts/stages");
+  Ui.Within("Checks of BOOK-26") {
+    // A check after a failing one that passes is read as passed, not as "later".
+    Assert.Visible("Estimated at 120,000 tokens, within the session size of 200,000.", within: "Fits one session: passed");
+    Assert.Visible("Name a test on every criterion", within: "Tests named: failed");
+    Assert.Visible("Waiting for somebody to judge it", within: "Buildable: not judged");
+    Assert.Visible("Passes", within: "Outcome: passed");
+    Assert.Hidden("Name a test", within: "Outcome: passed");
+    Assert.RightOf("Fits one session: passed", "Tests named: failed");
+  }
+  Ui.Shot("checks-1440", within: "Checks of BOOK-26");
+  Ui.Viewport(390);
+  Ui.Visit("/dev/parts/stages");
+  Assert.NoOverflow();
+  Ui.Within("Checks of BOOK-26") {
+    Assert.Inside("Name a test on every criterion", "Tests named: failed");
+    Assert.Below("Tests named: failed", "Outcome: passed");
+  }
+  Ui.Shot("checks-390", within: "Checks of BOOK-26");
+}
+
+[Test]
+void Readiness_marks_read_each_check_with_its_reason_and_hold_at_390() {
+  Ui.Viewport(1440);
+  Ui.Visit("/dev/parts/stages");
+  Assert.Visible("Tests named", within: "Tests named: failed — Criterion 2 names no test.");
+  Assert.Visible("Buildable", within: "Buildable: not judged yet");
+  Assert.Visible("Tests named: Criterion 2 names no test.");
+  Assert.Hidden("Estimated 300k, over the 160k session size.");
+  Ui.Within("Readiness of BOOK-22") { Ui.Hover("Fits a session"); Ui.Focus("Fits a session"); }
+  Assert.Visible("Estimated 300k, over the 160k session size.", within: "Why Fits a session failed");
+  Ui.Shot("stages-1440");
+  Ui.Viewport(390);
+  Ui.Visit("/dev/parts/stages");
+  Assert.NoOverflow();
+  Assert.Inside("Needs the screenshot criterion first — 1 suggested, not accepted yet", "Design approved");
+  Ui.Shot("stages-390");
+}

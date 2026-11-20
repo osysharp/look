@@ -1,0 +1,26 @@
+namespace Osysharp.Look;
+
+/// A value on a chart in its unit, short (MS2b): "80%", "$2.50" ("$2" and "$0.50" on the axis, `tick`), "2.5 h", "150k" and "1.2M"
+/// for "tokens", "35 GB" and "120.5 GB" for "GB" (HT1), and a plain number for a count ("builds", "acts", or no unit). The unit word itself is said once, on
+/// the axis's top tick ("6 builds"), by the chart.
+internal string ChartValueSaid(double value, string unit, bool tick = false) {
+  if (unit == "%") {
+    return Math.Round(value).ToString("0") + "%";
+  }
+  if (unit == "$") {
+    return "$" + (value >= 100 || (tick && value == Math.Round(value)) ? value.ToString("0") : value.ToString("0.00"));
+  }
+  if (unit == "h") {
+    return (value >= 10 ? Math.Round(value).ToString("0") : value.ToString(value < 1 ? "0.##" : "0.#")) + " h";
+  }
+  if (unit == "GB") {
+    return (value >= 100 || tick ? Math.Round(value).ToString("0") : value.ToString("0.#")) + " GB";
+  }
+  if (value >= 1000000) {
+    return (value / 1000000).ToString("0.#") + "M";
+  }
+  if (value >= 1000) {
+    return (value / 1000).ToString(value >= 100000 ? "0" : "0.#") + "k";
+  }
+  return value.ToString("0.#");
+}

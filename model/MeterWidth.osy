@@ -1,0 +1,8 @@
+namespace Osysharp.Look;
+
+/// `value` of `max` as a CSS width, a whole per cent, held between 0 and 100 %; 0 % of nothing.
+public string MeterWidth(int value, int max) {
+  if (max <= 0 || value <= 0) { return "0%"; }
+  if (value >= max) { return "100%"; }
+  return ((value * 200 + max) / (max * 2)) + "%";
+}

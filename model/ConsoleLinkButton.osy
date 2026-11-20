@@ -1,0 +1,66 @@
+namespace Osysharp.Look;
+
+/// An action that goes somewhere, drawn as a console button (New organization, Open the plan): a link with the
+/// button's box (30 px, `0 12px`, radius 5, 12.5/500; on a phone 44 px, radius 6, 14 px), the default slot (an icon) 6 px
+/// before the words. `primary`: white on the accent; else the words on white in the control line. `wide`: the full width
+/// on a phone. It is read and pressed as a link (`announce`, else `label`). An action that does something here is a
+/// `ConsoleButton`.
+[Composable]
+component ConsoleLinkButton(string label, string to, bool primary = false, bool wide = false, string announce = "") {
+  render {
+    var phone = !Layout.AtLeast(Tablet);
+    ConsoleLinkButtonFace(label, to, primary, phone, wide && phone, announce != "" ? announce : label) { Slot; }
+  }
+}
+
+/// The link button's own box.
+[Composable, Part]
+component ConsoleLinkButtonFace(string label, string to, bool primary, bool phone, bool wide, string name) {
+  variants {
+    base {
+      Display = Display.InlineFlex;
+      AlignItems = Align.Center;
+      H = "30px";
+      Px = "12px";
+      Rounded = Radius.ConsoleButtonCorner;
+      FontFamily = Font.ConsoleSans;
+      FontSize = FontSize.ConsoleControl;
+      FontWeight = 500;
+      LineHeight = "1";
+      WhiteSpace = WhiteSpace.Nowrap;
+      TextDecoration = TextDecoration.None;
+      BorderW = 1;
+      BorderStyle = BorderStyle.Solid;
+      Border = Colors.ConsoleControlLine;
+      Bg = Colors.ConsoleSurface;
+      Color = Colors.ConsoleText;
+      Hover { Bg = Colors.ConsoleSunken; }
+      Focus { Shadow = Shadow.Ring; }
+    }
+    primary {
+      Border = Colors.ConsoleAccent;
+      Bg = Colors.ConsoleAccent;
+      Color = Colors.ConsoleOnAccent;
+      Hover { Bg = Colors.ConsoleAccentHover; }
+    }
+    phone {
+      H = "44px";
+      Rounded = Radius.ConsoleCorner;
+      FontSize = FontSize.ConsoleBodyPhone;
+    }
+    wide {
+      Display = Display.Flex;
+      W = "100%";
+    }
+  }
+  render {
+    Link(to, label: name) {
+      // A wide button is a full-width flex box: the row fills it, so its centring centres the words (a variant cannot
+      // justify the link's own children).
+      Row(gap: "6px", align: Align.Center, justify: Justify.Center, grow: wide ? 1 : 0) {
+        Slot;
+        Text(label);
+      }
+    }
+  }
+}

@@ -1,0 +1,61 @@
+namespace Osysharp.Look;
+
+/// The header band's underline tabs (spec "Layout shell", Header band): 40 high (44 on a phone), 22 apart, 500 text-2;
+/// the tab in view in text over a 2 px accent line that lies on the band's foot, `aria-current`. They scroll sideways
+/// when wider than the band; on a phone the tab in view is scrolled into view when the page loads, and the strip's far
+/// edge fades (2rem, the board's own fade) while a 2rem gutter at its foot and as scroll padding keeps the last tab, and a
+/// tab scrolled to, clear of the fade. A tab's `Count` stands after its words, 6 apart, as a badge (warn when its `CountTone` is
+/// a warning, else neutral), only while it is more than 0 (TabBar's rule).
+[Composable]
+component ConsoleTabs(string label, List<TabItem> tabs, string current) {
+  render {
+    var phone = !Layout.AtLeast(Tablet);
+    Row(gap: "22px", mt: "8px", mb: "-1px", overflowX: Overflow.Auto, scrollbarWidth: ScrollbarWidth.None, role: UiRole.Navigation, label: label, minW: "0",
+        edgeFade: phone ? EdgeFade.End : EdgeFade.None, pr: phone ? "2rem" : "0", scrollPaddingX: phone ? "2rem" : "0") {
+      foreach (var tab in tabs) {
+        ConsoleTab(tab, tab.To == current, phone);
+      }
+    }
+  }
+}
+
+/// Whether a tab shows its count: one is given and it is not 0.
+public bool ConsoleTabCounts(TabItem tab) => tab.Count != "" && tab.Count != "0";
+
+/// One tab.
+[Composable, Part]
+component ConsoleTab(TabItem tab, bool on, bool phone) {
+  variants {
+    base {
+      Display = Display.InlineFlex;
+      AlignItems = Align.Center;
+      H = "40px";
+      Color = Colors.ConsoleText2;
+      FontWeight = 500;
+      WhiteSpace = WhiteSpace.Nowrap;
+      Shrink = 0;
+      TextDecoration = TextDecoration.None;
+      BorderBW = 2;
+      BorderStyle = BorderStyle.Solid;
+      Border = Colors.Transparent;
+      Hover { Color = Colors.ConsoleText; }
+    }
+    on {
+      Color = Colors.ConsoleText;
+      Border = Colors.ConsoleAccent;
+    }
+    phone {
+      H = "44px";
+    }
+  }
+  render {
+    Link(href: tab.To, label: tab.Label, current: on) {
+      Row(align: Align.Center, scrollIntoView: on) {
+        Text(tab.Label);
+        if (ConsoleTabCounts(tab)) {
+          Box(ml: "6px", display: Display.Flex) { ConsoleBadge(tab.Count, tab.CountTone == Tone.Warning ? ConsoleTone.Warn : ConsoleTone.Neutral); }
+        }
+      }
+    }
+  }
+}

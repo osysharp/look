@@ -1,0 +1,11 @@
+namespace Osysharp.Look;
+
+/// How far a dependency is from the item, at the head of its row (Slice "Waits · 1", "Unlocks · 2"): 11/700 Ink 2 on
+/// Line 2, radius 5, `2px 6px`, centred; `lit` (on the highlighted path) the accent's ink on its tint.
+[Composable]
+component LevelTag(string text, bool lit = false) {
+  render {
+    Text(text, fontSize: FontSize.Overline, fontWeight: FontWeight.Heavy, color: lit ? Colors.AccentInk : Colors.Ink2, bg: lit ? Colors.AccentTint : Colors.Line2,
+         rounded: "5px", py: "2px", px: "6px", textAlign: TextAlign.Center, whiteSpace: WhiteSpace.Nowrap, alignSelf: AlignSelf.Start, lineHeight: "normal");
+  }
+}

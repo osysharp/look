@@ -1,0 +1,28 @@
+namespace Osysharp.Look;
+
+/// How far a group of items has come (ProductPlan's progress column): an 8 px pill on Line 2 holding the merged (ok
+/// dot), running (run dot) and waiting (wait dot) shares of all its items, each its rounded per cent; the not started
+/// stay Line 2. Under it, 4 apart, the counts in words, 12 Ink 3 ("2 merged · 1 running · 1 waiting"). The words are
+/// what a reader and a test read; the bar is decorative. `waitingTone` `You` draws the waiting share in the amber of a
+/// "you must act" chip (`StatusTone.You`), where the page's chips say waiting in that tone; any other tone keeps the
+/// boards' grey wait dot.
+[Composable]
+component ProgressShares(int merged, int running, int waiting, int notStarted, string counts, StatusTone waitingTone = StatusTone.Wait) {
+  render {
+    var total = merged + running + waiting + notStarted;
+    Stack(gap: "4px", minW: "0", label: counts) {
+      Row(h: "8px", rounded: Radius.Pill, overflow: Overflow.Hidden, bg: Colors.Line2, decorative: true) {
+        Box(w: SharePercent(merged, total), h: "8px", bg: Colors.OkDot);
+        Box(w: SharePercent(running, total), h: "8px", bg: Colors.RunDot);
+        Box(w: SharePercent(waiting, total), h: "8px", bg: waitingTone == StatusTone.You ? Colors.YouDot : Colors.WaitDot);
+      }
+      Text(counts, fontSize: FontSize.Caption, color: Colors.Ink3, lineHeight: "normal");
+    }
+  }
+}
+
+/// `part` of `total` as a CSS width, rounded to a whole per cent; 0 % of nothing.
+public string SharePercent(int part, int total) {
+  if (total == 0) { return "0%"; }
+  return ((part * 200 + total) / (total * 2)) + "%";
+}

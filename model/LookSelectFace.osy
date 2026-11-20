@@ -1,0 +1,59 @@
+namespace Osysharp.Look;
+
+// The closed face of the look's dropdowns (Components §22), shared by LookEnumSelect, LookSelect and LookRefPicker.
+
+/// The closed field: §22's dropdown box; `open` the accent's 2 px line, `refused` the bad dot's line, `small` the
+/// toolbar's 36 px box (`0 10px`). `console` the console's 30 px control on a desktop (spec "Components", Forms: as
+/// `ConsoleInput` and `ConsoleButton` — `0 10px`, radius 5, 13 px, the console's control line and surface); the caller
+/// passes it only on a window of tablet width and up (`Viewport.AtLeast(Tablet)`: the size of a control is the device's
+/// question, not the room of its box — a 200 px select in a dialog on a desk is still a desk's), so a phone keeps the 44 px box. `consoleOpen` is `console` while open (`0 9px`
+/// inside the 2 px line).
+[Composable, Part]
+component LookSelectFace(bool open, bool disabled, bool refused = false, bool small = false, bool console = false, bool consoleOpen = false) {
+  variants {
+    base {
+      Display = Display.Flex;
+      W = "100%";
+      H = "44px";
+      Px = "12px";
+      Bg = Colors.Surface;
+      Color = Colors.OnSurface;
+      BorderW = 1;
+      BorderStyle = BorderStyle.Solid;
+      Border = Colors.ControlLine;
+      Rounded = Radius.Control;
+      FontFamily = Font.Sans;
+      FontSize = FontSize.Body;
+      FontWeight = FontWeight.Regular;
+      LineHeight = "normal";
+      Cursor = Cursor.Pointer;
+    }
+    small {
+      H = "36px";
+      Px = "10px";
+    }
+    console {
+      H = "30px";
+      Px = "10px";
+      Bg = Colors.ConsoleSurface;
+      Color = Colors.ConsoleText;
+      Border = Colors.ConsoleControlLine;
+      Rounded = Radius.ConsoleButtonCorner;
+      FontFamily = Font.ConsoleSans;
+      FontSize = FontSize.ConsoleBody;
+    }
+    refused { Border = Colors.BadDot; }
+    open {
+      Px = "11px";
+      BorderW = 2;
+      Border = Colors.Primary;
+    }
+    consoleOpen { Px = "9px"; }
+    disabled {
+      Bg = Colors.Line2;
+      Color = Colors.Ink4;
+      Cursor = Cursor.Default;
+    }
+  }
+  render { Row(gap: "8px", align: Align.Center) { Slot; } }
+}

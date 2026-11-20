@@ -1,0 +1,78 @@
+// The plan part's parts (plan-part.dc.html): the areas as tabs with done marks, "N of M areas agreed", the decisions trail
+// with a superseded decision struck under the one that replaced it (/dev/plan-part); and the summary's Markdown entries
+// with their edit affordance and "suggested" mark (/dev/panes).
+
+using Osysharp.Look;
+using OsyrinLookTests;
+
+[Test]
+void The_areas_rail_marks_each_area_and_the_bar_counts_the_agreed_ones() {
+  Ui.Viewport(1440);
+  Ui.Visit("/dev/plan-part");
+  Assert.Visible("4 of 6 areas agreed");
+  Assert.Selected("Decisions, open", true);
+  Assert.Selected("Acceptance, agreed", false);
+  Assert.Visible("2 of 3 taken", within: "Areas of BOOK-27");
+  Assert.LeftOf("Areas of BOOK-27", "decisions");
+  Assert.Visible("Slice · BOOK-27 · in Reminders before a visit");
+  Assert.DisabledBecause("Ready to build", "All six areas agreed first.");
+  Assert.Selected("Slice Send the reminder by text", true);
+  Assert.NoOverflow();
+  Ui.Shot("plan-part-1440");
+  Ui.Click("Acceptance, agreed");
+  Assert.Selected("Acceptance, agreed", true);
+  Assert.Visible("The acceptance area.");
+}
+
+[Test]
+void A_superseded_decision_shows_struck_under_the_one_that_replaced_it() {
+  Ui.Viewport(1440);
+  Ui.Visit("/dev/plan-part");
+  Assert.Visible("waiting", within: "What happens to a reminder when Care Companion cannot send?");
+  Assert.Visible("taken", within: "Which sender sends the text?");
+  Assert.Visible("the portal gets its own sender", within: "Supersedes the portal gets its own sender");
+  Assert.Above("Does giving a mobile number count as agreeing to reminder texts?", "Which sender sends the text?");
+  Ui.Shot("decision-trail-1440", within: "decisions");
+  Ui.Click("Answer it ›");
+  Assert.Visible("Answering");
+}
+
+[Test]
+void At_390_the_part_its_areas_and_its_trail_fit() {
+  Ui.Viewport(390);
+  Ui.Visit("/dev/plan-part");
+  Ui.Shot("plan-part-390");
+  Assert.NoOverflow();
+  Assert.Visible("4 of 6 areas agreed");
+  Assert.Above("Areas of BOOK-27", "decisions");
+  Ui.Click("The plan", within: "Patient Portal header");
+  Assert.Visible("Patient records");
+}
+
+[Test]
+void A_summary_entry_is_markdown_marked_suggested_and_edited_in_place() {
+  Ui.Viewport(1440);
+  Ui.Visit("/dev/panes");
+  Assert.Visible("filled the same day", within: "Goal of Waiting list");
+  Assert.Visible("suggested", within: "Outcome 2");
+  Assert.Hidden("suggested", within: "Outcome 1");
+  Assert.Visible("who let it pass", within: "Outcome 3");
+  Ui.Shot("summary-1440", within: "Summary pane");
+  Ui.Click("Edit Goal of Waiting list");
+  Assert.Visible("The platform's markdown editor stands here.", within: "Goal of Waiting list");
+  Assert.Hidden("Edit Goal of Waiting list");
+}
+
+[Test]
+void Ask_the_planner_starts_folded_and_opens_from_its_tab() {
+  Ui.Viewport(1440);
+  Ui.Visit("/dev/plan-part");
+  Assert.Clickable("Open Ask the planner");
+  // The other way the folded planner can be drawn: white words on an accent strip (Foundry's part page draws the words
+  // in the accent on white).
+  Assert.NoOverflow();
+  Ui.Shot("plan-part-planner-strip");
+  Ui.Click("Open Ask the planner");
+  Assert.Clickable("Fold Ask the planner");
+}
+

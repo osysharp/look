@@ -1,0 +1,77 @@
+// L3: a slow action shows that it is working — the pressed button's spinner and words, a dialog that cannot be
+// cancelled while it runs, and its status line after a second. Each action waits on a server call; the test holds the
+// server (`Ui.HoldServer()`) to stand on the busy screen, then lets it through and sees the action end.
+
+using Osysharp.Look;
+using OsyrinLookTests;
+
+[Test]
+void A_pending_button_shows_its_spinner_and_label() {
+  Ui.Viewport(1440);
+  Ui.Visit("/dev/controls/busy");
+  Assert.Hidden("Saving…");
+  Ui.HoldServer();
+  Ui.Click("Save");
+  Assert.Visible("Saving…");
+  Assert.DisabledBecause("Save", "Saving…");
+  Assert.Enabled("Check");
+  Ui.Shot("busy-button-1440");
+  Ui.Viewport(390);
+  Assert.NoOverflow();
+  Ui.Shot("busy-button-390");
+  Ui.ReleaseServer();
+  Assert.Visible("Saved 1 times");
+  Assert.Hidden("Saving…");
+  Assert.Enabled("Save");
+}
+
+[Test]
+void A_busy_danger_button_keeps_its_red() {
+  Ui.Viewport(1440);
+  Ui.Visit("/dev/controls/busy");
+  Ui.HoldServer();
+  Ui.Click("Delete");
+  Assert.Visible("Deleting…");
+  Assert.DisabledBecause("Delete", "Working on it…");
+  Ui.Shot("busy-danger-1440");
+  Ui.ReleaseServer();
+  Assert.Visible("Saved 1 times");
+  Assert.Hidden("Deleting…");
+}
+
+[Test]
+void A_busy_dialog_cannot_be_cancelled() {
+  Ui.Viewport(1440);
+  Ui.Visit("/dev/controls/busy");
+  Ui.Click("Take to the plan");
+  Assert.Dialog("Take D-4 to the plan");
+  Ui.HoldServer();
+  Ui.Click("Take", within: "Take D-4 to the plan");
+  Assert.Visible("Taking…");
+  Assert.DisabledBecause("Cancel", "Wait for it to finish.");
+  Ui.Press("Escape");
+  Assert.Dialog("Take D-4 to the plan");
+  Assert.Hidden("Cancelled");
+  Ui.ReleaseServer();
+  Assert.Visible("Taken");
+  Assert.Hidden("Taking…");
+}
+
+[Test]
+void The_status_line_shows_after_a_second() {
+  Ui.Viewport(1440);
+  TestClock.Set(new DateTime(2026, 11, 14, 9, 0, 0));
+  Ui.Visit("/dev/controls/busy");
+  Ui.Click("Take to the plan");
+  Ui.HoldServer();
+  Ui.Click("Take", within: "Take D-4 to the plan");
+  Assert.Visible("Taking…");
+  Assert.Hidden("Taking 120 rows to the plan…");
+  TestClock.Set(new DateTime(2026, 11, 14, 9, 0, 2));
+  Assert.Visible("Taking 120 rows to the plan…");
+  Ui.Shot("busy-dialog-1440");
+  Ui.Viewport(390);
+  Ui.Shot("busy-dialog-390");
+  Ui.ReleaseServer();
+  Assert.Visible("Taken");
+}

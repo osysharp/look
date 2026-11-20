@@ -1,0 +1,45 @@
+namespace OsyrinLookTests;
+
+using Osysharp.Look;
+
+/// The signed-out frame with a headline, a lede, a form and a box under the form, as the platform's Admin draws its
+/// sign-in page.
+[Route("/dev/signed-out")]
+[AllowAnonymous]
+[Title("Sign in")]
+[Render(CSR)]
+component SignedOutGalleryPage() {
+  string address = "";
+  string password = "";
+  string said = "";
+  action SignIn() { said = "Signing in as " + address; }
+  render {
+    LookSignedOutFrame(
+      "Sign in",
+      "Run your apps.\nSee every change.",
+      Textures.SignedOutHero,
+      "Osyrin Admin",
+      lede: "The platform's own console: organisations, plans, hosts and the releases they run.",
+      sub: "With the address your organisation invited."
+    ) {
+      Stack(gap: 4) {
+        LookField("Email") {
+          Input(value: address, label: "Email", w: "100%", minH: "44px", px: "12px", rounded: Radius.Control, borderW: 1,
+                border: Colors.SignedOutOutline, bg: Colors.SignedOutField);
+        }
+        LookField("Password") {
+          Input(value: password, label: "Password", type: "password", w: "100%", minH: "44px", px: "12px", rounded: Radius.Control,
+                borderW: 1, border: Colors.SignedOutOutline, bg: Colors.SignedOutField);
+        }
+        LookButton("Sign in", SignIn, kind: ButtonKind.Primary);
+        if (said != "") { Text(said); }
+      }
+      slot below {
+        Stack(gap: 2, p: 5, rounded: Radius.Inner, borderW: 1, border: Colors.SignedOutOutline, label: "Run it yourself") {
+          Text("Run it yourself", fontWeight: FontWeight.Semibold);
+          Text("The platform installs on your own servers with one command.", color: Colors.TextMuted);
+        }
+      }
+    }
+  }
+}

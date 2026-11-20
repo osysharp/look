@@ -1,0 +1,324 @@
+namespace Osysharp.Look;
+
+// Panes, as the owner set them (DECISIONS 13 Nov, "pages are composed, not boxes placed", and the two-surfaces boards
+// docs/designs/foundry/designer.dc.html and plan-part.dc.html): the page body is ONE white surface from the band's foot
+// to the window's foot and from the rail to the window's right edge, split into two or three panes by hairlines, each
+// with its head on one 52 px line and its own scroll. A side pane folds to a 40 px tab; on a wide window a side pane's
+// inner edge carries a visible grip that drags it wider, and the widths are kept for the person.
+
+/// THE PANES: `first` (the left pane's name), `second` (the middle, which takes the room left) and `third` ("" for two
+/// panes); their bodies in `slot first`, the default slot and `slot third`; what a head carries beside its name in
+/// `slot firstTools`, `slot secondTools`, `slot thirdTools`; what stays at a pane's foot under its scroll (the outline's
+/// "Open questions", the composer) in `slot firstFoot`, `slot secondFoot`, `slot thirdFoot`.
+/// Draw it in the shell's page right after the `PageBand` (not in a `PageColumn`): it reaches back over the page's inset
+/// on the left, right and foot (`bottom`: 40 px under `LookShell`'s padded page, `PageInset()` in the Ui kit's
+/// `WorkspaceFrame`) and over the 18 px under the band (console v6), and grows to the window's foot — its parent must be a column of
+/// the window's height, as the shell's page is. `height` fixes it instead.
+/// `secondTitled` false: the middle head shows only its tools (the designer's session line), not its name. `measure`: the
+/// middle pane's body and foot keep to that width, centred (the conversation's "680px"). The middle pane is on the wash
+/// (`secondWash` false: on white, as the plan part); the side panes on white, 248 and 300 px wide to start.
+/// `inset`: how far the page pads its sides where it is not `PageInset()`; `top`: how far it pads under the band where it
+/// is not 18 px (the console frame pads 16 px on both).
+/// `secondFollows`: the middle pane opens at its end and follows what is added there, as a conversation does, without
+/// pulling back a reader who has scrolled up.
+/// From a laptop's width a side pane's inner edge is a 9 px handle with a grip ("Resize <name>", drag or arrow keys in
+/// 16 px steps, 200–560 px); widths and folds are `[Remembered]`. At a tablet's width the widths are fixed. A side pane
+/// folds ("Fold <name>") to a 40 px tab, its name on one line turned on its side, which opens it again ("Open <name>").
+/// `thirdStartsFolded`: the third pane starts as its tab until the person opens it (the plan part's "Ask the planner").
+/// `console`: the panes in the console look (docs/designs/console-B): a pane's name 13.5/600 (the panel title) in the
+/// console's ink, its fold button 28 px, radius 5, in the control line. `thirdTab` how the third pane's folded tab is
+/// drawn: "" its words in ink, "accent" its words in the accent, "strip" white words on an accent strip.
+/// On a phone only the middle pane shows; a side pane opens as a sheet over it. The page draws the buttons that open them
+/// in its band (`PaneSheetButtons`) and holds which is open: `sheet` (a pane's name, "" none) and `onSheet` (called
+/// with a name, or "" to close). Without `onSheet` the panes draw those buttons above the middle pane themselves.
+/// In a test the surface is the region `label`, each pane the region "<name> pane"; a sheet is the dialog of its name.
+[Composable]
+component PaneLayout(string label, string first, string second, string third = "", string height = "", string bottom = "40px",
+                     bool secondTitled = true, bool secondWash = true, string measure = "", string sheet = "",
+                     Action<string>? onSheet = null, bool secondFollows = false, bool thirdStartsFolded = false,
+                     string inset = "", string top = "18px", bool console = false, string thirdTab = "") {
+  [Remembered] int firstSize = 248;
+  // The third pane's width, negated: its handle is its LEFT edge, so a drag to the right must narrow it.
+  [Remembered] int thirdEdge = -300;
+  [Remembered] bool firstFolded = false;
+  [Remembered] bool thirdFolded = thirdStartsFolded;
+  string ownSheet = "";
+
+  bool HasThird() => third != "";
+  int FirstPx() => firstSize < 200 ? 200 : firstSize;
+  int ThirdPx() => thirdEdge > -200 ? 200 : -thirdEdge;
+  string OpenSheet() => onSheet != null ? sheet : ownSheet;
+
+  action FoldFirst() { firstFolded = !firstFolded; }
+  action FoldThird() { thirdFolded = !thirdFolded; }
+  action ShowSheet(string name) {
+    if (onSheet != null) { onSheet!(name); } else { ownSheet = name; }
+  }
+  action CloseSheet() { ShowSheet(""); }
+
+  render {
+    Stack(gap: 0, minW: "0", minH: "0", grow: height == "" ? 1 : 0, basis: height == "" ? "0" : "auto", h: height != "" ? height : "auto",
+          mx: "-" + (inset == "" ? PageInset() : inset), mt: "-" + top, mb: "-" + bottom, role: UiRole.Group, label: label) {
+      if (Layout.AtLeast(Tablet)) {
+        Row(align: Align.Stretch, gap: 0, minW: "0", minH: "420px", grow: 1, basis: "0", bg: Colors.Surface) {
+          if (firstFolded) {
+            PaneTab(first, FoldFirst, "»", console: console);
+          } else {
+            Pane(first, FirstPx() + "px", FoldFirst, "«", false, "", console: console) {
+              slot tools { Slot("firstTools"); }
+              slot foot { Slot("firstFoot"); }
+              Slot("first");
+            }
+          }
+          if (Layout.AtLeast(Laptop) && !firstFolded) {
+            Box(drag: firstSize, dragAxis: DragAxis.Horizontal, dragStep: 16, dragMin: 200, dragMax: 560, label: "Resize " + first,
+                w: "9px", minW: "9px", mx: "-4px", z: 1, position: Position.Relative, cursor: Cursor.ColResize, display: Display.Flex,
+                justify: Justify.Center) {
+              PaneGrip();
+            }
+          } else {
+            PaneLine();
+          }
+          Pane(second, "", null, "", !secondTitled, measure, wash: secondWash, follows: secondFollows, console: console) {
+            slot tools { Slot("secondTools"); }
+            slot foot { Slot("secondFoot"); }
+            Slot;
+          }
+          if (HasThird()) {
+            if (Layout.AtLeast(Laptop) && !thirdFolded) {
+              Box(drag: thirdEdge, dragAxis: DragAxis.Horizontal, dragStep: 16, dragMin: -560, dragMax: -200, label: "Resize " + third,
+                  w: "9px", minW: "9px", mx: "-4px", z: 1, position: Position.Relative, cursor: Cursor.ColResize, display: Display.Flex,
+                  justify: Justify.Center) {
+                PaneGrip();
+              }
+            } else {
+              PaneLine();
+            }
+            if (thirdFolded) {
+              PaneTab(third, FoldThird, "«", accent: thirdTab == "accent", strip: thirdTab == "strip", console: console);
+            } else {
+              Pane(third, ThirdPx() + "px", FoldThird, "»", false, "", console: console) {
+                slot tools { Slot("thirdTools"); }
+                slot foot { Slot("thirdFoot"); }
+                Slot("third");
+              }
+            }
+          }
+        }
+      } else {
+        if (onSheet == null) {
+          Row(gap: "8px", justify: Justify.End, px: "16px", py: "8px", bg: Colors.Surface, borderBW: 1, border: console ? Colors.ConsoleBorderInner : Colors.Border) {
+            PaneSheetButtons(first, third, ShowSheet, console: console);
+          }
+        }
+        Stack(gap: 0, minW: "0", minH: "0", grow: 1, basis: "0", bg: Colors.Surface) {
+          Pane(second, "", null, "", !secondTitled, measure, wash: secondWash, follows: secondFollows, console: console) {
+            slot tools { Slot("secondTools"); }
+            slot foot { Slot("secondFoot"); }
+            Slot;
+          }
+        }
+        if (OpenSheet() != "" && OpenSheet() == first) {
+          PaneSheet(first, CloseSheet, console: console) {
+            Slot("first");
+            Slot("firstFoot");
+          }
+        }
+        if (HasThird() && OpenSheet() != "" && OpenSheet() == third) {
+          PaneSheet(third, CloseSheet, console: console) {
+            Slot("third");
+            Slot("thirdFoot");
+          }
+        }
+      }
+    }
+  }
+}
+
+/// The buttons that open a phone's side panes as sheets, for the page's band (the board's "Outline" and "Summary"):
+/// one outlined button per side pane, each pressing `onOpen` with its name. `third` "" for none. `console` the console's
+/// buttons.
+[Composable]
+component PaneSheetButtons(string first, string third, Action<string> onOpen, bool console = false) {
+  render {
+    Row(gap: "8px", align: Align.Center) {
+      if (console) {
+        ConsoleButton(first, () => onOpen(first));
+        if (third != "") {
+          ConsoleButton(third, () => onOpen(third));
+        }
+      } else {
+        LookButton(first, () => onOpen(first), small: true);
+        if (third != "") {
+          LookButton(third, () => onOpen(third), small: true);
+        }
+      }
+    }
+  }
+}
+
+/// One pane: its head on one 52 px line — the name 17/700, the tools, the fold button when it folds — over a soft
+/// hairline, its body, which scrolls by itself, and its foot, which stays. `width` fixed ("" grows into the room
+/// left); `glyph` the fold button's, pointing the way it folds; `untitled` the head shows only its tools; `measure` the
+/// body's and foot's width, centred; `wash` the middle pane's ground; `follows` the body opens at its end and follows
+/// what is added there; `console` the console's panel title and fold button.
+[Composable, Part]
+component Pane(string name, string width, Action? onFold, string glyph, bool untitled, string measure, bool wash = false,
+               bool follows = false, bool console = false) {
+  render {
+    Stack(gap: 0, minW: "0", minH: "0", w: width != "" ? width : "auto", shrink: width != "" ? 0 : 1, grow: width != "" ? 0 : 1,
+          basis: width != "" ? width : "0", bg: wash ? Colors.Wash : Colors.Surface, role: UiRole.Region, label: name + " pane") {
+      Row(gap: "8px", align: Align.Center, justify: Justify.Between, h: "52px", minH: "52px", pl: "20px", pr: "12px", borderBW: 1,
+          border: Colors.SoftLine, minW: "0", shrink: 0) {
+        if (!untitled && console) {
+          Text(name, role: UiRole.Heading, level: 2, fontSize: Layout.AtLeast(Tablet) ? FontSize.ConsolePanelTitle : FontSize.ConsolePanelTitlePhone,
+               fontWeight: 600, color: Colors.ConsoleText, whiteSpace: WhiteSpace.Nowrap, overflow: Overflow.Hidden, textOverflow: TextOverflow.Ellipsis,
+               minW: "0", lineHeight: "normal");
+        } else if (!untitled) {
+          Text(name, role: UiRole.Heading, level: 2, fontSize: FontSize.ItemTitle, fontWeight: FontWeight.Heavy, color: Colors.OnSurface,
+               whiteSpace: WhiteSpace.Nowrap, overflow: Overflow.Hidden, textOverflow: TextOverflow.Ellipsis, minW: "0", lineHeight: "normal");
+        }
+        Row(gap: "6px", align: Align.Center, justify: untitled ? Justify.Between : Justify.End, grow: untitled ? 1 : 0, minW: "0",
+            shrink: untitled ? 1 : 0) {
+          Slot("tools");
+          if (onFold != null && console) {
+            PaneFoldButton(glyph, onFold!, "Fold " + name);
+          } else if (onFold != null) {
+            GlyphButton(glyph, onFold!, "Fold " + name);
+          }
+        }
+      }
+      Stack(gap: 0, grow: 1, minH: "0", minW: "0", overflowY: Overflow.Auto, stickToBottom: follows,
+            align: measure != "" ? Align.Center : Align.Stretch) {
+        Stack(gap: 0, minW: "0", w: "100%", maxW: measure != "" ? measure : "none") { Slot; }
+      }
+      Stack(gap: 0, minW: "0", shrink: 0, align: measure != "" ? Align.Center : Align.Stretch) {
+        Stack(gap: 0, minW: "0", w: "100%", maxW: measure != "" ? measure : "none") { Slot("foot"); }
+      }
+    }
+  }
+}
+
+/// The hairline between two panes.
+[Composable, Part]
+component PaneLine() {
+  render {
+    Box(w: "1px", minW: "1px", bg: Colors.Border, decorative: true);
+  }
+}
+
+/// A drag handle's face: the hairline down its middle and, at the middle of its height, a 7 × 40 white pill in the
+/// control line with a short line in it — the board's grip.
+[Composable, Part]
+component PaneGrip() {
+  render {
+    Box(w: "1px", h: "100%", bg: Colors.Border, position: Position.Relative, decorative: true) {
+      Box(position: Position.Absolute, top: "50%", left: "-3px", mt: "-20px", w: "7px", h: "40px", rounded: Radius.Pill, bg: Colors.Surface,
+          borderW: 1, border: Colors.ControlLine, display: Display.Flex, justify: Justify.Center, align: Align.Center) {
+        Box(w: "1px", h: "14px", bg: Colors.ProposedLine);
+      }
+    }
+  }
+}
+
+/// A pane's fold button in the console look: 28 × 28, radius 5, the glyph 13/500 in text-2 on white in the control line,
+/// the sunken ground when hovered, the focus ring. `name` what it is called ("Fold The plan").
+[Composable, Part]
+component PaneFoldButton(string glyph, Action onPress, string name) {
+  variants {
+    base {
+      Display = Display.InlineFlex;
+      W = "28px";
+      H = "28px";
+      MinW = "28px";
+      P = "0";
+      Rounded = Radius.ConsoleButtonCorner;
+      BorderW = 1;
+      BorderStyle = BorderStyle.Solid;
+      Border = Colors.ConsoleControlLine;
+      Bg = Colors.ConsoleSurface;
+      Color = Colors.ConsoleText2;
+      FontSize = FontSize.ConsoleBody;
+      FontWeight = 500;
+      LineHeight = "1";
+      Cursor = Cursor.Pointer;
+      Hover { Bg = Colors.ConsoleSunken; Color = Colors.ConsoleText; }
+      Focus { Shadow = Shadow.Ring; }
+    }
+  }
+  render {
+    Pressable(onClick: onPress, label: name, align: Align.Center, justify: Justify.Center) { Text(glyph); }
+  }
+}
+
+/// A folded pane, as plan-part.dc.html draws the planner: a 40 px tab, its glyph at the top and under it its name on one
+/// line turned on its side (`writing-mode: vertical-rl`), 600 14; pressing it opens the pane. Its words in ink 2 on white
+/// (the console's text-2 when `console`); `accent` the words in the console's accent; `strip` the tab the accent with
+/// white words.
+[Composable, Part]
+component PaneTab(string name, Action onOpen, string glyph, bool accent = false, bool strip = false, bool console = false) {
+  variants {
+    base {
+      Display = Display.Flex;
+      W = "40px";
+      MinW = "40px";
+      Bg = Colors.Surface;
+      BorderW = 0;
+      Py = "16px";
+      Color = Colors.Ink2;
+      Cursor = Cursor.Pointer;
+      Hover { Bg = Colors.Wash; Color = Colors.OnSurface; }
+      Focus { Shadow = Shadow.Ring; }
+    }
+    console {
+      Bg = Colors.ConsoleSurface;
+      Color = Colors.ConsoleText2;
+      Hover { Bg = Colors.ConsoleSunken; Color = Colors.ConsoleText; }
+    }
+    accent {
+      Color = Colors.ConsoleAccent;
+      Hover { Bg = Colors.ConsoleSunken; Color = Colors.ConsoleAccentHover; }
+    }
+    strip {
+      Bg = Colors.ConsoleAccent;
+      Color = Colors.ConsoleOnAccent;
+      Hover { Bg = Colors.ConsoleAccentHover; Color = Colors.ConsoleOnAccent; }
+    }
+  }
+  render {
+    Pressable(onClick: onOpen, label: "Open " + name, align: Align.Start) {
+      Stack(gap: "12px", align: Align.Center, w: "100%", fontSize: "14px", fontWeight: 600, lineHeight: "normal", decorative: true) {
+        Text(glyph);
+        Text(name, writingMode: WritingMode.VerticalRl, whiteSpace: WhiteSpace.Nowrap);
+      }
+    }
+  }
+}
+
+/// A side pane on a phone: a sheet from the window's foot over a dimmed page, white with its top corners round, a
+/// grabber, its name as a 12/600 overline and a "×" ("Close <name>"); its body scrolls. Escape or a press outside closes it.
+/// `console`: its top corners 6, no shadow (the scrim sets it off), its name the console's panel title, 14/600 in sentence
+/// case.
+[Composable, Part]
+component PaneSheet(string name, Action onClose, bool console = false) {
+  render {
+    Box {
+      Scrim(onClose);
+      Stack(gap: 0, position: Position.Fixed, left: "0", right: "0", bottom: "0", z: ZIndex.Modal, maxH: "85dvh", bg: Colors.Surface,
+            rounded: console ? Radius.ConsoleCorner : Radius.Panel, shadow: console ? "none" : Shadow.Dialog, role: UiRole.ModalDialog, label: name,
+            onEscape: onClose) {
+        Row(justify: Justify.Center, pt: "8px", shrink: 0) { Box(w: "36px", h: "4px", rounded: Radius.Pill, bg: Colors.ControlLine, decorative: true); }
+        Row(justify: Justify.Between, align: Align.Center, pt: "8px", px: "20px", pb: "8px", shrink: 0) {
+          if (console) {
+            Text(name, fontSize: FontSize.ConsolePanelTitlePhone, fontWeight: 600, color: Colors.ConsoleText, lineHeight: "normal");
+          } else {
+            Text(name, fontSize: FontSize.Caption, fontWeight: FontWeight.Semibold, textTransform: TextTransform.Uppercase, letterSpacing: "0.06em",
+                 color: Colors.Ink4, lineHeight: "normal");
+          }
+          GlyphButton("×", onClose, "Close " + name);
+        }
+        Stack(gap: 0, minH: "0", minW: "0", grow: 1, overflowY: Overflow.Auto, pb: "20px") { Slot; }
+      }
+    }
+  }
+}

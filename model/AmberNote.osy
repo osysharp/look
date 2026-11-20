@@ -1,0 +1,12 @@
+namespace Osysharp.Look;
+
+/// An inline note that needs a person's eye ("Will merge after UIKIT-8 …"): 13 px in the you ink on its tint, radius
+/// 8, `6px 10px`, as wide as its words. `indent`: set in 46 px, under a ranked row's title (in `CardTableRow`'s
+/// `under` slot).
+[Composable]
+component AmberNote(string text, bool indent = true) {
+  render {
+    Text(text, w: "fit-content", alignSelf: AlignSelf.Start, py: "6px", px: "10px", ml: indent ? "46px" : "0", rounded: Radius.Control, bg: Colors.YouTint,
+         color: Colors.YouInk, fontSize: FontSize.Label, lineHeight: "normal");
+  }
+}

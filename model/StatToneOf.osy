@@ -1,0 +1,12 @@
+namespace Osysharp.Look;
+
+/// The KPI tile's tone for a status tone, so a tile and the chip of the same state agree (`Floor` is the tile's
+/// `Neutral`).
+public StatTone StatToneOf(StatusTone tone) {
+  if (tone == StatusTone.Ok) { return StatTone.Ok; }
+  if (tone == StatusTone.Run) { return StatTone.Run; }
+  if (tone == StatusTone.Wait) { return StatTone.Wait; }
+  if (tone == StatusTone.You) { return StatTone.You; }
+  if (tone == StatusTone.Bad) { return StatTone.Bad; }
+  return StatTone.Neutral;
+}

@@ -1,0 +1,13 @@
+namespace Osysharp.Look;
+
+/// A table family's spacing, as its boards draw it (the numbers are `TableRhythm`'s):
+/// `Plain` — canvas2 Release "Contents": cells 12 apart, rows `10px 20px`, head `8px 20px` 11/600 under a Line 2 rule.
+/// `Roomy` — canvas2 ProductPlan's release card: cells 12 apart, rows `12px 20px`, head `8px 20px` 12/600, no rule.
+/// `Settings` — the settings boards' policy tables (org-policy Policies): cells 14 apart, rows `11px 20px`, head
+/// `7px 20px` 11/600, no rule.
+/// `Tight` — canvas4 PolicyFloorEffective's effective-value table: cells 10 apart, rows `9px 20px` (it draws no head;
+/// one given to it is the settings head).
+/// `Long` — a long list (an index of many rows, HostConfigIndex's one-line rows tightened): cells 12 apart, rows `6px 20px`
+/// over a 21 px line, 34 px high with a chip in them, head `5px 20px` 11/600 under a Line 2 rule. On no board at 34; the
+/// boards' tightest row is HostConfigIndex's 36.
+public enum TableSpacing { Plain, Roomy, Settings, Tight, Long }

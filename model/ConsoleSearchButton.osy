@@ -1,0 +1,33 @@
+namespace Osysharp.Look;
+
+/// The top bar's Search button (spec "Top bar"): 220 wide, the search mark and "Search" at the left, the `⌘K` hint at the
+/// right (Ctrl+K elsewhere than a Mac). The button, or ⌘K / Ctrl+K from anywhere on the page, opens
+/// `ConsoleSearchDialog` over the page. The page reads its `groups` from `text`.
+[Composable]
+component ConsoleSearchButton(Binding<string> text, List<ConsoleSearchGroup> groups, string label = "Search", string placeholder = "Search") {
+  bool open = false;
+
+  action Open() {
+    text = "";
+    open = true;
+  }
+
+  action Close() {
+    open = false;
+  }
+
+  render {
+    Pressable(onClick: Open, label: "Search", shortcut: "Mod+K", w: "220px", h: "32px", px: "10px", display: Display.Flex, align: Align.Center,
+              justify: Justify.Between, bg: Colors.ConsoleSurface, borderW: 1, border: Colors.ConsoleBorder, rounded: Radius.ConsoleButtonCorner,
+              color: Colors.ConsoleText2, fontSize: FontSize.ConsoleControl) {
+      Row(gap: "6px", align: Align.Center) {
+        Icon(Icons.Search, size: 14);
+        Text("Search");
+      }
+      KeyHint("Mod+K");
+    }
+    if (open) {
+      ConsoleSearchDialog(text, groups, Close, label, placeholder);
+    }
+  }
+}

@@ -1,0 +1,52 @@
+namespace Osysharp.Look;
+
+/// An object's or an area's header: breadcrumb, title (28/700, the page's h1), its chips (`slot chips`), the situation
+/// line, and the actions (the block: one primary, the rest outlined). An area passes no trail.
+/// `lead`: the page boards' product and release header — the text block grows from 520 px, the chips beside the
+/// title (`8px 10px`), the situation 15/1.5 Ink, the actions aligned to the bottom; without it the Components board's
+/// (situation 14 Ink 2).
+/// `item`: the Slice board's item header — the breadcrumb 8 over a row whose text block grows from 520 px and holds the
+/// chips ABOVE the title (`8px 12px`, key chip, number, status, ride, meta), then the title and the situation 15/1.5
+/// Ink, 6 apart; the actions aligned to the TOP, 12 off.
+/// `actionsUnder` (with `lead`): the actions always on their own line under the situation, as the Release board draws
+/// them, however few there are; without it they sit beside the text block when they fit.
+/// In a test it is the region named by its title: `Ui.Click("Edit", within: "Accessible forms")`.
+[Composable]
+component ObjectHeader(string title, List<Crumb> trail = null, string situation = "", bool lead = false, bool item = false,
+                       bool actionsUnder = false) {
+  render {
+    if (item) {
+      Stack(gap: "8px", label: title, role: UiRole.Banner) {
+        if (trail != null && trail.Count() > 0) {
+          Breadcrumb(trail);
+        }
+        Row(justify: Justify.Between, align: Align.Start, wrap: Wrapping.Wrap, gap: "12px") {
+          Stack(gap: "6px", minW: "0", grow: 1, basis: "520px") {
+            Row(gap: "8px 12px", align: Align.Center, wrap: Wrapping.Wrap) { Slot("chips"); }
+            AreaTitle(title, tight: true);
+            if (situation != "") {
+              Text(situation, fontSize: FontSize.Summary, lineHeight: "1.5", color: Colors.OnSurface);
+            }
+          }
+          Row(gap: "8px", align: Align.Start, wrap: Wrapping.Wrap) { Slot; }
+        }
+      }
+    } else {
+      Row(justify: Justify.Between, align: Align.End, wrap: Wrapping.Wrap, gap: 3, label: title, role: UiRole.Banner) {
+        Stack(gap: "6px", minW: "0", grow: lead ? 1 : 0, basis: lead ? (actionsUnder ? "100%" : "520px") : "auto") {
+          if (trail != null && trail.Count() > 0) {
+            Breadcrumb(trail);
+          }
+          Row(gap: "8px 10px", align: Align.Center, wrap: Wrapping.Wrap) {
+            AreaTitle(title, tight: lead);
+            Slot("chips");
+          }
+          if (situation != "") {
+            Text(situation, fontSize: lead ? FontSize.Summary : FontSize.Body, lineHeight: lead ? "1.5" : "normal", color: lead ? Colors.OnSurface : Colors.Ink2);
+          }
+        }
+        Row(gap: 2, align: Align.Center, wrap: Wrapping.Wrap) { Slot; }
+      }
+    }
+  }
+}

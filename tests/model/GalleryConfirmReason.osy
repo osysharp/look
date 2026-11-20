@@ -1,0 +1,113 @@
+namespace OsyrinLookTests;
+
+using Osysharp.Look;
+
+// The confirmation with a body and a required reason: what the action touches drawn under the question, and the
+// confirm button off until a reason is typed. In the gallery (the trigger and what happened) and alone at
+// /dev/controls/confirm-reason.
+
+/// The gallery's "Confirmation with a reason" section.
+[Composable]
+component GalleryConfirmReason() {
+  render {
+    Stack(gap: "16px", label: "Confirmation with a reason") {
+      H2("Confirmation with a reason");
+      Caption("A confirmation that shows what it touches and asks why; it cannot be confirmed until the reason is given.");
+      ConfirmReasonSample();
+      Caption("A confirmation over a long list: the list scrolls inside it, its question and its buttons stay in view.");
+      ConfirmLongSample();
+    }
+  }
+}
+
+/// A confirmation whose body is a list of twelve rows, the way "Mark released" lists what is not done.
+[Composable]
+component ConfirmLongSample() {
+  bool asking = false;
+  string said = "3.2 is planned · 12 items not done";
+  action Ask() { asking = true; }
+  action Cancel() { asking = false; }
+  action Ship() {
+    asking = false;
+    said = "3.2 released · 12 items moved to 3.3";
+  }
+  render {
+    Stack(gap: "12px", maxW: "720px", minW: "0") {
+      Row(gap: "12px", align: Align.Center, wrap: Wrapping.Wrap, py: "4px") {
+        Text(said, fontSize: FontSize.Body, role: UiRole.Status);
+        LookButton("Release 3.2", Ask, small: true);
+      }
+      if (asking) {
+        ConfirmDialog("Release 3.2?", "12 items are not done; they move to 3.3.", "Release 3.2 now", Ship, Cancel) {
+          Stack(gap: "0", minW: "0", rounded: Radius.Control, borderW: 1, border: Colors.Line2, role: UiRole.List, label: "Not done in 3.2") {
+            foreach (var n in Enumerable.Range(1, 12)) {
+              Stack(gap: "2px", py: "10px", px: "12px", borderBW: 1, border: Colors.Line2, role: UiRole.ListItem, label: "SHOP-" + (40 + n)) {
+                KeyText("SHOP-" + (40 + n));
+                Text("Item " + n + " with a title long enough to wrap on a phone's width", fontSize: FontSize.Label, color: Colors.Ink2);
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}
+
+/// The long confirmation alone, on a page longer than the window.
+[Route("/dev/controls/confirm-long")]
+[AllowAnonymous]
+[Title("Confirmation over a long list")]
+[Render(CSR)]
+component ConfirmLongPage() {
+  render {
+    ControlsFrame("Confirmation over a long list") {
+      ConfirmLongSample();
+      foreach (var n in Enumerable.Range(1, 40)) {
+        Text("The page goes on: line " + n + " of forty, so the page is longer than the window.", fontSize: FontSize.Body, color: Colors.Ink3);
+      }
+    }
+  }
+}
+
+/// A key a confirmation revokes, asking why; what happened said under it.
+[Composable]
+component ConfirmReasonSample() {
+  bool asking = false;
+  string why = "";
+  string said = "key-7 is live · used 2 hours ago";
+  action Ask() {
+    why = "";
+    asking = true;
+  }
+  action Cancel() { asking = false; }
+  action Revoke() {
+    asking = false;
+    said = "key-7 revoked · " + why;
+  }
+  render {
+    Stack(gap: "12px", maxW: "720px", minW: "0") {
+      Row(gap: "12px", align: Align.Center, wrap: Wrapping.Wrap, py: "4px") {
+        Text(said, fontSize: FontSize.Body, role: UiRole.Status);
+        LookButton("Revoke key-7", Ask, kind: ButtonKind.Danger, small: true);
+      }
+      if (asking) {
+        ConfirmDialog("Revoke key-7?", "Anything still using it stops at once. This cannot be undone; a new key can be made.", "Revoke key-7", Revoke, Cancel,
+                      danger: true, reasonLabel: "Why (required)", reason: why, reasonRequired: true) {
+          Stack(gap: "4px", py: "10px", px: "12px", bg: Colors.Wash, rounded: Radius.Control, label: "What it touches") {
+            Text("Used by 2 deploy jobs: nightly-build, release-train", fontSize: FontSize.Label, color: Colors.Ink2);
+            Text("Last used 2 hours ago from 10.0.4.17", fontSize: FontSize.Label, color: Colors.Ink3);
+          }
+        }
+      }
+    }
+  }
+}
+
+/// The confirmation alone.
+[Route("/dev/controls/confirm-reason")]
+[AllowAnonymous]
+[Title("Confirmation with a reason")]
+[Render(CSR)]
+component ConfirmReasonPage() {
+  render { ControlsFrame("Confirmation with a reason") { ConfirmReasonSample(); } }
+}

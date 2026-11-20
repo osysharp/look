@@ -1,0 +1,13 @@
+namespace Osysharp.Look;
+
+/// The 24 px logo tile: radius 5 on paper, the mark (else the product's first letter) 12/700 in the rail's colour.
+[Composable, Part]
+component ConsoleMarkTile(ConsoleChrome chrome) {
+  string Mark() => chrome.Mark != "" ? chrome.Mark : (chrome.Product != "" ? chrome.Product.Substring(0, 1) : "");
+  render {
+    Box(w: "24px", h: "24px", minW: "24px", rounded: Radius.ConsoleButtonCorner, bg: Colors.ConsoleRailTile, color: Colors.ConsoleRail, display: Display.Flex,
+        alignItems: Align.Center, justify: Justify.Center, decorative: true) {
+      Text(Mark(), fontSize: FontSize.ConsoleSmall, fontWeight: 700, lineHeight: "1");
+    }
+  }
+}

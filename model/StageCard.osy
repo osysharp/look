@@ -1,0 +1,52 @@
+namespace Osysharp.Look;
+
+// The cards of a sequence of stages, the one in front first (ProductReleases "Next · planned", then each "Then"): white
+// on the Line hairline, radius 14. Their titles are the links to what they are about.
+
+/// A stage's card: its head, a 14 px Ink 3 line (`sub`), then the block.
+/// `lead: true` is the lead stage's card (ProductReleases lines 61–67): `18px 20px`, gap 10; the head's left column
+/// stacks the eyebrow (12/600 uppercase, Ink 4, beside it the `tags` slot) 4 px above the 22/700 title link, the `sub`
+/// line under them, and the `side` slot (its buttons) top right, 10 px off.
+/// Without it a following stage (line 89): `16px 20px`, gap 6; one head row, space between: the eyebrow 10 px beside
+/// the 18/700 title link (on the baseline; a title too long for the row wraps under the eyebrow), the `side` slot (a
+/// `StatusChip`) at the right; the `sub` line under the head.
+/// In a test it is the region of its title: `Assert.Visible("Then", within: "Patient Portal 2.5")`.
+[Composable]
+component StageCard(string title, string to, string eyebrow = "", string sub = "", bool lead = false) {
+  render {
+    Stack(gap: lead ? "10px" : "6px", py: lead ? "18px" : "16px", px: "20px", bg: Colors.Surface, borderW: 1, border: Colors.Border,
+          rounded: Radius.Panel, minW: "0", label: title) {
+      if (lead) {
+        Row(justify: Justify.Between, align: Align.Start, wrap: Wrapping.Wrap, gap: "10px") {
+          Stack(gap: "4px", minW: "0") {
+            if (eyebrow != "") {
+              Row(gap: "8px", align: Align.Center) {
+                Eyebrow(eyebrow);
+                Slot("tags");
+              }
+            }
+            Box(role: UiRole.Heading, level: 2, minW: "0", wordBreak: WordBreak.BreakWord) { CardTitleLink(title, to, lead: true); }
+            if (sub != "") {
+              Text(sub, fontSize: FontSize.Body, color: Colors.Ink3, lineHeight: "normal");
+            }
+          }
+          Row(gap: "8px", wrap: Wrapping.Wrap) { Slot("side"); }
+        }
+      } else {
+        Row(justify: Justify.Between, align: Align.Center, wrap: Wrapping.Wrap, gap: "8px") {
+          Row(gap: "6px 10px", align: Align.Baseline, wrap: Wrapping.Wrap, minW: "0") {
+            if (eyebrow != "") {
+              Eyebrow(eyebrow);
+            }
+            Box(role: UiRole.Heading, level: 2, minW: "0", wordBreak: WordBreak.BreakWord) { CardTitleLink(title, to); }
+          }
+          Slot("side");
+        }
+        if (sub != "") {
+          Text(sub, fontSize: FontSize.Body, color: Colors.Ink3, lineHeight: "normal");
+        }
+      }
+      Slot;
+    }
+  }
+}

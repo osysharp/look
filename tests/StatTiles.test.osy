@@ -1,0 +1,37 @@
+// The look's KPI tiles: a row of five under a page title, read by their link names, held inside their tiles at the
+// gallery's 1440 and at a phone's 390, and photographed light and dark.
+
+using Osysharp.Look;
+using OsyrinLookTests;
+
+[Test]
+void Stat_tiles_show_a_value_a_tone_and_a_share_and_are_one_link() {
+  Ui.Viewport(1440);
+  Ui.Visit("/dev/components");
+  Assert.Visible("7 of 12", within: "Stat tiles");
+  Assert.Clickable("Items done: 7 of 12, 5 still open");
+  Assert.Clickable("Not ready: 3, waiting on BOOK-19");
+  Assert.Visible("Gate refused", within: "Blocked: 1");
+  Assert.Inside("patient-portal-2.4.0-rc.12+build.20261112", "Candidate: patient-portal-2.4.0-rc.12+build.20261112, not yet released");
+  Ui.Shot("stat-tiles-gallery");
+  Ui.Visit("/dev/stat-tiles");
+  Assert.NoOverflow();
+  Assert.Inside("patient-portal-2.4.0-rc.12+build.20261112", "Candidate: patient-portal-2.4.0-rc.12+build.20261112, not yet released");
+  Assert.SameHeight("Items done: 7 of 12, 5 still open", "Not ready: 3, waiting on BOOK-19");
+  Ui.Shot("stat-tiles-1440");
+  Ui.Viewport(390);
+  Ui.Visit("/dev/stat-tiles");
+  Assert.NoOverflow();
+  Assert.Inside("patient-portal-2.4.0-rc.12+build.20261112", "Candidate: patient-portal-2.4.0-rc.12+build.20261112, not yet released");
+  Assert.Inside("Items done: 7 of 12, 5 still open", "Release at a glance");
+  Ui.Shot("stat-tiles-390");
+  Ui.Theme("dark");
+  Ui.Viewport(1440);
+  Ui.Visit("/dev/stat-tiles");
+  Assert.Readable("waiting on BOOK-19");
+  Assert.Readable("7 of 12");
+  Ui.Shot("stat-tiles-dark");
+  Ui.Theme("light");
+  Ui.Click("Items done: 7 of 12, 5 still open");
+  Assert.OnPage("/dev/components");
+}

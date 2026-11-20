@@ -1,0 +1,20 @@
+namespace Osysharp.Look;
+
+/// One fact in a panel's body: its `label` (12 text-2) over its value, which is `value` (13, `mono` in the console's mono,
+/// breaking anywhere rather than overflowing) or, when `value` is empty, the default slot (a badge, a row of badges).
+/// A grid of facts sets them in `repeat(auto-fit, minmax(min(220px, 100%), 1fr))`, `16px 24px` apart, in a panel's `16px`
+/// (`ConsoleFacts`). `ruled: true` is a cell of `ConsoleFacts(ruled: true)`: `14px 16px`, a divider above it and on its
+/// left (the grid cuts the outer ones away).
+[Composable]
+component ConsoleFact(string label, string value = "", bool mono = false, bool ruled = false) {
+  render {
+    Stack(gap: "4px", minW: "0", role: UiRole.Group, label: label, py: ruled ? "14px" : "0", px: ruled ? "16px" : "0", borderTW: ruled ? 1 : 0,
+          borderLW: ruled ? 1 : 0, border: Colors.ConsoleDivider) {
+      Text(label, fontSize: FontSize.ConsoleSmall, color: Colors.ConsoleText2);
+      if (value != "") {
+        Text(value, fontFamily: mono ? Font.ConsoleMono : Font.ConsoleSans, wordBreak: mono ? WordBreak.BreakAll : WordBreak.BreakWord);
+      }
+      Slot;
+    }
+  }
+}

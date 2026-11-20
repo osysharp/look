@@ -1,0 +1,40 @@
+namespace Osysharp.Look;
+
+/// One check of `CheckStrip`, drawn by its own state alone. A list item named "<title>: passed" (failed, not judged).
+[Composable, Part]
+component CheckStripItem(StripCheck check) {
+  bool Passed() => check.Mark == MarkState.Passed;
+
+  bool Failed() => check.Mark == MarkState.Failed;
+
+  string Said() => check.Title + (Passed() ? ": passed" : Failed() ? ": failed" : ": not judged");
+
+  render {
+    Stack(gap: "8px", p: "14px", minW: "0", rounded: "12px", role: UiRole.ListItem, label: Said(),
+          bg: Passed() ? Colors.Wash : Colors.Surface, borderW: Failed() ? 2 : 1,
+          borderStyle: Passed() || Failed() ? BorderStyle.Solid : BorderStyle.Dashed,
+          border: Passed() ? Colors.Border : Failed() ? Colors.BadLine : Colors.ControlLine) {
+      Row(gap: "8px", align: Align.Center, minW: "0") {
+        Row(w: "28px", h: "28px", minW: "28px", rounded: Radius.Pill, align: Align.Center, justify: Justify.Center, fontSize: FontSize.Label,
+            fontWeight: FontWeight.Heavy, lineHeight: "normal", decorative: true,
+            bg: Passed() ? Colors.OkDot : Failed() ? Colors.BadTint : Colors.Surface,
+            color: Passed() ? Colors.Surface : Colors.BadInk, borderW: Passed() || Failed() ? 0 : 2, borderStyle: BorderStyle.Dashed,
+            border: Colors.ControlLine) {
+          Text(Passed() ? "✓" : Failed() ? "✕" : "");
+        }
+        Text(check.Title, fontSize: FontSize.Summary, fontWeight: FontWeight.Semibold, color: Colors.OnSurface, lineHeight: "normal", minW: "0");
+      }
+      if (check.What != "") {
+        Text(check.What, fontSize: FontSize.Label, lineHeight: "1.45", color: Colors.OnSurface, wordBreak: WordBreak.BreakWord);
+      }
+      if (check.State != "") {
+        Text(check.State, fontSize: FontSize.Caption, fontWeight: FontWeight.Semibold, lineHeight: "normal",
+             color: Passed() ? Colors.OkInk : Failed() ? Colors.BadInk : Colors.Ink3);
+      }
+      if (!Passed() && check.Rule != "") {
+        Text(check.Rule, fontSize: FontSize.Caption, fontWeight: FontWeight.Semibold, lineHeight: "1.4", py: "5px", px: "8px", rounded: Radius.Chip,
+             color: Colors.YouInk, bg: Colors.YouTint);
+      }
+    }
+  }
+}

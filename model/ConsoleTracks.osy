@@ -1,0 +1,12 @@
+namespace Osysharp.Look;
+
+/// The grid tracks of a table's columns, the same for its head and each of its rows.
+public string ConsoleTracks(List<ConsoleColumn> columns) {
+  return string.Join(" ", columns.Select(c => c.Width));
+}
+
+/// The tracks of a table whose rows have `details`: the detail chevron's 38 px (16 px in from the panel's edge, then the
+/// 22 px button) before the columns' own.
+public string ConsoleDetailTracks(List<ConsoleColumn> columns, bool details) {
+  return details ? "38px " + ConsoleTracks(columns) : ConsoleTracks(columns);
+}

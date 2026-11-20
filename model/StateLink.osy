@@ -1,0 +1,18 @@
+namespace Osysharp.Look;
+
+/// One way out of an error or a note: 13/600 in the accent, a pressable without a frame. `first: false` puts " · "
+/// before it, as the board joins them.
+[Composable]
+component StateLink(string label, Action onPress, bool first = false) {
+  render {
+    Row(gap: 0, align: Align.Center) {
+      if (!first) {
+        Text(" · ", fontSize: FontSize.Label, fontWeight: FontWeight.Semibold, color: Colors.Primary, whiteSpace: WhiteSpace.Pre, decorative: true);
+      }
+      Pressable(onClick: onPress, label: label, fontSize: FontSize.Label, fontWeight: FontWeight.Semibold, color: Colors.Primary,
+                bg: Colors.Transparent, borderW: 0, p: 0, cursor: Cursor.Pointer) {
+        Text(label);
+      }
+    }
+  }
+}

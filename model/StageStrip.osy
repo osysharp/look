@@ -1,0 +1,23 @@
+namespace Osysharp.Look;
+
+/// A row of named stages with one current (canvas2/SliceDesign "Design stages"): an ordered list, the stages in equal
+/// shares at least 200 px each (`repeat(auto-fit, minmax(min(200px, 100%), 1fr))`), 10 apart, wrapping to one a row on
+/// a phone. Stages before `current` are done, the one at `current` is current, those after are later (`current` =
+/// `stages.Count`: all done). Each is a card radius 12, `14px`, its parts 8 apart: a 28 px numbered dot (done: a white
+/// ✓ on the ok dot; current: white on the you ink; later: Ink 3 in a 2 px control-line ring) 8 before the title 15/600
+/// (a link to `To` when it has one, no underline until hovered); then `What` 13/1.45; the `State` line 12/600 (ok ink,
+/// you ink, Ink 3); on the current one its `Rule` as an amber note (12/600 1.4 `5px 8px` radius 6 on the you tint).
+/// Done is the wash in the Line hairline, current white in a 2 px you-dot line, later white in a dashed control line.
+/// A list named `label`, each stage a list item named by its title; the current one says so (`aria-current`). In a
+/// test: `Assert.Visible("Waiting for …", within: "Design approved")` (`Assert.Current` reads links only).
+/// e.g. `StageStrip([new StripStage { Title = "Brief", State = "by Anna Berg · 10 Nov" }, …], 1, label: "Design stages")`
+[Composable]
+component StageStrip(List<StripStage> stages, int current, string label = "Stages") {
+  render {
+    Box(display: Display.Grid, cols: "repeat(auto-fit, minmax(min(200px, 100%), 1fr))", gap: "10px", role: UiRole.List, label: label, minW: "0") {
+      foreach (var i in PlacesOf(stages.Count)) {
+        StageStripItem(stages[i], i + 1, i < current ? 0 : i == current ? 1 : 2);
+      }
+    }
+  }
+}

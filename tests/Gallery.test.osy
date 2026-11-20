@@ -1,0 +1,61 @@
+// The gallery at the Components board's 1440 px frame: every part of the look is drawn and read by its words, and the
+// page is photographed for scripts/design/pixel-budget.sh, which diffs it part by part against the rendered board.
+
+using Osysharp.Look;
+using OsyrinLookTests;
+
+[Test]
+void The_gallery_draws_every_part_of_the_Components_board() {
+  Assert.Font("Inter");
+  Assert.Font("JetBrains Mono");
+  Ui.Viewport(1440);
+  Ui.Visit("/dev/components");
+  Assert.Visible("Components and tokens");
+  Assert.Visible("Ink 4", within: "Base colours");
+  Assert.Visible("Main → Public", within: "Inputs");
+  Assert.Visible("Locked by policy floor v4", within: "Tones");
+  Assert.Visible("Patient Portal 2.4", within: "Type scale");
+  Assert.Visible("BOOK-14 · develop · 9c41e7a", within: "Type scale");
+  Assert.Visible("Save · nothing changed", within: "Buttons");
+  Assert.Visible("Anna Berg", within: "Chips");
+  Assert.Visible("→ Patient Portal 2.4", within: "Chips");
+  Assert.Visible("Waiting for Erik Sund’s answer", within: "Waiting words");
+  Assert.Visible("No releases planned on Main yet");
+  Assert.Visible("Could not load the lanes on nw-mini-ios");
+  Assert.Visible("settings.write", within: "Permission note");
+  Assert.Visible("Standards", within: "Breadcrumb");
+  Assert.Visible("editing draft v4", within: "Object header sample");
+  Assert.Visible("Hard boundary", within: "Header and fact chips");
+  Assert.Visible("In Patient Portal 2.4", within: "Header and fact chips");
+  Assert.Visible("Kit minimums", within: "Floor rules");
+  Assert.Visible("Refused", within: "Not saved: Care Companion 3.1 changed while you edited");
+  Assert.Visible("Review and save", within: "Release");
+  Assert.Visible("Roll back production to 1.8.0…", within: "More release actions");
+  Assert.Visible("BOOK-24", within: "Add items");
+  Assert.Visible("arc set to Next · 5 slices", within: "Band BOOK-REMIND");
+  Assert.Visible("9 locked by policy", within: "5 · Scope header and setting rows");
+  Assert.Visible("Locked by policy floor v4 — a lower tier is allowed", within: "Model for agent steps");
+  Assert.Visible("Why: Two slow pages reached users in 2.3.", within: "Today 09:12 · Anna Berg");
+  Assert.Visible("+ Performance review · Gate", within: "Diff");
+  Assert.Visible("Policy floor v4: allowed — stricter than the floor.");
+  Assert.Visible("Rule 4 of 12", within: "15 · List with a drawer");
+  Ui.Shot("components-board");
+}
+
+[Test]
+void The_settings_parts_show_what_a_scope_may_not_edit_and_edit_what_it_may() {
+  Ui.Viewport(1440);
+  Ui.Visit("/dev/components");
+  Assert.Visible("Saving clears Olive Owner's approval on revision 3", within: "Settings parts");
+  Assert.Visible("version 5", within: "Lane settings");
+  Assert.Disabled("Only allowed hosts");
+  Assert.Visible("Set for Patient Portal", within: "Idle after");
+  Assert.Visible("Patient data stays with named processors. An Owner or Admin of Northwind Health can change it.");
+  Ui.Click("Remove play.googleapis.com");
+  Assert.Visible("hooks.example-analytics.com is not on the policy's outbound hosts.");
+  Assert.Visible("Editing clears approvals.");
+  Assert.Visible("Allowed", within: "Check a host");
+  Assert.Visible("Draft v6", within: "Policies table");
+  Assert.Visible("Second approver", within: "Approvals");
+  Assert.Visible("default: never", within: "The signed text");
+}

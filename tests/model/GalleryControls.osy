@@ -1,0 +1,69 @@
+namespace OsyrinLookTests;
+
+using Osysharp.Look;
+
+/// Components §3: buttons, inputs, tabs, expanders and chips. The agent, host, credential and "prepared by" chips are
+/// the factory's, not the look's, and are left out of the chips row.
+[Composable]
+component GalleryControls() {
+  string releaseName = "Patient Portal 2.4";
+  string editing = "Thu 12 Nov";
+  string budget = "400k";
+  string line = "Main → Public";
+  string why = "Two physio clinics start on 16 Nov.";
+  action Nothing() { }
+  render {
+    BoardCard("3 · Controls and chips") {
+      Box(display: Display.Grid, cols: "150px minmax(0, 1fr)", gap: "14px 20px", align: Align.Center) {
+        RowName("Buttons");
+        Row(gap: "10px", wrap: Wrapping.Wrap, align: Align.Center, label: "Buttons") {
+          LookButton("Approve 2.4", Nothing, kind: ButtonKind.Primary);
+          // The board's swatch of the primary button's hover state: a still cannot hover, so the state's colours are drawn.
+          Row(minH: "44px", py: "10px", px: "16px", align: Align.Center, bg: Colors.AccentInk, borderW: 1, border: Colors.AccentInk, rounded: Radius.Control,
+              color: Colors.OnPrimary, fontSize: FontSize.Body, fontWeight: FontWeight.Semibold, lineHeight: "normal", label: "Primary · hover") {
+            Text("Primary · hover");
+          }
+          LookButton("Open release", Nothing);
+          LookButton("Reject", Nothing, kind: ButtonKind.Danger);
+          LookButton("Show the move", Nothing, kind: ButtonKind.Quiet);
+          LookButton("Save · nothing changed", Nothing, disabled: true);
+          LookButton("More ▾", Nothing);
+        }
+        RowName("Inputs");
+        Row(gap: "16px", wrap: Wrapping.Wrap, align: Align.Start, label: "Inputs") {
+          LookInput("Release name", releaseName, w: "220px");
+          LookInput("Editing", editing, w: "180px", state: FieldState.Editing);
+          LookInput("Session budget", budget, w: "160px", state: FieldState.Refused, message: "Above the floor’s 250k. Ask for an exception ›");
+          LookSelect("Line", line, ["Main → Public", "Preview"]);
+          LookTextArea("Why (required)", why, w: "300px");
+        }
+        RowName("Tabs");
+        TabBar("Product pages", ProductTabs(), "/dev/components");
+        RowName("Expander");
+        Row(gap: "24px", align: Align.Center) {
+          Disclosure("Diagnostics", ruled: false, page: true, trailing: true) { Text("Budget 400k · request 9c41e7a"); }
+          Disclosure("Why", ruled: false, page: true, trailing: true) { Text("Two physio clinics start on 16 Nov."); }
+          Disclosure("How scopes combine", ruled: false, page: true, trailing: true) { Text("A narrower scope may only tighten."); }
+        }
+        RowName("Chips");
+        Row(gap: "10px", wrap: Wrapping.Wrap, align: Align.Center, label: "Chips") {
+          KeyLink("BOOK-14", "/dev/components");
+          PersonChip("Anna Berg", "AB");
+          ReleaseChip("Patient Portal 2.4");
+          ProposedTag();
+        }
+      }
+    }
+  }
+}
+
+/// A product's pages, Home in view (Components §3 "Tabs").
+List<TabItem> ProductTabs() {
+  return [
+    new TabItem { Label = "Home", To = "/dev/components" },
+    new TabItem { Label = "Designs", To = "/dev/components/designs" },
+    new TabItem { Label = "Workflows", To = "/dev/components/workflows" },
+    new TabItem { Label = "History", To = "/dev/components/history" },
+    new TabItem { Label = "Settings", To = "/dev/components/settings" },
+  ];
+}

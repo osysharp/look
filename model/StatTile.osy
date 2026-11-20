@@ -1,0 +1,178 @@
+namespace Osysharp.Look;
+
+// The KPI tile: the numbers and states a person steers by, drawn under a page's header as a row of tiles instead of a
+// sentence. The v3 boards draw no such tile, so it is drawn in their language: their small card (white, the Line
+// hairline, radius 14), their overline (11/600 uppercase), the title weight for the value, their tones' dots, tints
+// and inks, and the accent's focus ring for a link.
+
+// A tile's tone is a `StatTone` (StatTone.osy); its bar's width `StatShareWidth` (StatShareWidth.osy); its dot
+// `StatDot` (StatDot.osy).
+
+/// A KPI tile: `label` as an overline (11/600 uppercase, Ink 3) with the tone's dot before it when a tone is given;
+/// `value` large (24/700, tabular numbers; `mono` in the key face at 600, for a version or a key) — a value longer
+/// than 16 characters shrinks to 17 and wraps, never clips; `sub` one 13 Ink 2 line under it, which the `sub` slot continues (a chip). `shareDone` of `shareTotal`
+/// draws a 4 px bar at the tile's foot in `shareTone`. With `to` the whole tile is one link, its name
+/// "label: value, sub", the wash when hovered and the focus ring. A tone tints only the dot and the bar; `emphasis`
+/// gives the tile the tone's tint ground and ink (the one tile that needs attention). Lay tiles in a `StatRow`.
+/// `compact` (on no board; the tile's own parts, tighter, for a page that holds a lot without scrolling): about 70 px
+/// high where the tile is about 110 — `8px 14px`, the lines 2 apart, the value 18/700 (15 past 16 characters), the sub
+/// line kept with the share bar beside it on the same line (at least 40 px wide, pushed right). Same tones and link.
+[Composable]
+component StatTile(string label, string value, string sub = "", StatTone tone = StatTone.None, string to = "", int shareDone = 0,
+                   int shareTotal = 0, StatTone shareTone = StatTone.Run, bool mono = false, bool emphasis = false, bool compact = false) {
+  Color BarColor() => shareTone == StatTone.Ok ? Colors.OkDot : (shareTone == StatTone.Wait ? Colors.WaitDot : (shareTone == StatTone.You ? Colors.YouDot
+                       : (shareTone == StatTone.Bad ? Colors.BadDot : (shareTone == StatTone.Neutral ? Colors.FloorDot : Colors.RunDot))));
+  render {
+    var tinted = emphasis && tone != StatTone.None;
+    if (compact) {
+      StatTileFrame(to, sub != "" ? label + ": " + value + ", " + sub : label + ": " + value, tinted ? tone : StatTone.None, to != "", compact: true) {
+        Stack(gap: "2px", grow: 1, minW: "0") {
+          Row(gap: "6px", align: Align.Center, minW: "0") {
+            if (tone != StatTone.None) { StatDot(tone); }
+            Text(label, fontSize: FontSize.Overline, fontWeight: FontWeight.Semibold, textTransform: TextTransform.Uppercase, letterSpacing: "0.06em",
+                 lineHeight: "normal", color: tinted ? "inherit" : Colors.Ink3, minW: "0", overflow: Overflow.Hidden, textOverflow: TextOverflow.Ellipsis,
+                 whiteSpace: WhiteSpace.Nowrap);
+          }
+          Text(value, fontSize: value.Length > 16 ? "15px" : "18px", fontWeight: mono ? FontWeight.Semibold : FontWeight.Heavy,
+               fontFamily: mono ? Font.KeyFace : Font.Sans, fontVariant: FontVariant.TabularNums, lineHeight: "1.2", letterSpacing: mono ? "0" : "-0.01em",
+               wordBreak: WordBreak.BreakWord, color: tinted ? "inherit" : Colors.OnSurface, minW: "0");
+          Row(gap: "8px", align: Align.Center, minW: "0", mt: "auto") {
+            Row(gap: "6px", align: Align.Center, wrap: Wrapping.Wrap, minW: "0", grow: 1) {
+              if (sub != "") {
+                Text(sub, fontSize: FontSize.Label, lineHeight: "normal", color: tinted ? "inherit" : Colors.Ink2, minW: "0");
+              }
+              Slot("sub");
+            }
+            if (shareTotal > 0) {
+              Row(h: "4px", w: "40px", minW: "40px", shrink: 0, rounded: Radius.Pill, overflow: Overflow.Hidden, bg: Colors.Line2, decorative: true) {
+                Box(w: StatShareWidth(shareDone, shareTotal), h: "4px", rounded: Radius.Pill, bg: BarColor());
+              }
+            }
+          }
+        }
+      }
+    } else {
+    StatTileFrame(to, sub != "" ? label + ": " + value + ", " + sub : label + ": " + value, tinted ? tone : StatTone.None, to != "") {
+      Stack(gap: "6px", grow: 1, minW: "0") {
+        Row(gap: "6px", align: Align.Center, minW: "0") {
+          if (tone != StatTone.None) { StatDot(tone); }
+          Text(label, fontSize: FontSize.Overline, fontWeight: FontWeight.Semibold, textTransform: TextTransform.Uppercase, letterSpacing: "0.06em",
+               lineHeight: "normal", color: tinted ? "inherit" : Colors.Ink3, minW: "0");
+        }
+        Text(value, fontSize: value.Length > 16 ? FontSize.ItemTitle : "24px", fontWeight: mono ? FontWeight.Semibold : FontWeight.Heavy, fontFamily: mono ? Font.KeyFace : Font.Sans, fontVariant: FontVariant.TabularNums,
+             lineHeight: "1.2", letterSpacing: mono ? "0" : "-0.01em", wordBreak: WordBreak.BreakWord, color: tinted ? "inherit" : Colors.OnSurface,
+             minW: "0");
+        Row(gap: "6px", align: Align.Center, wrap: Wrapping.Wrap, minW: "0") {
+          if (sub != "") {
+            Text(sub, fontSize: FontSize.Label, lineHeight: "normal", color: tinted ? "inherit" : Colors.Ink2, minW: "0");
+          }
+          Slot("sub");
+        }
+        if (shareTotal > 0) {
+          Row(h: "4px", mt: "auto", rounded: Radius.Pill, overflow: Overflow.Hidden, bg: Colors.Line2, decorative: true) {
+            Box(w: StatShareWidth(shareDone, shareTotal), h: "4px", rounded: Radius.Pill, bg: BarColor());
+          }
+        }
+      }
+    }
+    }
+  }
+}
+
+/// A tile's card: `14px 16px` on white in the Line hairline, radius 14; on `ground` the tone's tint and ink. `linked`:
+/// one link to `to` named `name`, the wash (or, tinted, the tone's dot as its line) when hovered and the focus ring.
+/// `compact`: `8px 14px`.
+[Composable]
+component StatTileFrame(string to, string name, StatTone ground, bool linked, bool compact = false) {
+  variants {
+    base {
+      Display = Display.Flex;
+      Py = "14px";
+      Px = "16px";
+      MinW = "0";
+      Bg = Colors.Surface;
+      BorderW = 1;
+      BorderStyle = BorderStyle.Solid;
+      Border = Colors.Border;
+      Rounded = Radius.Panel;
+      Color = Colors.OnSurface;
+      TextDecoration = TextDecoration.None;
+    }
+    linked {
+      Cursor = Cursor.Pointer;
+      Hover {
+        Bg = Colors.Wash;
+        Border = Colors.ControlLine;
+      }
+      Focus { Shadow = Shadow.Ring; }
+    }
+    compact {
+      Py = "8px";
+      Px = "14px";
+    }
+    ground {
+      None { }
+      Ok {
+        Bg = Colors.OkTint;
+        Border = Colors.OkLine;
+        Color = Colors.OkInk;
+        Hover {
+          Bg = Colors.OkTint;
+          Border = Colors.OkDot;
+        }
+      }
+      Run {
+        Bg = Colors.RunTint;
+        Border = Colors.RunTint;
+        Color = Colors.RunInk;
+        Hover {
+          Bg = Colors.RunTint;
+          Border = Colors.RunDot;
+        }
+      }
+      Wait {
+        Bg = Colors.WaitTint;
+        Border = Colors.WaitTint;
+        Color = Colors.WaitInk;
+        Hover {
+          Bg = Colors.WaitTint;
+          Border = Colors.WaitDot;
+        }
+      }
+      You {
+        Bg = Colors.YouTint;
+        Border = Colors.YouLine;
+        Color = Colors.YouInk;
+        Hover {
+          Bg = Colors.YouTint;
+          Border = Colors.YouDot;
+        }
+      }
+      Bad {
+        Bg = Colors.BadTint;
+        Border = Colors.BadLine;
+        Color = Colors.BadInk;
+        Hover {
+          Bg = Colors.BadTint;
+          Border = Colors.BadDot;
+        }
+      }
+      Neutral {
+        Bg = Colors.FloorTint;
+        Border = Colors.FloorTint;
+        Color = Colors.FloorInk;
+        Hover {
+          Bg = Colors.FloorTint;
+          Border = Colors.FloorDot;
+        }
+      }
+    }
+  }
+  render {
+    if (linked) {
+      Link(to, label: name) { Slot; }
+    } else {
+      Box(label: name) { Slot; }
+    }
+  }
+}

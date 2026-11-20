@@ -1,0 +1,11 @@
+namespace OsyrinLookTests;
+
+/// The server call the slow samples wait on (`/dev/controls/busy`, `/dev/controls/slow-confirm`): it answers one more
+/// than it is given. A test holds its answer (`Ui.HoldServer()`) to stand on the screen while the action runs, and lets
+/// it through (`Ui.ReleaseServer()`) to see how the action ends. A press waits for the work it starts, so a client-side
+/// wait would end before the test's next line.
+[Server]
+[AllowAnonymous]
+int SlowAnswer(int count) {
+  return count + 1;
+}

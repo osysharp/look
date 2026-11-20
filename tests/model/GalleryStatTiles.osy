@@ -1,0 +1,74 @@
+namespace OsyrinLookTests;
+
+using Osysharp.Look;
+
+// The look's KPI tile, which no v3 board draws: a row of five in different tones under a page title, one with
+// `emphasis`, one with a value too long for its tile. In the gallery as its last section, and alone at
+// /dev/stat-tiles in a frame as wide as the window, so it can be read at a phone's width.
+
+/// The gallery's "Stat tiles" section.
+[Composable]
+component GalleryStatTiles() {
+  render {
+    Stack(gap: "16px", label: "Stat tiles") {
+      H2("Stat tiles");
+      Caption("The numbers and states a person steers by, under a page's header: a row of tiles, not a sentence.");
+      StatTileSample();
+    }
+  }
+}
+
+/// A page title with its row of tiles, as a release page would draw them.
+[Composable]
+component StatTileSample() {
+  DateOnly? sampleDate = null;
+
+  render {
+    Stack(gap: "16px", minW: "0") {
+      AreaTitle("Patient Portal 2.4");
+      StatRow("Release at a glance") {
+        StatTile("Items done", "7 of 12", sub: "5 still open", tone: StatTone.Run, to: "/dev/components", shareDone: 7, shareTotal: 12);
+        StatTile("Not ready", "3", sub: "waiting on BOOK-19", tone: StatTone.You, to: "/dev/components", emphasis: true);
+        StatTile("Merged", "4", sub: "since Mon 9 Nov", tone: StatTone.Ok, to: "/dev/components", shareDone: 4, shareTotal: 12,
+                 shareTone: StatTone.Ok);
+        StatTile("Blocked", "1", tone: StatTone.Bad, to: "/dev/components") {
+          slot sub { StatusChip("Gate refused", StatusTone.Bad); }
+        }
+        StatTile("Candidate", "patient-portal-2.4.0-rc.12+build.20261112", sub: "not yet released", tone: StatTone.Neutral, mono: true);
+      }
+      // The small parts of progress: rows with a bar in one card, count pills, a bare bar, a date field.
+      ListCard("Then", label: "Stages after the next") {
+        ProgressRow("Patient Portal 2.5 · Reminders and rescheduling", "/dev/components", "6 items · 2 done", 2, 6) {
+          slot side { StatusChip("4 not ready", StatusTone.You); }
+        }
+        ProgressRow("Patient Portal 2.6", "/dev/components", "3 items · 3 done", 3, 3) {
+          slot side { StatusChip("Ready", StatusTone.Ok); }
+        }
+        ProgressRow("Patient Portal 2.7", "/dev/components", "Nothing in it yet", 0, 0, barTone: StatusTone.Wait) {
+          slot side { StatusChip("Empty", StatusTone.Wait); }
+        }
+      }
+      Row(gap: "8px", wrap: Wrapping.Wrap, align: Align.Center, label: "Count pills") {
+        CountPill(3, "not ready", StatusTone.You);
+        CountPill(0, "not ready");
+        CountPill(9, "items", StatusTone.Ok);
+        CountPill(1, "dropped", StatusTone.Bad);
+        Box(w: "160px") { ShareBar(5, 8, StatusTone.Ok); }
+      }
+      Box(maxW: "320px") { LookDate("Target date", sampleDate, clearable: true, placeholder: "When it is meant to go out"); }
+    }
+  }
+}
+
+/// The tiles alone, in a frame as wide as the window.
+[Route("/dev/stat-tiles")]
+[AllowAnonymous]
+[Title("Stat tiles")]
+[Render(CSR)]
+component StatTilesPage() {
+  render {
+    Box(p: "24px", bg: Colors.Bg, color: Colors.OnSurface, fontSize: "16px", lineHeight: "normal", fontFamily: Font.Sans, minH: "100vh") {
+      StatTileSample();
+    }
+  }
+}

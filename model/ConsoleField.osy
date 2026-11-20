@@ -1,0 +1,22 @@
+namespace Osysharp.Look;
+
+/// A console field's frame (spec "Components", Forms): the `label` 12.5/500 in the text colour over the control, 6 apart;
+/// under it `help` (12, text-2) or, when it is refused, `error` (12, the critical ink) in its place. In a test it is
+/// the group of its label. The console's other controls (select, checkbox, switch, number, date, a dialog, a toast) are
+/// the look's `LookEnumSelect`, `LookCheckbox`, `LookSwitch`, `LookNumberInput`, `LookDate`, `ConfirmDialog` and
+/// `LookToast`, which take the console's values through `OsyrinV3`; this frame and its two controls give a form the
+/// console's 30 px row on a desktop, and a dropdown beside them takes `console: true` for the same row.
+[Composable]
+component ConsoleField(string label, string help = "", string error = "") {
+  render {
+    Stack(gap: "6px", minW: "0", fontFamily: Font.ConsoleSans, role: UiRole.Group, label: label) {
+      Text(label, fontSize: FontSize.ConsoleControl, fontWeight: 500, color: Colors.ConsoleText, lineHeight: "1.3");
+      Slot;
+      if (error != "") {
+        Text(error, fontSize: FontSize.ConsoleSmall, color: Colors.ConsoleCriticalInk, lineHeight: "1.4", role: UiRole.Alert);
+      } else if (help != "") {
+        Text(help, fontSize: FontSize.ConsoleSmall, color: Colors.ConsoleText2, lineHeight: "1.4");
+      }
+    }
+  }
+}

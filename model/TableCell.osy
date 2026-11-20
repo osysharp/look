@@ -1,0 +1,17 @@
+namespace Osysharp.Look;
+
+/// One cell of a `CardTableRow` (or of a `SettingTableRow`'s own columns): the block, declared a table cell so a reader
+/// and `Assert.Cell(row, column, words)` find it under its column header. For a cell whose child is a part that takes
+/// no `role:` (`KeyLink`, `StatusChip`, a `Stack` of lines): `TableCell { StatusChip("Done", StatusTone.Ok); }`. A text
+/// or a box that takes `role:` may say `role: UiRole.GridCell` itself instead — the same thing with no wrapper.
+/// `align`: `TextAlign.Right` (or `Center`) pushes the block to the column's end, as the head's `aligns` does.
+[Composable]
+component TableCell(TextAlign align = TextAlign.Left) {
+  render {
+    if (align == TextAlign.Left) {
+      Box(role: UiRole.GridCell, minW: "0") { Slot; }
+    } else {
+      Row(role: UiRole.GridCell, justify: align == TextAlign.Right ? Justify.End : Justify.Center, minW: "0") { Slot; }
+    }
+  }
+}

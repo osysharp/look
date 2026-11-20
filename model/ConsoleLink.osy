@@ -1,0 +1,31 @@
+namespace Osysharp.Look;
+
+/// A console link: the accent, no underline; hovered, the accent's hover ink, underlined. `announce` is what it is read
+/// and pressed as ("Plan of Alpha"); it begins with the words.
+[Composable]
+component ConsoleLink(string words, string to, string announce = "") {
+  variants {
+    base {
+      Color = Colors.ConsoleAccent;
+      TextDecoration = TextDecoration.None;
+      WhiteSpace = WhiteSpace.Nowrap;
+      Hover { Color = Colors.ConsoleAccentHover; TextDecoration = TextDecoration.Underline; }
+    }
+  }
+  render { Link(to, label: announce != "" ? announce : words) { Text(words); } }
+}
+
+/// A row's links side by side, a `·` in the link-mark grey 8 px either side of each (decorative).
+[Composable]
+component ConsoleLinks(List<Crumb> links, string of = "") {
+  render {
+    Row(align: Align.Center, gap: 0, wrap: Wrapping.Nowrap) {
+      foreach (var index in Enumerable.Range(0, links.Count())) {
+        if (index > 0) {
+          Text("·", color: Colors.ConsoleLinkMark, mx: "8px", decorative: true);
+        }
+        ConsoleLink(links[index].Label, links[index].To, of != "" ? links[index].Label + " of " + of : "");
+      }
+    }
+  }
+}

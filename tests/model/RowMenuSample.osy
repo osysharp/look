@@ -1,0 +1,53 @@
+namespace OsyrinLookTests;
+
+using Osysharp.Look;
+
+/// A table whose rows each carry a menu (L1): `MoreMenu` named for its row ("More for GH_TOKEN"), small, opening over the
+/// card's edge on the LAST row; on a phone the page draws the items in a `MenuSheet` at its own level.
+[Composable]
+component RowMenuSample() {
+  string open = "";
+  string said = "";
+  action Toggle(string name) {
+    open = open == name ? "" : name;
+  }
+  action Close() {
+    open = "";
+  }
+  action Did(string what) {
+    said = what + ".";
+    open = "";
+  }
+  string Cols() => "minmax(0, 1fr) 120px 110px";
+  List<string> Heads() => new List<string> { "Secret", "State", "" };
+  string State(string name) => name == "NPM_TOKEN" ? "Expiring" : "Active";
+  render {
+    Stack(gap: "12px", minW: "0") {
+      TableCard("Secrets", Cols(), Heads(), sub: "Each row's menu is named for its row",
+                aligns: [TextAlign.Left, TextAlign.Left, TextAlign.Right]) {
+        foreach (var name in ["DEPLOY_KEY", "NPM_TOKEN", "GH_TOKEN"]) {
+          CardTableRow(Cols(), label: name, heads: Heads()) {
+            TableCell { KeyText(name); }
+            TableCell { StatusChip(State(name), State(name) == "Active" ? StatusTone.Ok : StatusTone.You); }
+            TableCell(align: TextAlign.Right) {
+              MoreMenu("More ▾", open == name, () => Toggle(name), menuLabel: "Actions for " + name, announce: "More for " + name, small: true,
+                       popover: Viewport.AtLeast(Tablet)) {
+                MenuAction("Change", () => Did("Change " + name), announce: "Change " + name);
+                MenuAction("Revoke", () => Did("Revoke " + name), danger: true, announce: "Revoke " + name);
+              }
+            }
+          }
+        }
+      }
+      if (open != "" && !Viewport.AtLeast(Tablet)) {
+        MenuSheet("Actions for " + open, Close) {
+          MenuAction("Change", () => Did("Change " + open), announce: "Change " + open);
+          MenuAction("Revoke", () => Did("Revoke " + open), danger: true, announce: "Revoke " + open);
+        }
+      }
+      if (said != "") {
+        InlineMessage(said, LookTone.Ok);
+      }
+    }
+  }
+}

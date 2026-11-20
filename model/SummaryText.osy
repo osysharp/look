@@ -1,0 +1,14 @@
+namespace Osysharp.Look;
+
+/// A summary's body: 15/400 at 1.55, what decisions, situations and release summaries are written in.
+[Composable]
+component SummaryText(string text) {
+  variants {
+    base {
+      FontSize = FontSize.Summary;
+      Color = Colors.OnSurface;
+      LineHeight = "1.55";
+    }
+  }
+  render { Text(text); }
+}

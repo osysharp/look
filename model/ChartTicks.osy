@@ -1,0 +1,37 @@
+namespace Osysharp.Look;
+
+/// The value axis of a bar chart (MS2b): 0 and three to five round steps (1, 2 or 5 times a power of ten) up to just
+/// above `most`. A `percent` axis is always 0, 25, 50, 75 and 100. With `whole` (counts: builds, acts) a step is at
+/// least 1. With nothing above 0 the axis is drawn as if the most were 1.
+internal List<double> ChartTicks(double most, bool percent = false, bool whole = false) {
+  var ticks = new List<double>();
+  if (percent) {
+    foreach (var tick in new List<double> { 0, 25, 50, 75, 100 }) {
+      ticks.Add(tick);
+    }
+    return ticks;
+  }
+  if (most <= 0) {
+    most = 1;
+  }
+  var raw = most / 4.0;
+  var power = 1.0;
+  while (power * 10 <= raw) {
+    power = power * 10;
+  }
+  while (power > raw) {
+    power = power / 10;
+  }
+  var step = raw <= power ? power : raw <= power * 2 ? power * 2 : raw <= power * 5 ? power * 5 : power * 10;
+  if (whole && step < 1) {
+    step = 1;
+  }
+  var steps = (int)Math.Ceiling(most / step - 0.000001);
+  if (steps < 2) {
+    steps = 2;
+  }
+  for (var index = 0; index <= steps; index++) {
+    ticks.Add(Math.Round(step * index, 6));
+  }
+  return ticks;
+}

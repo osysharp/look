@@ -1,0 +1,57 @@
+// A console table row's detail (owner, 16 Nov, from the live Policies tab): it opens as a row of its own UNDER its row,
+// as wide as the table, never inside one cell — the row keeps its height and its other cells stay where they were.
+// /dev/console-detail-rows: two policies alike but for their names, so the opened one is measured against the closed one.
+
+using Osysharp.Look;
+using OsyrinLookTests;
+
+[Test]
+void A_console_row_detail_opens_under_the_row_across_the_whole_table() {
+  Ui.Viewport(1440);
+  Ui.Visit("/dev/console-detail-rows");
+  Assert.Expanded("Where it is enforced, Outbound hosts row", false);
+  Ui.Click("Where it is enforced, Outbound hosts row");
+  Assert.Expanded("Where it is enforced, Outbound hosts row", true);
+  // The opened row is as tall as its closed twin: nothing of the detail is in its cells.
+  Assert.SameHeight("Outbound hosts row", "Inbound hosts row");
+  // The detail is a row of its own between the two, as wide as the row it opens.
+  Assert.SameWidth("Outbound hosts row detail", "Outbound hosts row");
+  Assert.Below("Outbound hosts row detail", "Outbound hosts row");
+  Assert.Above("Outbound hosts row detail", "Inbound hosts row");
+  Ui.Shot("console-detail-row-1440");
+  Ui.Theme("dark");
+  Assert.Readable("At save on the settings screen");
+  Ui.Shot("console-detail-row-dark-1440");
+}
+
+// The chevron is a button the keyboard reaches: Enter opens the detail and says so, Enter again shuts it.
+[Test]
+void A_console_row_detail_opens_and_shuts_from_the_keyboard() {
+  Ui.Viewport(1440);
+  Ui.Visit("/dev/console-detail-rows");
+  Ui.Focus("Where it is enforced, Inbound hosts row");
+  Ui.Press("Enter");
+  Assert.Expanded("Where it is enforced, Inbound hosts row", true);
+  Assert.Visible("At save on the settings screen", within: "Inbound hosts row detail");
+  Assert.Focused("Where it is enforced, Inbound hosts row");
+  Ui.Press("Enter");
+  Assert.Expanded("Where it is enforced, Inbound hosts row", false);
+  Assert.Hidden("At save on the settings screen");
+}
+
+// On a phone the table scrolls sideways inside its panel; the opened detail is as wide as the panel shows, so it is read
+// without scrolling. The worded `ConsoleDisclosure` opens in place.
+[Test]
+void A_console_row_detail_on_a_phone_is_as_wide_as_the_panel() {
+  Ui.Viewport(390);
+  Ui.Visit("/dev/console-detail-rows");
+  Ui.Click("Where it is enforced, Outbound hosts row");
+  Assert.Inside("At save on the settings screen", "Policies");
+  Assert.NoOverflow();
+  Ui.Shot("console-detail-row-390");
+  Assert.Expanded("How a policy holds an application", false);
+  Ui.Click("How a policy holds an application");
+  Assert.Expanded("How a policy holds an application", true);
+  Assert.Visible("At save on the settings screen", within: "Disclosure");
+  Ui.Shot("console-disclosure-390", within: "Disclosure");
+}

@@ -1,0 +1,15 @@
+namespace Osysharp.Look;
+
+/// default slot after them (a `ConsoleLink`). A note, not an alarm: nothing is wrong.
+[Composable]
+component ConsoleReadOnly(string words) {
+  render {
+    Row(gap: "8px", align: Align.Center, wrap: Wrapping.Wrap, py: "10px", px: "14px", bg: Colors.ConsoleSunken, borderW: 1,
+        border: Colors.ConsoleBorder, rounded: Radius.ConsoleCorner, fontFamily: Font.ConsoleSans, fontSize: FontSize.ConsoleBody,
+        color: Colors.ConsoleText2, minW: "0", role: UiRole.Group, label: words) {
+      Box(color: Colors.ConsoleText3, display: Display.Flex, decorative: true) { Icon(Icons.Lock, size: 14); }
+      Text(words, minW: "0", wordBreak: WordBreak.BreakWord);
+      Slot;
+    }
+  }
+}

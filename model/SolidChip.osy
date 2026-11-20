@@ -1,0 +1,23 @@
+namespace Osysharp.Look;
+
+/// A fact set solid, white on an ink fill: 12/600, `2px 8px`, radius 6 (PolicyFloor's "Hard boundary"). Beside it
+/// `OutlineChip` is the same chip in a 1 px outline on white. The page that owns the words picks the chip.
+[Composable]
+component SolidChip(string words) {
+  variants {
+    base {
+      Display = Display.InlineFlex;
+      W = "fit-content";
+      Px = "8px";
+      Py = "2px";
+      Rounded = Radius.Chip;
+      Bg = Colors.OnSurface;
+      Color = Colors.Surface;
+      FontSize = FontSize.Caption;
+      FontWeight = FontWeight.Semibold;
+      WhiteSpace = WhiteSpace.Nowrap;
+      LineHeight = "normal";
+    }
+  }
+  render { Text(words); }
+}

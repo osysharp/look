@@ -1,0 +1,212 @@
+namespace OsyrinLookTests;
+
+using Osysharp.Look;
+
+// The look's display parts (P2.D18b), asked by Admin's rebuilt pages: a row pressed as a whole with the open one marked
+// (Components §15), the compact stat tiles, a clamped text with its hover title, a person in a table cell, a date said
+// relative to now, and the 34 px row of a long list. In the gallery after the tables, and alone at /dev/controls/display.
+
+/// The gallery's "Display parts" section.
+[Composable]
+component GalleryDisplay() {
+  render {
+    Stack(gap: "16px", label: "Display parts") {
+      H2("Display parts");
+      Caption("A list whose rows open a drawer — the whole row pressed, the open one marked; tiles in a compact row; text cut after one or two lines with the whole as its title; a person in a table cell; a date said relative to now; and the 34 px row of a long list.");
+      DisplaySamples();
+    }
+  }
+}
+
+/// Every display sample, in the order the section draws them.
+[Composable]
+component DisplaySamples() {
+  render {
+    Stack(gap: "16px", minW: "0") {
+      PressedRowsSample();
+      CompactTilesSample();
+      PeopleTableSample();
+      RelativeDatesSample();
+      LongListSample();
+    }
+  }
+}
+
+/// A long list at the 34 px row (`TableSpacing.Long`): text rows and chip rows alike, beside a
+/// 34 px mark a test measures them against.
+[Composable]
+component LongListSample() {
+  string Cols() => "minmax(0, 1fr) 120px 60px";
+  string Name(int i) => "zone-" + i.ToString("00");
+  render {
+    Stack(gap: "8px", minW: "0") {
+      TableCard("Zones", Cols(), ["Zone", "State", "Hosts"], sub: "A long list, 34 px a row", spacing: TableSpacing.Long,
+                aligns: [TextAlign.Left, TextAlign.Left, TextAlign.Right]) {
+        foreach (var i in Enumerable.Range(1, 12)) {
+          CardTableRow(Cols(), label: "Row " + Name(i), spacing: TableSpacing.Long) {
+            TableCell { KeyText(Name(i)); }
+            if (i % 4 == 0) {
+              TableCell { StatusChip("Draining", StatusTone.Wait); }
+            } else {
+              Text("Serving", color: Colors.Ink2, role: UiRole.GridCell);
+            }
+            Text(((i * 5) % 9 + 1).ToString(), textAlign: TextAlign.Right, color: Colors.Ink2, role: UiRole.GridCell);
+          }
+        }
+      }
+      Row(gap: "8px", align: Align.End, fontSize: FontSize.Caption, color: Colors.Ink3) {
+        Text("Row height:");
+        Box(w: "6px", h: "34px", bg: Colors.Border, label: "34 px mark");
+        Text("34 px — every row of the long list.");
+      }
+    }
+  }
+}
+
+/// A change of the relative-dates sample; its `Id` makes the loop the table's counted rows.
+public class SampleChange {
+  public string Id = "";
+  public string What = "";
+  public DateTime At = DateTime.MinValue;
+}
+
+/// Changes said relative to the clock (a test pins it at Thu 12 Nov 2026, 15:00 UTC), each with its exact time on hover
+/// and — the dates and the changes standing on their own, in a row nobody presses — on keyboard focus.
+[Composable]
+component RelativeDatesSample() {
+  string Cols() => "minmax(0, 1fr) 140px";
+  List<SampleChange> Changes() => new List<SampleChange> {
+    new SampleChange { Id = "c1", What = "Anna Berg raised the floor's contrast rule", At = new DateTime(2026, 11, 12, 14, 57, 0) },
+    new SampleChange { Id = "c2", What = "Chen Wei opened draft v4", At = new DateTime(2026, 11, 12, 11, 40, 0) },
+    new SampleChange { Id = "c3", What = "The gate refused 2.4.0-rc.11", At = new DateTime(2026, 11, 11, 18, 30, 0) },
+    new SampleChange { Id = "c4", What = "Patient Portal 2.3 released", At = new DateTime(2026, 11, 3, 9, 5, 0) },
+    new SampleChange { Id = "c5", What = "The accessibility floor adopted", At = new DateTime(2025, 12, 31, 16, 0, 0) } };
+  render {
+    TableCard("Recent changes", Cols(), ["Change", "When"], sub: "Relative to now; the exact time on hover", dense: true,
+              aligns: [TextAlign.Left, TextAlign.Right]) {
+      foreach (var c in Changes()) {
+        CardTableRow(Cols(), label: c.What, dense: true) {
+          ClampText(c.What, role: UiRole.GridCell, focusable: true);
+          Row(justify: Justify.End, color: Colors.Ink2, role: UiRole.GridCell) { RelativeDate(c.At, end: true, focusable: true); }
+        }
+      }
+    }
+  }
+}
+
+/// A member of the people sample; its `Id` makes the loop over them the table's counted rows.
+public class SamplePerson {
+  public string Id = "";
+  public string Name = "";
+  public string Address = "";
+  public string Note = "";
+  public string Photo = "";
+}
+
+/// Long words in narrow columns: a person cell (one a link, one with a picture) that cuts the name and address, a note
+/// cut after one line and after two, each with the whole text as its hover title.
+[Composable]
+component PeopleTableSample() {
+  string Cols() => "200px minmax(0, 1fr) 220px";
+  List<SamplePerson> People() => new List<SamplePerson> {
+    new SamplePerson { Id = "Anna Berg", Name = "Anna Berg", Address = "anna.berg@northwind-health.example", Note = "Leads the release; signs the gate for Public." },
+    new SamplePerson { Id = "Bartholomew Featherstonehaugh-Llewellyn", Name = "Bartholomew Featherstonehaugh-Llewellyn", Address = "bartholomew.featherstonehaugh-llewellyn@northwind-health.example",
+                       Note = "Reviews every change to the accessibility floor before it reaches a draft, and asks for the evidence of each rule it touches, rule by rule, with the findings of the last thirty days beside it." },
+    new SamplePerson { Id = "Chen Wei", Name = "Chen Wei", Address = "chen.wei@northwind-health.example", Note = "On leave until 30 Nov." } };
+  render {
+    TableCard("People", Cols(), ["Person", "Note", "In two lines"], sub: "Long names and notes in narrow columns", minWidth: "640px") {
+      foreach (var p in People()) {
+        CardTableRow(Cols(), label: p.Name) {
+          PersonCell(p.Name, p.Address, to: p.Name == "Anna Berg" ? "/dev/components" : "");
+          ClampText(p.Note, role: UiRole.GridCell, focusable: true);
+          ClampText("Last said: " + p.Note, lines: 2, role: UiRole.GridCell);
+        }
+      }
+    }
+  }
+}
+
+/// The release's tiles at the compact height, then a row with no tones, beside height marks a test measures against.
+[Composable]
+component CompactTilesSample() {
+  render {
+    Stack(gap: "12px", minW: "0") {
+      StatRow("Compact tiles", compact: true) {
+        StatTile("Items done", "8 of 12", sub: "4 still open", tone: StatTone.Run, to: "/dev/components", shareDone: 8, shareTotal: 12, compact: true);
+        StatTile("Not ready", "2", sub: "waiting on BOOK-21", tone: StatTone.You, to: "/dev/components", emphasis: true, compact: true);
+        StatTile("Merged", "5", sub: "since Tue 10 Nov", tone: StatTone.Ok, to: "/dev/components", shareDone: 5, shareTotal: 12, shareTone: StatTone.Ok,
+                 compact: true);
+        StatTile("Blocked", "2", tone: StatTone.Bad, to: "/dev/components", compact: true) {
+          slot sub { StatusChip("Gate refused", StatusTone.Bad); }
+        }
+        StatTile("Candidate", "patient-portal-2.5.0-rc.3", sub: "not yet released", tone: StatTone.Neutral, mono: true, compact: true);
+      }
+      StatRow("Compact tiles without tones", compact: true) {
+        StatTile("Hosts", "14", sub: "2 offline", compact: true);
+        StatTile("Lanes", "62", sub: "48 busy", shareDone: 48, shareTotal: 62, compact: true);
+        StatTile("Queue", "9", compact: true);
+      }
+      Row(gap: "8px", align: Align.End, fontSize: FontSize.Caption, color: Colors.Ink3) {
+        Text("Tile heights:");
+        Box(w: "6px", h: "64px", bg: Colors.Border, label: "64 px mark");
+        Text("64 px");
+        Box(w: "6px", h: "80px", bg: Colors.Border, label: "80 px mark");
+        Text("80 px — a compact row falls between them.");
+      }
+    }
+  }
+}
+
+/// A rule of the pressed-rows sample: Components §15's rows; its `Id` makes the loop over them the counted rows.
+public class SampleRule {
+  public string Id = "";
+  public string Text = "";
+  public string Findings = "";
+  public string Mark = "";
+}
+
+/// Components §15, the list beside its drawer: each row pressed as a whole opens its rule; the open row carries the
+/// accent's tint and ring. The last cell's "Flag" is a button of its own: pressing it flags the rule and opens nothing.
+[Composable]
+component PressedRowsSample() {
+  string open = "AF-04";
+  string flagged = "";
+  action Open(string id) { open = id; }
+  action Flag(string id) { flagged = id; }
+  string Cols() => "62px minmax(0, 1fr) 46px 76px";
+  List<SampleRule> Rules() => new List<SampleRule> {
+    new SampleRule { Id = "AF-03", Text = "Text contrast is at least 4.5:1", Findings = "4" },
+    new SampleRule { Id = "AF-04", Text = "Touch targets are at least 44 px", Findings = "11", Mark = "Changed" },
+    new SampleRule { Id = "AF-05", Text = "Required fields say so in text, not colour alone", Findings = "6" },
+    new SampleRule { Id = "AF-06", Text = "Date and time inputs accept typed values", Findings = "2", Mark = "Changed" },
+    new SampleRule { Id = "AF-09", Text = "A time-slot picker announces the selected slot and how long it is held", Findings = "—", Mark = "Added" } };
+  string Foot() => "Open: " + open + (flagged == "" ? "" : " · Flagged: " + flagged);
+  render {
+    TableCard("Rules", Cols(), ["Rule", "Text", "30 d", ""], sub: "Accessibility floor · 12 rules", foot: Foot(),
+              aligns: [TextAlign.Left, TextAlign.Left, TextAlign.Right, TextAlign.Right]) {
+      foreach (var r in Rules()) {
+        CardTableRow(Cols(), label: r.Id, onPress: () => Open(r.Id), open: r.Id == open) {
+          TableCell { KeyText(r.Id); }
+          Text(r.Text, minW: "0", role: UiRole.GridCell);
+          Text(r.Findings, textAlign: TextAlign.Right, color: Colors.Ink2, role: UiRole.GridCell);
+          TableCell(align: TextAlign.Right) {
+            if (r.Mark != "") {
+              StatusChip(r.Mark, r.Mark == "Added" ? StatusTone.Ok : StatusTone.Run);
+            } else {
+              LookButton("Flag", () => Flag(r.Id), kind: ButtonKind.Inline, announce: "Flag " + r.Id);
+            }
+          }
+        }
+      }
+    }
+  }
+}
+
+/// The display parts alone.
+[Route("/dev/controls/display")]
+[AllowAnonymous]
+[Title("Display parts")]
+[Render(CSR)]
+component DisplayPage() {
+  render { ControlsFrame("Display parts") { DisplaySamples(); } }
+}

@@ -1,0 +1,52 @@
+namespace Osysharp.Look;
+
+/// A row of a `ConsoleTable`: its cells on the table's tracks, a `row-rule` line above it (none above the first, which
+/// sits on the head's rule), `attention` on the needs-somebody tint. The caller writes each cell as a `ConsoleCell`.
+///
+/// A ROW WITH DETAIL (owner, 16 Nov): `detail` names what it opens ("Where it is enforced") and `slot detail` holds it.
+/// The row starts with the console's disclosure chevron (`ConsoleDisclosureButton`, read as "`detail`, `label`", saying
+/// `aria-expanded`) in the table's `details` track; pressed, the detail opens as a row of its OWN under this one, named
+/// "`label` detail", across every column on the sunken ground, its words 12.5/1.5 text-2 set in line with the first
+/// column's. Nothing of it is in this row's cells, so opening it never stretches the row or moves its other cells. On a
+/// phone the detail is as wide as the panel shows (set 16 px in) and stays in view while the table scrolls sideways.
+/// Its table says `details: true`; a row of such a table with nothing to open says `details: true` and no `detail`
+/// (a blank where the chevron would be).
+/// e.g. `ConsoleTableRow(cols, label: p.Name, detail: "Where it is enforced") { slot detail { … } ConsoleCell { … } }`
+[Composable]
+component ConsoleTableRow(List<ConsoleColumn> columns, bool attention = false, string label = "", string detail = "", bool details = false) {
+  bool open = false;
+  action Toggle() { open = !open; }
+  render {
+    var opens = detail != "";
+    if (!opens && !details) {
+      Box(display: Display.Grid, cols: ConsoleTracks(columns), alignItems: Align.Center, borderTW: 1, border: Colors.ConsoleRowRule,
+          bg: attention ? Colors.ConsoleAttention : Colors.ConsoleSurface, role: UiRole.Row, label: label) {
+        Slot;
+      }
+    } else {
+      // The window, not the layout: inside a table wider than a phone the layout is the table's width.
+      var wide = Viewport.AtLeast(Tablet);
+      Stack(gap: 0, minW: "0") {
+        Box(display: Display.Grid, cols: ConsoleDetailTracks(columns, true), alignItems: Align.Center, borderTW: 1, border: Colors.ConsoleRowRule,
+            bg: attention ? Colors.ConsoleAttention : Colors.ConsoleSurface, role: UiRole.Row, label: label) {
+          Box(role: UiRole.GridCell, pl: "16px", display: Display.Flex, align: Align.Center) {
+            if (opens) {
+              ConsoleDisclosureButton(open, label != "" ? detail + ", " + label : detail, Toggle);
+            }
+          }
+          Slot;
+        }
+        if (opens && open) {
+          Box(role: UiRole.Row, label: label != "" ? label + " detail" : detail, borderTW: 1, border: Colors.ConsoleRowRule, bg: Colors.ConsoleSunken,
+              minW: "0") {
+            // 100cqi: the table's scroller (`ConsoleTable(details:)`), so a detail of a table scrolled sideways on a phone is read where it is.
+            Box(role: UiRole.GridCell, position: Position.Sticky, left: "0", w: "100cqi", maxW: "100%", pt: "12px", pb: "14px",
+                pl: wide ? "54px" : "16px", pr: "16px", fontSize: FontSize.ConsoleSmall, color: Colors.ConsoleText2, lineHeight: "1.5", minW: "0") {
+              Slot("detail");
+            }
+          }
+        }
+      }
+    }
+  }
+}

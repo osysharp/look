@@ -1,0 +1,12 @@
+namespace OsyrinLookTests;
+
+using Osysharp.Look;
+
+/// The phone table samples alone, as wide as the window.
+[Route("/dev/controls/phone-tables")]
+[AllowAnonymous]
+[Title("Tables on a phone")]
+[Render(CSR)]
+component PhoneTablesPage() {
+  render { ControlsFrame("Tables on a phone") { PhoneTableSamples(); } }
+}

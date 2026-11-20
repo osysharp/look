@@ -1,0 +1,26 @@
+namespace Osysharp.Look;
+
+/// The release an item rides with: 12/600 Ink on Line 2 inside a 1 px Ink 2 outline, `2px 8px`, radius 6
+/// ("rides Patient Portal 2.4").
+[Composable]
+component RideChip(string release) {
+  variants {
+    base {
+      Display = Display.InlineFlex;
+      W = "fit-content";
+      Px = "8px";
+      Py = "2px";
+      Rounded = Radius.Chip;
+      Bg = Colors.Line2;
+      BorderW = 1;
+      BorderStyle = BorderStyle.Solid;
+      Border = Colors.Ink2;
+      FontSize = FontSize.Caption;
+      FontWeight = FontWeight.Semibold;
+      Color = Colors.OnSurface;
+      WhiteSpace = WhiteSpace.Nowrap;
+      LineHeight = "normal";
+    }
+  }
+  render { Text("In " + release); }
+}

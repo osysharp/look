@@ -1,0 +1,56 @@
+namespace Osysharp.Look;
+
+/// A panel beside a page's main column (canvas2/PlannerPanel's planner panel): 380 wide (`w`), white in the Line
+/// hairline, radius 14, clipped; it stays in view (sticky 20 px from the top) and is at most the window's height less
+/// 40. Its head `14px 16px 10px`, parts 10 apart, over a Line 2 rule: the `title` 17/600 over `sub` 12 Ink 3 (`mark`:
+/// the agent's hexagon, 20 px in the accent's deep ink, 10 before them), at the right `slot actions` then the close
+/// button (`GlyphButton` "›", named `closeLabel`, default "Close <title>") when there is an `onClose`; then `slot head`
+/// (what it sees, its tabs). The body — the block — `12px 16px`, parts 12 apart, scrolls inside the panel (`stick`:
+/// it holds to its end as turns arrive, for a conversation). `slot foot` stays under it, `10px 16px 14px` over a
+/// Line 2 rule (the composer). On a phone (under Tablet) it is a full sheet over the page — fixed to the window, no
+/// corners, a modal dialog named `title`, Escape or "×" closes it; render it at the page's own level there, as
+/// `MenuSheet`. Elsewhere it is a region named `title`.
+/// In a test: `Assert.Visible("Find the gaps", within: "Planner")`, `Ui.Click("Close Planner")`.
+/// e.g. `Row(gap: "24px", align: Align.Start) { PageColumn(…) { … } SidePanel("Planner", sub: "Planner agent · proposes",
+/// onClose: Hide, mark: true, stick: true) { slot foot { Composer(…); } ConversationTurn(…); … } }`
+[Composable]
+component SidePanel(string title, string sub = "", Action onClose = null, string closeLabel = "", bool mark = false, bool stick = false,
+                    string w = "380px") {
+  render {
+    Stack(gap: 0, minW: "0", bg: Colors.Surface, overflow: Overflow.Hidden,
+          w: Layout.AtLeast(Tablet) ? w : "100%", basis: Layout.AtLeast(Tablet) ? w : "auto", shrink: 0,
+          position: Layout.AtLeast(Tablet) ? Position.Sticky : Position.Fixed, top: Layout.AtLeast(Tablet) ? "20px" : "0",
+          left: Layout.AtLeast(Tablet) ? "auto" : "0", right: Layout.AtLeast(Tablet) ? "auto" : "0", bottom: Layout.AtLeast(Tablet) ? "auto" : "0",
+          z: Layout.AtLeast(Tablet) ? ZIndex.Sticky : ZIndex.Modal, alignSelf: AlignSelf.Start,
+          maxH: Layout.AtLeast(Tablet) ? "calc(100vh - 40px)" : "100vh", h: Layout.AtLeast(Tablet) ? "auto" : "100vh",
+          borderW: Layout.AtLeast(Tablet) ? 1 : 0, border: Colors.Border, rounded: Layout.AtLeast(Tablet) ? Radius.Panel : "0",
+          role: Layout.AtLeast(Tablet) ? UiRole.Region : UiRole.ModalDialog, label: title,
+          onEscape: !Layout.AtLeast(Tablet) && onClose != null ? onClose : null) {
+      Stack(gap: "10px", pt: "14px", px: "16px", pb: "10px", borderBW: 1, border: Colors.Line2, shrink: 0) {
+        Row(justify: Justify.Between, align: Align.Start, gap: "8px") {
+          Row(gap: "10px", align: Align.Center, minW: "0") {
+            if (mark) {
+              Text("⬡", fontSize: "20px", lineHeight: "22px", color: Colors.AccentInk, decorative: true);
+            }
+            Stack(gap: 0, minW: "0") {
+              Text(title, role: UiRole.Heading, level: 2, fontSize: FontSize.ItemTitle, fontWeight: FontWeight.Semibold, color: Colors.OnSurface,
+                   lineHeight: "normal");
+              if (sub != "") {
+                Text(sub, fontSize: FontSize.Caption, color: Colors.Ink3, lineHeight: "normal");
+              }
+            }
+          }
+          Row(gap: "6px", align: Align.Center, shrink: 0) {
+            Slot("actions");
+            if (onClose != null) {
+              GlyphButton(Layout.AtLeast(Tablet) ? "›" : "×", onClose, closeLabel != "" ? closeLabel : "Close " + title);
+            }
+          }
+        }
+        Slot("head");
+      }
+      Stack(gap: "12px", py: "12px", px: "16px", minW: "0", minH: "0", grow: 1, overflowY: Overflow.Auto, stickToBottom: stick) { Slot; }
+      Stack(gap: "8px", pt: "10px", px: "16px", pb: "14px", borderTW: 1, border: Colors.Line2, shrink: 0) { Slot("foot"); }
+    }
+  }
+}

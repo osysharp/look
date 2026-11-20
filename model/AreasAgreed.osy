@@ -1,0 +1,27 @@
+namespace Osysharp.Look;
+
+/// How far a part's areas are agreed, as plan-part.dc.html draws it under the part's title: one 28 × 6 segment per area
+/// in the areas' order, radius 3, 3 apart — the console's ok dot where agreed, its neutral ground where not — then
+/// "N of M areas agreed" 12/400 in text-2 (the console's secondary words), 12 px after. `noun` the plural word ("areas"). In a test it is the meter named by its words:
+/// `Assert.Visible("4 of 6 areas agreed")`.
+[Composable]
+component AreasAgreed(List<AreaTab> areas, string noun = "areas") {
+  int Agreed() {
+    int agreed = 0;
+    foreach (var area in areas) {
+      if (area.Done) { agreed = agreed + 1; }
+    }
+    return agreed;
+  }
+  render {
+    var words = Agreed() + " of " + areas.Count + " " + noun + " agreed";
+    Row(gap: "12px", align: Align.Center, minW: "0", wrap: Wrapping.Wrap, role: UiRole.Meter, value: Agreed(), label: words) {
+      Row(gap: "3px", align: Align.Center, decorative: true) {
+        foreach (var area in areas) {
+          Box(w: "28px", h: "6px", rounded: "3px", bg: area.Done ? Colors.ConsoleOkDot : Colors.ConsoleNeutralBg);
+        }
+      }
+      Text(words, fontSize: FontSize.ConsoleSmall, fontWeight: 400, color: Colors.ConsoleText2, lineHeight: "normal");
+    }
+  }
+}

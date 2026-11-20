@@ -1,0 +1,13 @@
+namespace Osysharp.Look;
+
+/// A row of `StatTile`s under a page's header: they share the width equally, at least 150 px each, 12 apart, wrapping
+/// (two to a row on a phone); every tile is as tall as its row. In a test it is the region `label`. `compact`: the row of
+/// compact tiles (give each tile `compact: true`) — the same columns and wrapping, 10 apart.
+[Composable]
+component StatRow(string label, bool compact = false) {
+  render {
+    Box(display: Display.Grid, cols: "repeat(auto-fit, minmax(min(150px, 100%), 1fr))", gap: compact ? "10px" : "12px", role: UiRole.Group, label: label) {
+      Slot;
+    }
+  }
+}

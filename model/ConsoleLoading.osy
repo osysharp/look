@@ -1,0 +1,16 @@
+namespace Osysharp.Look;
+
+/// so a screen reader is told; it says nothing else.
+[Composable]
+component ConsoleLoading(string what, int rows = 3) {
+  render {
+    Stack(gap: 0, minW: "0", role: UiRole.Status, label: "Loading " + what) {
+      foreach (var index in Enumerable.Range(0, rows)) {
+        Box(py: "14px", px: "16px", borderTW: index > 0 ? 1 : 0, border: Colors.ConsoleRowRule, decorative: true) {
+          Box(w: index % 3 == 0 ? "72%" : (index % 3 == 1 ? "56%" : "64%"), h: "10px", rounded: Radius.ConsoleBadgeCorner,
+              bg: Colors.ConsoleNeutralBg);
+        }
+      }
+    }
+  }
+}

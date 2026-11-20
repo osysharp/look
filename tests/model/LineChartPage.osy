@@ -1,0 +1,32 @@
+namespace OsyrinLookTests;
+
+using Osysharp.Look;
+
+// The console line chart (MS2c) alone at /dev/line-chart: five weeks of a rate, one a thin sample (n=2), one with no
+// data (the line breaks), one a real 0 (a point on the axis), and the latest with a sample of 6; read at 1440 and 390,
+// light and dark.
+
+/// The line chart in a console chart card, as Measures draws a rate.
+[Route("/dev/line-chart")]
+[AllowAnonymous]
+[Title("Line chart")]
+[Render(CSR)]
+component LineChartPage() {
+  List<ConsoleBarPoint> Weeks() => new List<ConsoleBarPoint> {
+    new ConsoleBarPoint { Label = "19 Oct", Values = new List<double?> { 50 }, Samples = new List<int?> { 2 } },
+    new ConsoleBarPoint { Label = "26 Oct", Values = new List<double?> { 80 }, Samples = new List<int?> { 5 } },
+    new ConsoleBarPoint { Label = "2 Nov", Values = new List<double?> { null }, Samples = new List<int?> { null } },
+    new ConsoleBarPoint { Label = "9 Nov", Values = new List<double?> { 0 }, Samples = new List<int?> { 7 } },
+    new ConsoleBarPoint { Label = "16 Nov", Values = new List<double?> { 67 }, Samples = new List<int?> { 6 } },
+  };
+
+  render {
+    Box(p: "24px", bg: Colors.Bg, color: Colors.OnSurface, fontSize: "16px", lineHeight: "normal", fontFamily: Font.Sans, minH: "100vh") {
+      Box(maxW: "640px") {
+        ConsoleChartCard("Autonomous completion", count: "share of builds integrated", legend: new List<string> { "With no person act" },
+                         points: Weeks(), unit: "%", line: true) {
+        }
+      }
+    }
+  }
+}

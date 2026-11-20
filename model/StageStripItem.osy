@@ -1,0 +1,38 @@
+namespace Osysharp.Look;
+
+/// One stage of `StageStrip`: `n` its number, `place` 0 done · 1 current · 2 later. A list item named by its title.
+[Composable, Part]
+component StageStripItem(StripStage stage, int n, int place) {
+  render {
+    Stack(gap: "8px", p: "14px", minW: "0", rounded: "12px", role: UiRole.ListItem, current: place == 1, label: stage.Title,
+          bg: place == 0 ? Colors.Wash : Colors.Surface, borderW: place == 1 ? 2 : 1,
+          borderStyle: place == 2 ? BorderStyle.Dashed : BorderStyle.Solid,
+          border: place == 0 ? Colors.Border : place == 1 ? Colors.YouDot : Colors.ControlLine) {
+      Row(gap: "8px", align: Align.Center, minW: "0") {
+        Row(w: "28px", h: "28px", minW: "28px", rounded: Radius.Pill, align: Align.Center, justify: Justify.Center, fontSize: FontSize.Label,
+            fontWeight: FontWeight.Heavy, lineHeight: "normal", decorative: true,
+            bg: place == 0 ? Colors.OkDot : place == 1 ? Colors.YouInk : Colors.Surface,
+            color: place == 2 ? Colors.Ink3 : Colors.Surface, borderW: place == 2 ? 2 : 0, border: Colors.ControlLine) {
+          Text(place == 0 ? "✓" : "" + n);
+        }
+        if (stage.To != "") {
+          Link(stage.To, label: stage.Title, fontSize: FontSize.Summary, fontWeight: FontWeight.Semibold, color: Colors.OnSurface,
+               textDecoration: TextDecoration.None, lineHeight: "normal", minW: "0") { Text(stage.Title); }
+        } else {
+          Text(stage.Title, fontSize: FontSize.Summary, fontWeight: FontWeight.Semibold, color: Colors.OnSurface, lineHeight: "normal", minW: "0");
+        }
+      }
+      if (stage.What != "") {
+        Text(stage.What, fontSize: FontSize.Label, lineHeight: "1.45", color: Colors.OnSurface);
+      }
+      if (stage.State != "") {
+        Text(stage.State, fontSize: FontSize.Caption, fontWeight: FontWeight.Semibold, lineHeight: "normal",
+             color: place == 0 ? Colors.OkInk : place == 1 ? Colors.YouInk : Colors.Ink3);
+      }
+      if (place == 1 && stage.Rule != "") {
+        Text(stage.Rule, fontSize: FontSize.Caption, fontWeight: FontWeight.Semibold, lineHeight: "1.4", py: "5px", px: "8px", rounded: Radius.Chip,
+             color: Colors.YouInk, bg: Colors.YouTint);
+      }
+    }
+  }
+}

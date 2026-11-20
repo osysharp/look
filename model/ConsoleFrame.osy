@@ -1,0 +1,30 @@
+namespace Osysharp.Look;
+
+/// THE CONSOLE FRAME (direction B, spec "Layout shell"), a page's whole window: the 232 px dark rail (`ConsoleRailBody`),
+/// then the 52 px white top bar (the breadcrumb `trail`, its last crumb the page; at the right the chrome's badge and the
+/// 28 px avatar) and the white header band (the h1 `title` 18/600 with `slot badge` (a key in an outline badge, a type
+/// in a neutral one), the one-line `description`, `slot lines` (an owner line), the optional `tabs`, `slot primary` at
+/// the right), then the working area on paper: the full width, `16px 16px 40px`, the default slot's parts 12 apart (the
+/// owner, 14 Nov: "too much space on the sides … it's just wasting usable space"; the top bar and band are 16 in too,
+/// so their edges line up with the panels'). A page that gives `searchText` and `searchGroups` (what it found for the text) has
+/// the Search button in the top bar (the icon on a phone) and the dialog it opens (`ConsoleSearchButton`).
+/// Below a tablet: the 56 px rail-coloured bar (a menu button opening the rail as a drawer, the switcher with the
+/// chrome's `Section` under the product, the avatar), a "‹ <parent>" link in place of the breadcrumb, the band 16 px in (title 20/600, the primary action full width and 44 high, the tabs scrolling sideways), the
+/// working area 16 px in, its parts 14 apart. The whole frame is set in Inter 13/1.5 (14 on a phone), cv11 and tnum.
+[Composable]
+component ConsoleFrame(ConsoleChrome chrome, List<Crumb> trail, string title, string description = "", List<TabItem> tabs = null,
+                       string current = "", Binding<string> searchText = null, List<ConsoleSearchGroup> searchGroups = null,
+                       string tabsLabel = "") {
+  render {
+    ConsoleShell {
+      slot rail { ConsoleShellRail(chrome); }
+      slot bar { ConsoleShellBar(chrome, searchText, searchGroups); }
+      ConsolePageHead(trail, title, description, tabs, current, tabsLabel) {
+        slot badge { Slot("badge"); }
+        slot lines { Slot("lines"); }
+        slot primary { Slot("primary"); }
+      }
+      ConsoleWork(title) { Slot; }
+    }
+  }
+}

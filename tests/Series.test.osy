@@ -1,0 +1,112 @@
+// The chart series: the accent first, two lighter shades of it, then greys; none of them a status colour, and each
+// one visible on the ground and on a panel, light and dark.
+
+using Osysharp.Look;
+using OsyrinLookTests;
+
+[Test]
+void The_series_start_at_the_accent_and_take_no_status_colour() {
+  // The order: the accent, two lighter shades of it, then four greys.
+  Assert.Token("Colors.Primary", "#3730A3");
+  Assert.Token("Colors.Primary", "#8C82E6", mode: "dark");
+  Assert.Token("Colors.Series1", "#3730A3");
+  Assert.Token("Colors.Series1", "#8C82E6", mode: "dark");
+  Assert.Token("Colors.Series2", "#6B5FCE");
+  Assert.Token("Colors.Series2", "#ABA3F0", mode: "dark");
+  Assert.Token("Colors.Series3", "#8A80D8");
+  Assert.Token("Colors.Series3", "#CAC4F8", mode: "dark");
+  Assert.Token("Colors.Series4", "#2F2D29");
+  Assert.Token("Colors.Series4", "#E4E1DA", mode: "dark");
+  Assert.Token("Colors.Series5", "#57544D");
+  Assert.Token("Colors.Series5", "#C2BEB5", mode: "dark");
+  Assert.Token("Colors.Series6", "#77736A");
+  Assert.Token("Colors.Series6", "#9C988F", mode: "dark");
+  Assert.Token("Colors.Series7", "#8F8B81");
+  Assert.Token("Colors.Series7", "#7A766D", mode: "dark");
+
+  // The status colours as the look resolves them: each tone's dot, ink and tint.
+  Assert.Token("Colors.OkDot", "#2F7D32");
+  Assert.Token("Colors.OkDot", "#5FB35A", mode: "dark");
+  Assert.Token("Colors.OkInk", "#24561F");
+  Assert.Token("Colors.OkInk", "#A6D98E", mode: "dark");
+  Assert.Token("Colors.OkTint", "#E6F1E1");
+  Assert.Token("Colors.OkTint", "#1E3518", mode: "dark");
+  Assert.Token("Colors.RunDot", "#2B6CB0");
+  Assert.Token("Colors.RunDot", "#5B9BDB", mode: "dark");
+  Assert.Token("Colors.RunInk", "#174E73");
+  Assert.Token("Colors.RunInk", "#9CC6F2", mode: "dark");
+  Assert.Token("Colors.RunTint", "#E3EEF7");
+  Assert.Token("Colors.RunTint", "#17304A", mode: "dark");
+  Assert.Token("Colors.WaitDot", "#8A8378");
+  Assert.Token("Colors.WaitDot", "#8A8378", mode: "dark");
+  Assert.Token("Colors.WaitInk", "#3A3833");
+  Assert.Token("Colors.WaitInk", "#D6D3CA", mode: "dark");
+  Assert.Token("Colors.WaitTint", "#ECEAE3");
+  Assert.Token("Colors.WaitTint", "#2C2B28", mode: "dark");
+  Assert.Token("Colors.YouDot", "#C0661A");
+  Assert.Token("Colors.YouDot", "#E08A40", mode: "dark");
+  Assert.Token("Colors.YouInk", "#7A3E0B");
+  Assert.Token("Colors.YouInk", "#F4B994", mode: "dark");
+  Assert.Token("Colors.YouTint", "#FBEEDD");
+  Assert.Token("Colors.YouTint", "#43271A", mode: "dark");
+  Assert.Token("Colors.BadDot", "#B4441F");
+  Assert.Token("Colors.BadDot", "#E0603A", mode: "dark");
+  Assert.Token("Colors.BadInk", "#8A2E12");
+  Assert.Token("Colors.BadInk", "#F2A994", mode: "dark");
+  Assert.Token("Colors.BadTint", "#FCE7DF");
+  Assert.Token("Colors.BadTint", "#45201A", mode: "dark");
+  Assert.Token("Colors.FloorDot", "#45423B");
+  Assert.Token("Colors.FloorDot", "#ABA8A0", mode: "dark");
+  Assert.Token("Colors.FloorInk", "#1F1E1B");
+  Assert.Token("Colors.FloorInk", "#ECEBE6", mode: "dark");
+  Assert.Token("Colors.FloorTint", "#F1EFE8");
+  Assert.Token("Colors.FloorTint", "#2A2926", mode: "dark");
+
+  List<string> series = [
+    "#3730A3", "#6B5FCE", "#8A80D8", "#2F2D29", "#57544D", "#77736A", "#8F8B81",
+    "#8C82E6", "#ABA3F0", "#CAC4F8", "#E4E1DA", "#C2BEB5", "#9C988F", "#7A766D"
+  ];
+  List<string> status = [
+    "#2F7D32", "#5FB35A", "#24561F", "#A6D98E", "#E6F1E1", "#1E3518",
+    "#2B6CB0", "#5B9BDB", "#174E73", "#9CC6F2", "#E3EEF7", "#17304A",
+    "#8A8378", "#3A3833", "#D6D3CA", "#ECEAE3", "#2C2B28",
+    "#C0661A", "#E08A40", "#7A3E0B", "#F4B994", "#FBEEDD", "#43271A",
+    "#B4441F", "#E0603A", "#8A2E12", "#F2A994", "#FCE7DF", "#45201A",
+    "#45423B", "#ABA8A0", "#1F1E1B", "#ECEBE6", "#F1EFE8", "#2A2926"
+  ];
+  foreach (var colour in series) {
+    Assert.DoesNotContain(colour, status);
+  }
+}
+
+[Test]
+void Every_series_stands_out_on_the_ground_and_on_a_panel() {
+  Assert.Contrast("Colors.Series1", "Colors.Bg", 3);
+  Assert.Contrast("Colors.Series2", "Colors.Bg", 3);
+  Assert.Contrast("Colors.Series3", "Colors.Bg", 3);
+  Assert.Contrast("Colors.Series4", "Colors.Bg", 3);
+  Assert.Contrast("Colors.Series5", "Colors.Bg", 3);
+  Assert.Contrast("Colors.Series6", "Colors.Bg", 3);
+  Assert.Contrast("Colors.Series7", "Colors.Bg", 3);
+  Assert.Contrast("Colors.Series1", "Colors.Surface", 3);
+  Assert.Contrast("Colors.Series2", "Colors.Surface", 3);
+  Assert.Contrast("Colors.Series3", "Colors.Surface", 3);
+  Assert.Contrast("Colors.Series4", "Colors.Surface", 3);
+  Assert.Contrast("Colors.Series5", "Colors.Surface", 3);
+  Assert.Contrast("Colors.Series6", "Colors.Surface", 3);
+  Assert.Contrast("Colors.Series7", "Colors.Surface", 3);
+  Assert.Contrast("Colors.Series1", "Colors.Bg", 3, mode: "dark");
+  Assert.Contrast("Colors.Series2", "Colors.Bg", 3, mode: "dark");
+  Assert.Contrast("Colors.Series3", "Colors.Bg", 3, mode: "dark");
+  Assert.Contrast("Colors.Series4", "Colors.Bg", 3, mode: "dark");
+  Assert.Contrast("Colors.Series5", "Colors.Bg", 3, mode: "dark");
+  Assert.Contrast("Colors.Series6", "Colors.Bg", 3, mode: "dark");
+  Assert.Contrast("Colors.Series7", "Colors.Bg", 3, mode: "dark");
+  Assert.Contrast("Colors.Series1", "Colors.Surface", 3, mode: "dark");
+  Assert.Contrast("Colors.Series2", "Colors.Surface", 3, mode: "dark");
+  Assert.Contrast("Colors.Series3", "Colors.Surface", 3, mode: "dark");
+  Assert.Contrast("Colors.Series4", "Colors.Surface", 3, mode: "dark");
+  Assert.Contrast("Colors.Series5", "Colors.Surface", 3, mode: "dark");
+  Assert.Contrast("Colors.Series6", "Colors.Surface", 3, mode: "dark");
+  Assert.Contrast("Colors.Series7", "Colors.Surface", 3, mode: "dark");
+}

@@ -1,0 +1,7 @@
+namespace Osysharp.Look;
+
+/// A group of the console's search results under one heading ("Products", "Plan items", "Hosts").
+public class ConsoleSearchGroup {
+  public string Label = "";
+  public List<ConsoleSearchResult> Results = new List<ConsoleSearchResult>();
+}

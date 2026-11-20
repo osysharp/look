@@ -1,0 +1,29 @@
+namespace Osysharp.Look;
+
+/// The phone's top bar: 56 high on the rail, `0 6px`, 4 apart: the 44 px menu button, the switcher (tile, the product
+/// 14/600 over the context), the search icon when the page gives a search, the avatar in a 44 px target. The icons are white.
+[Composable, Part]
+component ConsolePhoneBar(ConsoleChrome chrome, Action onMenu, Binding<string> searchText = null, List<ConsoleSearchGroup> searchGroups = null) {
+  render {
+    Row(h: "56px", minH: "56px", gap: "4px", align: Align.Center, px: "6px", bg: Colors.ConsoleRail, color: Colors.ConsoleRailInk, minW: "0",
+        label: "Top bar") {
+      ConsoleIconButton("Open menu", onMenu) { ConsoleMenuGlyph(); }
+      Link(chrome.Home, label: chrome.Product + ", " + chrome.Context) {
+        Row(gap: "10px", align: Align.Center, h: "44px", px: "4px", minW: "0", color: Colors.ConsoleRailInk) {
+          ConsoleMarkTile(chrome);
+          Stack(gap: 0, lineHeight: "1.2", minW: "0") {
+            Text(chrome.Product, fontWeight: 600, fontSize: FontSize.ConsoleBodyPhone);
+            if (chrome.Section != "" || chrome.Context != "") {
+              Text(chrome.Section != "" ? chrome.Section : chrome.Context, fontSize: FontSize.ConsoleBadge, color: Colors.ConsoleRailText2);
+            }
+          }
+        }
+      }
+      Box(grow: 1);
+      if (searchText != null) {
+        ConsoleSearchIcon(searchText, searchGroups, chrome.SearchLabel, chrome.SearchPlaceholder);
+      }
+      Box(w: "44px", h: "44px", display: Display.Flex, alignItems: Align.Center, justify: Justify.Center) { ConsoleAvatar(chrome); }
+    }
+  }
+}

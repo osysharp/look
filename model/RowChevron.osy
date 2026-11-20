@@ -1,0 +1,16 @@
+namespace Osysharp.Look;
+
+// The chevron at a list row's end (console v6's `td.chev`; the phone boards' tappable rows): it says the whole row
+// opens its item. It is a mark, not a control — the row is the one link or button (memory "a list row opens its item").
+
+/// A row's chevron: a 16 px `ChevronRight` in Ink 4, decorative, 20 px wide. `CardTableRow(chevron: true)` draws it as its last cell; any other row that opens its item (a `ListCardRow`, a `ConsoleTapRow`) may end
+/// with it. A reader hears nothing from it: the row's own name says where it goes.
+/// e.g. `Row(justify: Justify.Between) { Text("Osyrin Preview"); RowChevron(); }`
+[Composable]
+component RowChevron() {
+  render {
+    Row(w: "20px", minW: "20px", shrink: 0, justify: Justify.End, align: Align.Center, color: Colors.Ink4, decorative: true) {
+      Icon(Icons.ChevronRight, size: 16);
+    }
+  }
+}

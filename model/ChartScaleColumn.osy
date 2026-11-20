@@ -1,0 +1,17 @@
+namespace Osysharp.Look;
+
+/// The value axis at a chart's left (MS2b; shared by `ConsoleBarChart` and `ConsoleLineChart`, MS2c): the `ticks` from
+/// the top down, each said in the `unit` (`ChartTickSaid`), spaced over the plot's `height`. In a test it is the group
+/// "<label> scale".
+[Composable, Part]
+component ChartScaleColumn(List<double> ticks, string unit, int height, string label) {
+  render {
+    Stack(h: Math.Round((double)(height + 14)).ToString("0") + "px", mt: "-7px", justify: Justify.Between, align: Align.End, shrink: 0,
+          role: UiRole.Group, label: label + " scale") {
+      foreach (var index in Enumerable.Range(0, ticks.Count).Reverse().ToList()) {
+        Text(ChartTickSaid(ticks[index], unit, index == ticks.Count - 1), fontSize: FontSize.ConsoleBadge, color: Colors.ConsoleText2, lineHeight: "14px",
+             whiteSpace: WhiteSpace.Nowrap, fontVariant: FontVariant.TabularNums, textAlign: TextAlign.Right);
+      }
+    }
+  }
+}

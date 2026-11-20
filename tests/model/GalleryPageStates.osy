@@ -1,0 +1,67 @@
+namespace OsyrinLookTests;
+
+using Osysharp.Look;
+
+// The full-page states (P2.D14b), each alone at its address as an app would serve it when there is no page to sit in.
+
+/// The address names nothing.
+[Route("/dev/parts/not-found")]
+[AllowAnonymous]
+[Title("Not found")]
+[Render(CSR)]
+component NotFoundStatePage() {
+  action Home() { Navigation.Go("/dev/components"); }
+  render {
+    PageState(PageStateKind.NotFound, "There is no release 2.9 in Patient Portal",
+              "It may have been renamed or taken out. The product's releases list every release it has now.") {
+      LookButton("Open Patient Portal's releases", Home, kind: ButtonKind.Primary);
+    }
+  }
+}
+
+/// The reader may not see it.
+[Route("/dev/parts/forbidden")]
+[AllowAnonymous]
+[Title("No access")]
+[Render(CSR)]
+component ForbiddenStatePage() {
+  action Ask() { }
+  render {
+    PageState(PageStateKind.Forbidden, "You cannot see Northwind Health's policies",
+              "Policies are shown to the organisation's members. Jonas Lindqvist, an org admin, can add you.") {
+      LookButton("Ask Jonas for access", Ask);
+    }
+  }
+}
+
+/// The page could not load.
+[Route("/dev/parts/error")]
+[AllowAnonymous]
+[Title("Error")]
+[Render(CSR)]
+component ErrorStatePage() {
+  int tries = 0;
+  action Retry() { tries = tries + 1; }
+  render {
+    PageState(PageStateKind.Error, "The policies could not load",
+              tries == 0 ? "The organisation's policy service did not answer in 10 seconds. Nothing you saved is lost."
+                         : "Still no answer after " + tries + " more tries. Nothing you saved is lost.") {
+      LookButton("Try again", Retry, kind: ButtonKind.Primary);
+    }
+  }
+}
+
+/// The browser is offline.
+[Route("/dev/parts/offline")]
+[AllowAnonymous]
+[Title("Offline")]
+[Render(CSR)]
+component OfflineStatePage() {
+  action Retry() { }
+  render {
+    PageState(PageStateKind.Offline, "You are offline",
+              "This page needs the network. It opens again by itself once the connection is back.") {
+      LookButton("Try again", Retry);
+    }
+  }
+}

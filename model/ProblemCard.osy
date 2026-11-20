@@ -1,0 +1,22 @@
+namespace Osysharp.Look;
+
+/// What stopped an action, shown on the page where it happened (ReleaseEditing's "Not saved: … changed while you
+/// edited"): white in the bad line, radius 14, `16px 20px`, its parts 10 apart; the title (18/700, an h2) with a bad
+/// `StatusChip` beside it, 8 apart, then the block at 14/1.5. An alert, so a screen reader says it.
+/// In a test it is the region of its title: `Assert.Visible("PORTAL-7", within: "2.4 is not released")`.
+[Composable]
+component ProblemCard(string title, string chip = "Refused") {
+  render {
+    Stack(gap: "10px", py: "16px", px: "20px", bg: Colors.Surface, borderW: 1, border: Colors.BadLine, rounded: Radius.Panel, minW: "0",
+          role: UiRole.Alert, label: title) {
+      Row(gap: "8px", align: Align.Center, wrap: Wrapping.Wrap) {
+        Text(title, role: UiRole.Heading, level: 2, fontSize: FontSize.SectionTitle, fontWeight: FontWeight.Heavy, color: Colors.OnSurface,
+             lineHeight: "normal");
+        if (chip != "") {
+          StatusChip(chip, StatusTone.Bad);
+        }
+      }
+      Stack(gap: "6px", fontSize: FontSize.Body, lineHeight: "1.5", color: Colors.OnSurface, minW: "0") { Slot; }
+    }
+  }
+}

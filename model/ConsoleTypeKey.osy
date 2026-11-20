@@ -1,0 +1,28 @@
+namespace Osysharp.Look;
+
+/// The key under a list of plan items: "Types, largest first: Saga › Arc › Slice › Bit", and on a wide page the sentence
+/// that says any type may sit at the top level and children are always a smaller type. On a panel's foot: `#FAFAF8`,
+/// a rule over it, 12 text-2. `foot`: it ends a `ConsolePanel`, so its bottom corners are the panel's inside
+/// (`Radius.ConsolePanelFoot`), as the panel no longer clips (PO1).
+[Composable]
+component ConsoleTypeKey(bool foot = false) {
+  render {
+    var wide = Layout.AtLeast(Tablet);
+    Row(gap: wide ? "14px" : "8px", align: Align.Center, wrap: Wrapping.Wrap, py: "10px", px: "16px", borderTW: wide ? 1 : 0, border: Colors.ConsoleBorderInner,
+        bg: Colors.ConsoleSunken, rounded: foot ? Radius.ConsolePanelFoot : "0", fontSize: FontSize.ConsoleSmall, color: Colors.ConsoleText2, minW: "0", label: "Types, largest first") {
+      if (wide) {
+        Text("Types, largest first:");
+      }
+      ConsoleTypeBadge("Saga", ConsoleTypeKind.Saga);
+      Text("›", decorative: true);
+      ConsoleTypeBadge("Arc", ConsoleTypeKind.Arc);
+      Text("›", decorative: true);
+      ConsoleTypeBadge("Slice", ConsoleTypeKind.Slice);
+      Text("›", decorative: true);
+      ConsoleTypeBadge("Bit", ConsoleTypeKind.Bit);
+      if (wide) {
+        Text("Any type can sit at the top level; children are always a smaller type.", ml: "auto");
+      }
+    }
+  }
+}

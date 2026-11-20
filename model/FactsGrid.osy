@@ -1,0 +1,27 @@
+namespace Osysharp.Look;
+
+/// A grid of facts (Slice, Release): as many 170 px columns as fit, `12px 20px` apart, each a `FactCell`. The kit's
+/// `Facts` is a list of label-value rows, not this grid. In a test it is the region `label`.
+/// `ruled: true` is console v6's `.facts` (an account card's plan, apps, members, created): no gaps, the cells ruled off
+/// from the card's head above them and from each other by Line 2 hairlines, each cell `14px 16px` — give its cells
+/// `ruled: true` too. Draw it straight in the card (not in a padded box), so its rules reach the card's edges.
+/// e.g. `FactsGrid("Account", ruled: true) { FactCell("Plan", "Team", ruled: true); FactCell("Slug", "northwind", mono: true, ruled: true); }`
+[Composable]
+component FactsGrid(string label, bool ruled = false) {
+  render {
+    if (ruled) {
+      // Each cell draws its rule above it and on its left; the grid stands 1 px up and left of its box, which cuts the
+      // outer ones away, so only the rules between cells show, and the box's own top rule is the one under the head.
+      Box(borderTW: 1, border: Colors.Line2, overflow: Overflow.Hidden, minW: "0") {
+        Box(display: Display.Grid, cols: "repeat(auto-fit, minmax(min(170px, 100%), 1fr))", gap: "0", mt: "-1px", ml: "-1px", role: UiRole.List,
+            label: label) {
+          Slot;
+        }
+      }
+    } else {
+      Box(display: Display.Grid, cols: "repeat(auto-fit, minmax(min(170px, 100%), 1fr))", gap: "12px 20px", role: UiRole.List, label: label) {
+        Slot;
+      }
+    }
+  }
+}

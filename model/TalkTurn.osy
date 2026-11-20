@@ -1,0 +1,34 @@
+namespace Osysharp.Look;
+
+using Osysharp.Markdown;
+
+// A turn of the design conversation as the designer board draws it (designer.dc.html `.turn`; DECISIONS 13 Nov: "a
+// collapsible planner agent ... that doesnt waste too much time on who is who with images"): plain text under a one-word
+// speaker line — no avatar, no bubble. `ConversationTurn` stays for the planner panel's chat.
+
+/// One turn: `who` in one word ("You", "Designer") 13/600 Ink 3, then " · " and the time (`RelativeDate`, the exact time
+/// on hover); under it the text, Markdown by the platform's renderer at 15/1.65 in the ink; the block follows the text
+/// (`CaptureLine`s, a `DecisionCard`, a second paragraph). Parts 6 apart. `pending`: being written — "Writing…" after the
+/// time, the text drawn as it streams, the turn a status.
+/// In a test it is the group "<who>, <when>" (`when` is `RelativeWords(at, now)`): `Assert.Visible("…", within: "Designer, 2 min ago")`.
+[Composable]
+component TalkTurn(string who, DateTime at, string text, bool pending = false, DateTime? now = null) {
+  render {
+    Stack(gap: "6px", minW: "0", role: pending ? UiRole.Status : UiRole.Group, label: who + ", " + RelativeWords(at, now ?? DateTime.UtcNow)) {
+      Row(gap: "6px", align: Align.Center, fontSize: FontSize.Label, color: Colors.Ink3, lineHeight: "normal") {
+        Text(who, fontWeight: FontWeight.Semibold);
+        Text("·", decorative: true);
+        RelativeDate(at, now: now);
+        if (pending) {
+          Text("· Writing…", color: Colors.RunInk);
+        }
+      }
+      if (text != "") {
+        Box(minW: "0", fontSize: FontSize.Summary, lineHeight: "1.65", color: Colors.OnSurface) {
+          Markdown(text, streaming: pending);
+        }
+      }
+      Slot;
+    }
+  }
+}

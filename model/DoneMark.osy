@@ -1,0 +1,20 @@
+namespace Osysharp.Look;
+
+/// Whether a thing is done, as plan-part.dc.html marks an area and a decision: done a filled circle in the ok dot with
+/// a white ✓; not done a hollow ring 2 px in the you dot. `size` 16 for an area, 14 on a trail. Named "agreed" / "open"
+/// (`doneWords`, `openWords`) for a screen reader.
+[Composable]
+component DoneMark(bool done, int size = 16, string doneWords = "agreed", string openWords = "open") {
+  render {
+    if (done) {
+      Box(w: size + "px", h: size + "px", minW: size + "px", rounded: Radius.Pill, bg: Colors.OkDot, color: Colors.Surface, display: Display.Flex,
+          align: Align.Center, justify: Justify.Center, fontSize: (size <= 14 ? 9 : 11) + "px", fontWeight: FontWeight.Heavy, lineHeight: "1",
+          role: UiRole.Graphic, label: doneWords) {
+        Text("✓", decorative: true);
+      }
+    } else {
+      Box(w: size + "px", h: size + "px", minW: size + "px", rounded: Radius.Pill, borderW: 2, border: Colors.YouDot, role: UiRole.Graphic,
+          label: openWords);
+    }
+  }
+}

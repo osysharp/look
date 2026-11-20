@@ -1,0 +1,19 @@
+namespace Osysharp.Look;
+
+/// The page frame's main column: it grows from 640 px to at most 1120 and holds its parts 18 px apart (header, tab bar,
+/// summary row, bands, cards). `landmark`: it is the page's main region, for a frame that has no main of its own.
+/// It sits in a row (Foundry's shell: 640 px wide and up) or in a column of fixed height (Admin's content region): it is
+/// never shorter than its parts (`min-height: min-content`), so a column parent cannot squeeze its cards to their heads
+/// — the parent scrolls or grows, as it decides. `ground`: padding on the ground around it (Admin's `20px`), inside its
+/// 1120 px; none by default.
+[Composable]
+component PageColumn(string label = "", bool landmark = false, string ground = "") {
+  render {
+    if (landmark) {
+      Stack(gap: "18px", grow: 999, basis: "640px", minW: "0", minH: "min-content", maxW: "1120px", p: ground != "" ? ground : "0", role: UiRole.Main,
+            label: label) { Slot; }
+    } else {
+      Stack(gap: "18px", grow: 999, basis: "640px", minW: "0", minH: "min-content", maxW: "1120px", p: ground != "" ? ground : "0", label: label) { Slot; }
+    }
+  }
+}

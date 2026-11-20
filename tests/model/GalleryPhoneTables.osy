@@ -1,0 +1,17 @@
+namespace OsyrinLookTests;
+
+using Osysharp.Look;
+
+/// The gallery's "Tables on a phone" section (L1): a settings table and a plain table whose rows stack into one column
+/// below the Phone breakpoint, each cell under its column's head. At the gallery's 1440 they are ordinary tables; alone
+/// at /dev/controls/phone-tables they can be read at 390.
+[Composable]
+component GalleryPhoneTables() {
+  render {
+    Stack(gap: "16px", label: "Tables on a phone") {
+      H2("Tables on a phone");
+      Caption("Below the Phone breakpoint a row is one column: the name, the value, then each other cell under its head, then what is under the row. The head row is not drawn, nothing scrolls sideways, and a reader still hears each cell under its column.");
+      PhoneTableSamples();
+    }
+  }
+}

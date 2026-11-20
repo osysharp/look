@@ -1,0 +1,32 @@
+namespace Osysharp.Look;
+
+/// A compact row of named checks, each passed, failed or not judged (outcome · tests named · fits a session ·
+/// buildable). On no board as one row; drawn in the boards' language — SliceDesign's stage dots and Brief's Ready /
+/// Missing marks — small: a 16 px mark (passed: a white ✓ on the ok dot; failed: a ✕ in the bad ink on the bad tint;
+/// not judged: a dashed control-line ring) 5 px before the name, 12/600 (Ink 2; failed in the bad ink; not judged Ink 3);
+/// marks 4 × 12 apart, wrapping. A failed mark shows its reason as the look's hover title, and every mark is read whole
+/// ("Tests named: failed — Criterion 2 names no test."), so the reason never needs a pointer; `reasons`: the failed
+/// reasons are also written under the row, 12/1.4 in the bad ink, "Name: reason".
+/// A list named `label`; each mark a list item named as it is read: `Assert.Visible("Fits a session", within:
+/// "Readiness")` (its marks are a plain class with no `Id`, so `Assert.Items` does not count them).
+/// e.g. `ReadinessMarks([new ReadinessMark { Name = "Outcome", State = MarkState.Passed }, …], label: "Readiness of BOOK-17")`
+/// `focusable`: each failed mark with a reason is a keyboard stop whose reason opens on focus (`ReadinessMarkItem`).
+[Composable]
+component ReadinessMarks(List<ReadinessMark> marks, string label = "Readiness", bool reasons = false, bool focusable = false) {
+  render {
+    Stack(gap: "6px", minW: "0") {
+      Row(gap: "4px 12px", align: Align.Center, wrap: Wrapping.Wrap, role: UiRole.List, label: label, minW: "0") {
+        foreach (var mark in marks) {
+          ReadinessMarkItem(mark, focusable: focusable);
+        }
+      }
+      if (reasons) {
+        foreach (var mark in marks) {
+          if (mark.State == MarkState.Failed && mark.Reason != "") {
+            Text(mark.Name + ": " + mark.Reason, fontSize: FontSize.Caption, lineHeight: "1.4", color: Colors.BadInk);
+          }
+        }
+      }
+    }
+  }
+}

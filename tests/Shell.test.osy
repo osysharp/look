@@ -1,0 +1,100 @@
+// The app frame (`LookShell`) at /dev/shell, with the Navigation board's rail: docked, as the strip, with a rail too
+// long for the window (every section open), with a row under a row, and at a phone's width.
+
+using Osysharp.Look;
+using OsyrinLookTests;
+
+[Test]
+void The_shell_draws_the_rail_the_strip_and_the_persons_menu() {
+  Ui.Viewport(1440);
+  Ui.Visit("/dev/shell");
+  Assert.Visible("Northwind Health", within: "Main navigation");
+  Assert.Visible("Run", within: "Main navigation");
+  Assert.Visible("1 frozen", within: "Main navigation");
+  Assert.Visible("Jonas Lindqvist", within: "Main navigation");
+  Assert.Hidden("Your account");
+  Ui.Shot("shell-rail");
+  Ui.Click("Jonas Lindqvist");
+  Ui.Click("Your account");
+  Assert.Visible("Account opened");
+  Ui.Click("Collapse navigation");
+  Assert.Hidden("Jonas Lindqvist", within: "Main navigation");
+  Ui.Shot("shell-strip");
+  Ui.Click("Expand navigation");
+  Assert.Visible("Jonas Lindqvist", within: "Main navigation");
+}
+
+// LK5: v6 draws every group open, so a long rail keeps its sections open and its rows' counts in view (the rows
+// scroll); a reader folds a section by its label, and it then shows how many rows it holds.
+[Test]
+void A_long_rail_keeps_its_sections_open_with_their_counts_and_folds_one_by_its_label() {
+  Ui.Viewport(1440);
+  Ui.Visit("/dev/shell/long");
+  Assert.Visible("Run 3", within: "Main navigation");
+  Assert.Visible("4 waiting", within: "Main navigation");
+  Assert.Visible("Work 10", within: "Main navigation");
+  Assert.NoOverflow();
+  Ui.Shot("shell-long-1440");
+  Ui.Click("Run", within: "Main navigation");
+  Assert.Hidden("Run 3", within: "Main navigation");
+  Assert.Hidden("4 waiting", within: "Main navigation");
+  Assert.Visible("Work 10", within: "Main navigation");
+  Ui.Shot("shell-long-folded-1440");
+  Ui.Click("Run", within: "Main navigation");
+  Assert.Visible("Run 3", within: "Main navigation");
+  Ui.Viewport(390);
+  Ui.Visit("/dev/shell/long");
+  Ui.Click("Open navigation");
+  Assert.Visible("4 waiting", within: "Main navigation");
+  Assert.NoOverflow();
+  Ui.Shot("shell-long-390");
+}
+
+// LK6: a row under another stands in the rail's column itself; on a short rail it keeps a row's height instead of
+// growing into the rail's spare room.
+[Test]
+void A_nested_rail_row_keeps_a_rows_height_on_a_short_rail() {
+  Ui.Viewport(1440);
+  Ui.Visit("/dev/shell/nested");
+  Assert.Visible("Platform status", within: "Main navigation");
+  Assert.SameHeight("Platform status", "Organisations");
+  Assert.Above("Platform status", "Customers");
+  Ui.Shot("shell-nested-1440");
+  Ui.Viewport(390);
+  Ui.Visit("/dev/shell/nested");
+  Ui.Click("Open navigation");
+  Assert.Visible("Platform status", within: "Main navigation");
+  Assert.SameHeight("Platform status", "Organisations");
+  Assert.NoOverflow();
+  Ui.Shot("shell-nested-390");
+}
+
+[Test]
+void On_a_phone_the_rail_is_a_menu_behind_a_button() {
+  Ui.Viewport(390);
+  Ui.Visit("/dev/shell");
+  Assert.Hidden("Hosts");
+  Ui.Click("Open navigation");
+  Assert.Visible("Hosts", within: "Main navigation");
+  Assert.Visible("Jonas Lindqvist", within: "Main navigation");
+  Ui.Shot("shell-phone-menu");
+  Ui.Click("Close menu");
+  Assert.Hidden("Hosts");
+}
+
+[Test]
+void The_switcher_lists_its_places_under_their_headings() {
+  Ui.Viewport(1440);
+  Ui.Visit("/dev/shell/groups");
+  Assert.Hidden("Platform console");
+  Ui.Click("Northwind Health, switch");
+  Assert.Visible("Platform console", within: "Platform");
+  Assert.Visible("Northwind Health", within: "Your organisations");
+  Assert.Visible("Claims Desk", within: "Your organisations");
+  Assert.Hidden("Platform console", within: "Your organisations");
+  Assert.Above("Platform console", "Claims Desk");
+  Ui.Shot("shell-switcher-groups");
+  Ui.Click("Platform console");
+  Assert.OnPage("/dev/shell/area/platform");
+  Assert.Hidden("Claims Desk");
+}

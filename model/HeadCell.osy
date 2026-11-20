@@ -1,0 +1,8 @@
+namespace Osysharp.Look;
+
+/// One column header as the head draws it: its words and its column (from 0). It has no `Id` on purpose — the head's
+/// cells are not rows, and a row stamp needs an identity.
+public class HeadCell {
+  public string Words = "";
+  public int Index = 0;
+}

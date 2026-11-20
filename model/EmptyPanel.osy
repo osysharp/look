@@ -1,0 +1,31 @@
+namespace Osysharp.Look;
+
+/// Nothing here yet: the overline, the title (17/700), what would be here (14/1.5 Ink 2) and the one action that fills
+/// it (the block). In a test it is the region of its title.
+/// It is as tall as what it says (L1): in a grid or a row it still fills its cell (a stretched cell is as tall as the
+/// row), but in a column it takes no share of the column's height — before L1 it said `height: 100%`, which in a page
+/// column of the window's height left dead space under its button.
+/// `framed: false` is the empty state INSIDE a card (`SectionCard`, `TableCard`'s place for rows): no frame of its own,
+/// `10px 20px 20px` under the card's head, so the card is as tall as its words and its button.
+[Composable]
+component EmptyPanel(string title, string body, string overline = "Empty", bool framed = true) {
+  render {
+    if (framed) {
+      Box(label: title) {
+        StateCard(StateKind.Empty) {
+          StateOverline(overline);
+          Text(title, role: UiRole.Heading, level: 3, fontSize: FontSize.ItemTitle, fontWeight: FontWeight.Heavy, color: Colors.OnSurface, lineHeight: "normal");
+          Text(body, fontSize: FontSize.Body, color: Colors.Ink2, lineHeight: "1.5");
+          Slot;
+        }
+      }
+    } else {
+      Stack(gap: "8px", pt: "10px", px: "20px", pb: "20px", label: title) {
+        StateOverline(overline);
+        Text(title, role: UiRole.Heading, level: 3, fontSize: FontSize.ItemTitle, fontWeight: FontWeight.Heavy, color: Colors.OnSurface, lineHeight: "normal");
+        Text(body, fontSize: FontSize.Body, color: Colors.Ink2, lineHeight: "1.5");
+        Slot;
+      }
+    }
+  }
+}

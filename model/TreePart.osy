@@ -1,0 +1,14 @@
+namespace Osysharp.Look;
+
+/// One row of a `PartTree`: how deep it sits (0 the top), its kind as words and tone ("Arc", "Slice", "Discovery"), its
+/// key or ref (may be empty), its title, a quiet second line (what it waits on, its estimate), and where it opens
+/// (`To`, may be empty: a proposed part has no page yet).
+public class TreePart {
+  public int Level = 0;
+  public string Kind = "";
+  public ChipTone KindTone = ChipTone.Run;
+  public string Key = "";
+  public string Title = "";
+  public string Line = "";
+  public string To = "";
+}

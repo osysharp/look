@@ -1,0 +1,54 @@
+// L1: a table row readable on a phone — one column, each cell under its head, nothing sideways in a card at 390, and
+// the cells still read by column name; `stack: false` keeps the old sideways scroll.
+
+using Osysharp.Look;
+using OsyrinLookTests;
+
+[Test]
+void A_table_row_stacks_on_a_phone_and_its_cells_are_still_read_by_column() {
+  Ui.Viewport(390);
+  Ui.Visit("/dev/controls/phone-tables");
+  Assert.NoOverflow();
+  // The settings row: name, value, tag, then the page's own cells, all inside the card; the right-hand column too.
+  Assert.Items("Network policies table", 2);
+  Assert.Cell("Outbound hosts", "Kind", "Hard boundary", within: "Network policies table");
+  Assert.Cell("Deploy freeze", "Applies to", "12 of 14", within: "Network policies table");
+  Assert.Inside("12 of 14", "Network policies");
+  Assert.Inside("Draft v6", "Network policies");
+  Assert.Below("18 allowed hosts, every other call is refused", "Outbound hosts");
+  Assert.Below("Hard boundary", "18 allowed hosts, every other call is refused");
+  Assert.Below("At save and at run", "Hard boundary");
+  // The under slot, opened, at full width under the cells.
+  Ui.Click("Where it is enforced");
+  Assert.Visible("Enforced at: an app's save");
+  Assert.Inside("Enforced at: an app's save, and by the host's egress filter when an app calls out. Why: patient data stays with named processors.",
+                "Network policies");
+  Assert.Below("Where it is enforced", "All apps");
+  Assert.NoOverflow();
+  // The plain row: its first cell, then each other cell under its head.
+  Assert.Items("Slices of 2.4 table", 3);
+  Assert.Cell("UPKEEP-45", "State", "Waiting on UPKEEP-44", within: "Slices of 2.4 table");
+  Assert.Cell("UPKEEP-41", "Tokens", "41k", within: "Slices of 2.4 table");
+  Ui.Within("UPKEEP-45") { Assert.Below("Waiting on UPKEEP-44", "Show the rounding rule beside each total, on every claim screen"); }
+  Assert.Inside("Will merge after UPKEEP-44, which changes the same summary screen.", "Slices of 2.4");
+  Ui.Shot("phone-tables-390");
+  Ui.Viewport(1440);
+  Ui.Visit("/dev/controls/phone-tables");
+  // At a desk the same tables are columns: the head is drawn, the kind beside the value.
+  Assert.RightOf("Hard boundary", "18 allowed hosts, every other call is refused");
+  Assert.Cell("Outbound hosts", "Kind", "Hard boundary", within: "Network policies table");
+  Ui.Shot("phone-tables-1440");
+}
+
+[Test]
+void The_gallery_tables_fit_a_phone_and_read_by_column() {
+  Ui.Viewport(390);
+  Ui.Visit("/dev/controls/tables");
+  Assert.NoOverflow();
+  Assert.Items("Contents table", 3);
+  Assert.Cell("UPKEEP-44", "State", "Building", within: "Contents table");
+  Assert.Cell("host-013", "State", "Idle");
+  Ui.Within("Settings sample with guides") { Assert.Inside("12 of 14", "Effective policies"); }
+  // `stack: false`: the wide table keeps its columns and scrolls inside its card.
+  Assert.Wider("Network table", "Network");
+}

@@ -1,0 +1,27 @@
+namespace Osysharp.Look;
+
+/// A key that opens its item: mono 13/600 in the accent, no underline until hovered (`BOOK-14`). `small`: 12/600, in a
+/// side card's dependency row.
+/// In a test it is pressed by the key: `Ui.Click("BOOK-14")`.
+[Composable]
+component KeyLink(string key, string to, bool small = false) {
+  variants {
+    base {
+      FontFamily = Font.KeyFace;
+      FontSize = FontSize.Label;
+      FontWeight = FontWeight.Semibold;
+      Color = Colors.Primary;
+      TextDecoration = TextDecoration.None;
+      WhiteSpace = WhiteSpace.Nowrap;
+      LineHeight = "normal";
+      Hover {
+        TextDecoration = TextDecoration.Underline;
+        Color = Colors.AccentInk;
+      }
+    }
+    small {
+      FontSize = FontSize.Caption;
+    }
+  }
+  render { Link(to, label: key) { Text(key); } }
+}

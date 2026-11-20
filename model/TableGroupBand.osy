@@ -1,0 +1,57 @@
+namespace Osysharp.Look;
+
+/// A group band between a table's head and its rows (Release "SAGA UPKEEP Claims Desk upkeep › UPKEEP-ROUND Rounding
+/// fix"): `8px 20px` on the wash under a Line 2 rule, its parts on one baseline `6px 12px` apart at 16 px — the group's
+/// kind as an eyebrow, its key, its title 600, a "›" in Ink 2, then the inner group's key and title 500. Each key stays
+/// with its title: on a narrow screen the band breaks between the group and the inner group, never inside one.
+/// The block is the band's right-hand note (ReleasePlan's "arc set to Next · 5 slices"): 12 in Ink 2, pushed to the
+/// right, its parts 8 apart — the group's own reason, a quiet action. In a test it is the region of `label`, or of
+/// its title.
+/// It is NOT a table row: a labelled group inside the table, entered by its name. A band drawn as a `row` would be a row
+/// of one cell under a head of several — the test driver reports that as a broken row, and a reader would announce the
+/// band as data. It counts in `Assert.Items(<table>)` only if the caller's loop over groups stamps rows: loop over a
+/// value with no `Id` (a class without one), so only the data rows are counted.
+/// With `keyLevel` (and `innerKeyLevel`) a key is a chip in its level's colours (`ConsoleKeyChipLink`, `keyKind`), read
+/// as "Saga PORTAL-1", as Home and the Plan tab draw keys. With chips the colour says the level, so the caller may pass
+/// an empty `eyebrow` and the band draws none.
+[Composable]
+component TableGroupBand(string eyebrow, string title, string key = "", string keyTo = "", string innerKey = "", string innerKeyTo = "",
+                         string innerTitle = "", string label = "", string keyLevel = "", ConsoleTypeKind keyKind = ConsoleTypeKind.Saga,
+                         string innerKeyLevel = "", ConsoleTypeKind innerKeyKind = ConsoleTypeKind.Arc) {
+  render {
+    Row(gap: "6px 12px", align: Align.Baseline, wrap: Wrapping.Wrap, py: "8px", px: "20px", bg: Colors.Wash, borderTW: 1, border: Colors.Line2,
+        fontSize: FontSize.Subhead, lineHeight: "normal", label: label == "" ? title : label) {
+      if (eyebrow != "") {
+        Eyebrow(eyebrow);
+      }
+      Row(gap: "12px", align: Align.Baseline, minW: "0") {
+        if (key != "") {
+          Box(shrink: 0) {
+            if (keyLevel == "") {
+              KeyLink(key, keyTo);
+            } else {
+              ConsoleKeyChipLink(key, keyTo, keyKind, keyLevel);
+            }
+          }
+        }
+        Text(title, fontWeight: FontWeight.Semibold, minW: "0");
+      }
+      if (innerTitle != "") {
+        Row(gap: "12px", align: Align.Baseline, minW: "0") {
+          Text("›", color: Colors.Ink2, decorative: true);
+          if (innerKey != "") {
+            Box(shrink: 0) {
+              if (innerKeyLevel == "") {
+                KeyLink(innerKey, innerKeyTo);
+              } else {
+                ConsoleKeyChipLink(innerKey, innerKeyTo, innerKeyKind, innerKeyLevel);
+              }
+            }
+          }
+          Text(innerTitle, fontWeight: FontWeight.Medium, minW: "0");
+        }
+      }
+      Row(gap: "8px", align: Align.Baseline, wrap: Wrapping.Wrap, ml: "auto", fontSize: FontSize.Caption, color: Colors.Ink2) { Slot; }
+    }
+  }
+}

@@ -1,0 +1,12 @@
+namespace Osysharp.Look;
+
+/// One stage of a `StageStrip`: its title ("Breakdown"), what happens in it (one or two lines, may be empty), the state
+/// line under it ("by Anna Berg · 12 Nov", "Waiting for Anna Berg's answer", "not yet"), a rule that holds it (an amber
+/// note on the current stage only, may be empty), and where it opens (`To`, may be empty).
+public class StripStage {
+  public string Title = "";
+  public string What = "";
+  public string State = "";
+  public string Rule = "";
+  public string To = "";
+}

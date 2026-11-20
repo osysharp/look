@@ -1,0 +1,65 @@
+namespace OsyrinLookTests;
+
+using Osysharp.Look;
+
+// Components §5 and §6: the kit's editing and settings parts under the look's tokens (OsyrinV3 sets the kit's own
+// token names to the board's values), with the board's sample content. The look draws only what the kit cannot reach:
+// the diff (`DiffLines`, `FieldDiff`).
+
+/// §5 — the scope header and setting rows (kit `ScopeHeader`, `ScopedSetting`), beside the editing banner and a pending
+/// change (kit `EditingBanner`, `PendingChange`).
+[Composable]
+component GallerySettings() {
+  action Nothing() { }
+  render {
+    BoardPair {
+      Stack(gap: 0, bg: Colors.Surface, borderW: 1, border: Colors.Border, rounded: Radius.Panel, overflow: Overflow.Hidden, minW: "0",
+            label: "5 · Scope header and setting rows") {
+        Box(pt: "20px", px: "24px", pb: "8px") { H2("5 · Scope header and setting rows"); }
+        Box(my: "8px", mx: "24px") {
+          ScopeHeader("Editing: Patient Portal", summary: "inherits Northwind Health defaults · 6 set here · 9 locked by policy",
+                      trail: ["Policy floor v4", "Organization", "Product: Patient Portal ▾", "Repo ▾", "Host ▾"], current: "Product: Patient Portal ▾",
+                      help: "How scopes combine ▸");
+        }
+        ScopedSetting("Stuck after", "How long a lane may go without progress before it is called stuck.", "45 minutes", "From organization: 45 minutes");
+        ScopedSetting("Reviews before merge", "Reviewer steps that must pass before a slice merges.", "3 reviewers", "● Set here (organization: 2) ·",
+                      from: SettingFrom.SetHere, action: "Reset to organization value", onAction: Nothing);
+        ScopedSetting("Model for agent steps", "The highest model tier an agent step may use.", "Opus tier", "Locked by policy floor v4 — a lower tier is allowed",
+                      from: SettingFrom.Locked);
+        ScopedSetting("Status refresh", "How often pushed status (lanes, hosts, the Factory strip) refreshes on open pages. Organization scope.",
+                      "Every 15 seconds", "Default: every 15 seconds · Northwind has not changed it", from: SettingFrom.Default);
+      }
+      Stack(gap: "12px", minW: "0", label: "Editing workflow Reviewed v7 · 3 unsaved changes") {
+        EditingBanner("Editing workflow Reviewed v7 · 3 unsaved changes", onDiscard: Nothing, onSave: Nothing);
+        PendingChange("Planner proposes:", "session budget 220k (was 160k) for BOOK-14", onAccept: Nothing, onEdit: Nothing, onReject: Nothing);
+        Text("Review and save opens the impact preview as a dialog over the tab: 14.", fontSize: FontSize.Label, color: Colors.Ink3, lineHeight: "1.5");
+      }
+    }
+  }
+}
+
+/// §6 — the history list (kit `HistoryRow`) beside the diff (the look's `DiffLines` and `FieldDiff`).
+[Composable]
+component GalleryHistory() {
+  action Nothing() { }
+  render {
+    BoardPair("minmax(0, 1.3fr) minmax(0, 1fr)") {
+      Stack(gap: 0, bg: Colors.Surface, borderW: 1, border: Colors.Border, rounded: Radius.Panel, overflow: Overflow.Hidden, minW: "0",
+            label: "6 · History list") {
+        Box(pt: "20px", px: "24px", pb: "10px") { H2("6 · History list"); }
+        HistoryRow("Today 09:12", "Anna Berg", "Performance review: Advisory → Gate", why: "Two slow pages reached users in 2.3.", onUndo: Nothing);
+        HistoryRow("Today 08:40", "Planner agent, acting for Jonas Lindqvist", "BOOK-17 moved: 2.5 → 2.4", why: "Unblocks BOOK-14 and fits the lanes left.",
+                   onUndo: Nothing);
+        HistoryRow("Fri 30 Oct", "Jonas Lindqvist", "Session budget: 120k → 160k", why: "BOOK slices kept running out of context.");
+        HistoryRow("Thu 29 Oct", "Erik Sund", "Public channel: approvers 1 → 2", why: "Policy floor v4 asks for four eyes.");
+      }
+      Stack(gap: "10px", py: "20px", px: "24px", bg: Colors.Surface, borderW: 1, border: Colors.Border, rounded: Radius.Panel, minW: "0", label: "Diff") {
+        H2("Diff");
+        Text("Workflow Reviewed · v7 → v8", fontSize: FontSize.Label, color: Colors.Ink3);
+        DiffLines(["  Build · Agent step · Opus tier", "− Performance review · Advisory", "+ Performance review · Gate",
+                   "  Merge check · Required before Done"]);
+        FieldDiff("Runs when", "every slice", "slices that touch app/booking/**");
+      }
+    }
+  }
+}

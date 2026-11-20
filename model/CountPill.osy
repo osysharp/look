@@ -1,0 +1,49 @@
+namespace Osysharp.Look;
+
+/// A count that matters, as a pill: the number then its words, one text, 12/600 tabular, `2px 9px`, pill ends, on the tone's tint in
+/// its ink ("7 not ready" in You; "0 not ready" in Wait, the neutral grey). In a test it is read by its words.
+[Composable]
+component CountPill(int count, string words, StatusTone tone = StatusTone.Wait) {
+  variants {
+    base {
+      Display = Display.InlineFlex;
+      W = "fit-content";
+      Px = "9px";
+      Py = "2px";
+      Rounded = Radius.Pill;
+      FontSize = FontSize.Caption;
+      FontWeight = FontWeight.Semibold;
+      WhiteSpace = WhiteSpace.Nowrap;
+      LineHeight = "normal";
+    }
+    tone {
+      Ok {
+        Bg = Colors.OkTint;
+        Color = Colors.OkInk;
+      }
+      Run {
+        Bg = Colors.RunTint;
+        Color = Colors.RunInk;
+      }
+      Wait {
+        Bg = Colors.WaitTint;
+        Color = Colors.WaitInk;
+      }
+      You {
+        Bg = Colors.YouTint;
+        Color = Colors.YouInk;
+      }
+      Bad {
+        Bg = Colors.BadTint;
+        Color = Colors.BadInk;
+      }
+      Floor {
+        Bg = Colors.FloorTint;
+        Color = Colors.FloorInk;
+      }
+    }
+  }
+  render {
+    Text(words == "" ? "" + count : count + " " + words, fontVariant: FontVariant.TabularNums);
+  }
+}

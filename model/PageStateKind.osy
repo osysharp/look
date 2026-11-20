@@ -1,0 +1,5 @@
+namespace Osysharp.Look;
+
+/// Which full-page state: the address names nothing, the reader may not see it, the page could not load, or the
+/// browser is offline.
+public enum PageStateKind { NotFound, Forbidden, Error, Offline }

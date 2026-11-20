@@ -1,0 +1,26 @@
+namespace Osysharp.Look;
+
+/// A fact in an outline, on white: 12/600 Ink inside a 1 px outline, `2px 8px`, radius 6 ("Exception-eligible",
+/// "Enforced at save and at run"). Beside it `SolidChip`.
+[Composable]
+component OutlineChip(string words) {
+  variants {
+    base {
+      Display = Display.InlineFlex;
+      W = "fit-content";
+      Px = "8px";
+      Py = "2px";
+      Rounded = Radius.Chip;
+      Bg = Colors.Surface;
+      BorderW = 1;
+      BorderStyle = BorderStyle.Solid;
+      Border = Colors.OutlineLine;
+      FontSize = FontSize.Caption;
+      FontWeight = FontWeight.Semibold;
+      Color = Colors.OnSurface;
+      WhiteSpace = WhiteSpace.Nowrap;
+      LineHeight = "normal";
+    }
+  }
+  render { Text(words); }
+}

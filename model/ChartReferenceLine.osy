@@ -1,0 +1,10 @@
+namespace Osysharp.Look;
+
+/// A threshold drawn across a chart (HT1): a dashed rule at `Value` in the chart's unit, named by `Label` ("Floor") at
+/// the plot's left with its value ("Floor 50 GB"). Amber by default; `Critical` draws it red. A chart's scale reaches
+/// at least the highest reference line, so every line is inside the plot.
+public sealed class ChartReferenceLine {
+  public string Label = "";
+  public double Value;
+  public bool Critical;
+}

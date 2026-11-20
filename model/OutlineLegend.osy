@@ -1,0 +1,20 @@
+namespace Osysharp.Look;
+
+/// The outline's legend, at the very foot: what its two quiet marks mean, 13 Ink 3, `12px 20px 16px` under a soft
+/// hairline — the accent dot "New or changed in this session" and the link "Depends on something done or planned".
+[Composable]
+component OutlineLegend(string fresh = "New or changed in this session", string depends = "Depends on something done or planned") {
+  render {
+    Stack(gap: "4px", pt: "12px", px: "20px", pb: "16px", borderTW: 1, border: Colors.SoftLine, fontSize: FontSize.Label, color: Colors.Ink3,
+          lineHeight: "1.5", label: "Legend") {
+      Row(gap: "8px", align: Align.Center) {
+        Box(w: "6px", h: "6px", rounded: Radius.Pill, bg: Colors.BannerLine, shrink: 0, decorative: true);
+        Text(fresh);
+      }
+      Row(gap: "6px", align: Align.Start) {
+        Box(color: Colors.Ink4, pt: "2px", shrink: 0, decorative: true) { Icon(Icons.Link, size: 14); }
+        Text(depends);
+      }
+    }
+  }
+}

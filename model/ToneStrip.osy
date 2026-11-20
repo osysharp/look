@@ -1,0 +1,61 @@
+namespace Osysharp.Look;
+/// The tones of a tinted strip.
+public enum StripTone { Warning, Bad, Ok, Plain }
+
+/// A tinted strip under a row or a card (orgsettings/Bundle "Editing voids signatures."; PolicyFloorEffective's
+/// unreadable rule): 13/1.45, radius 8, `8px 10px`, `lead` strong then the `text`. Warning #FBEEDD/#7A3E0B, bad the bad
+/// tint and ink, ok the ok tint and ink, plain Line 2 and Ink 2. `AmberNote` stays the fit-width "Will merge after …"
+/// note; this one is as wide as its column. `markdown`: the text is Markdown (open questions, a list of decisions),
+/// drawn by the platform's renderer under the lead, in the strip's size and ink.
+/// e.g. `ToneStrip("Any edit creates revision 4; Elif's approval stays on revision 3.", lead: "Editing clears approvals.")`
+/// e.g. `ToneStrip("- Does a shared list show prices?\n- May a friend add to it?", lead: "Open questions.", markdown: true)`
+[Composable]
+component ToneStrip(string text, string lead = "", StripTone tone = StripTone.Warning, bool markdown = false) {
+  variants {
+    base {
+      Display = Display.Block;
+      Py = "8px";
+      Px = "10px";
+      Rounded = Radius.Control;
+      FontSize = FontSize.Label;
+      LineHeight = "1.45";
+    }
+    tone {
+      Warning {
+        Bg = Colors.YouTint;
+        Color = Colors.YouInk;
+      }
+      Bad {
+        Bg = Colors.BadTint;
+        Color = Colors.BadInk;
+      }
+      Ok {
+        Bg = Colors.OkTint;
+        Color = Colors.OkInk;
+      }
+      Plain {
+        Bg = Colors.Line2;
+        Color = Colors.Ink2;
+      }
+    }
+  }
+  render {
+    if (markdown) {
+      Stack(gap: "2px", minW: "0") {
+        if (lead != "") {
+          Text(lead, fontWeight: FontWeight.Heavy);
+        }
+        Box(minW: "0", wordBreak: WordBreak.BreakWord) {
+          Markdown(text);
+        }
+      }
+    } else {
+      Box {
+        if (lead != "") {
+          Text(lead, fontWeight: FontWeight.Heavy);
+        }
+        Text((lead != "" ? " " : "") + text, whiteSpace: WhiteSpace.PreWrap);
+      }
+    }
+  }
+}

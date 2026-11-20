@@ -1,0 +1,62 @@
+namespace Osysharp.Look;
+
+/// A chart in a console panel (Costs, Analysis, an app's Usage, Builds' "Size over time"): a `ConsolePanel` with the
+/// `title` and its muted `count` (what the chart covers: "newest 20 builds"), the `legend` at the head's right (each
+/// name after an 8 px swatch of its series, `Series1`… in order, 12 text-2; a group named "Legend"), and in the body
+/// (`12px 16px 14px`) the default slot (the chart: a Charts kit chart with `ChartChrome.Bare`, or bars of `Series1`)
+/// over a numberless `TrendAxis` from `from` to `to` (`middle` between) when `from` is given. With `emptyTitle` the body
+/// is a `ConsoleEmpty` instead ("No builds yet", `emptyBody`) and the chart is not drawn.
+/// With `points` (MS2b) the card draws the bars itself, with their scale: a `ConsoleBarChart` in `unit` ("builds", "%",
+/// "h", "$", "tokens"), `stacked` or side by side, the last point said `last` ("today"), above the default slot (what goes
+/// under the chart: a "Week by week" disclosure). The legend's swatches then take the chart's series colours, and the
+/// time labels under the bars replace `from`/`to`. With `line` (MS2c) the points are a `ConsoleLineChart` instead, for a
+/// rate or an average: each point with its sample, a sample below `thin` drawn hollow and labelled "n=2". With
+/// `references` (HT1) either chart draws those thresholds across its plot, named ("Floor 50 GB").
+[Composable]
+component ConsoleChartCard(string title, string count = "", List<string> legend = null, string from = "", string to = "", string middle = "",
+                           string emptyTitle = "", string emptyBody = "", List<ConsoleBarPoint> points = null, string unit = "",
+                           bool stacked = false, string last = "", bool line = false, int thin = 5,
+                           List<ChartReferenceLine> references = null) {
+  render {
+    ConsolePanel(title, count) {
+      slot extras {
+        if (legend != null && legend.Count() > 0 && emptyTitle == "") {
+          Row(gap: "4px 14px", wrap: Wrapping.Wrap, align: Align.Center, role: UiRole.Group, label: "Legend") {
+            foreach (var index in Enumerable.Range(0, legend.Count())) {
+              Row(gap: "6px", align: Align.Center) {
+                ConsoleSeriesSwatch(points != null ? ChartSeriesNumber(index) : index + 1);
+                Text(legend[index], fontSize: FontSize.ConsoleSmall, color: Colors.ConsoleText2);
+              }
+            }
+          }
+        }
+      }
+      if (emptyTitle != "") {
+        ConsoleEmpty(emptyTitle, emptyBody);
+      } else {
+        Stack(gap: "0", px: "16px", pt: "12px", pb: "14px", minW: "0") {
+          if (points != null && line) {
+            ConsoleLineChart(points, unit: unit, last: last, label: title, thin: thin, references: references);
+          } else if (points != null) {
+            ConsoleBarChart(points, unit: unit, stacked: stacked, last: last, label: title, references: references);
+          }
+          Slot;
+          if (from != "" && points == null) {
+            TrendAxis(from, to, middle, console: true);
+          }
+        }
+      }
+    }
+  }
+}
+
+/// A legend's 8 px swatch in the colour of chart series `series` (1–7; past 7 the series start again).
+[Composable, Part]
+component ConsoleSeriesSwatch(int series) {
+  render {
+    var number = (series - 1) % 7 + 1;
+    Box(w: "8px", h: "8px", shrink: 0, rounded: "2px", decorative: true,
+        bg: number == 1 ? Colors.Series1 : (number == 2 ? Colors.Series2 : (number == 3 ? Colors.Series3 : (number == 4 ? Colors.Series4
+          : (number == 5 ? Colors.Series5 : (number == 6 ? Colors.Series6 : Colors.Series7))))));
+  }
+}

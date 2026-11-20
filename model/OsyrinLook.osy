@@ -1,0 +1,139 @@
+namespace Osysharp.Look;
+
+// The look's own tokens: the v3 names the Ui kit has no word for, at the Components board's values (§1–2). Declared on
+// a theme of their own, as a kit declares its tokens, so every part of the look can read them wherever it is drawn; an
+// app re-themes one by declaring the same name in its theme.
+//
+// The six status tones — ok · run · wait · you · bad · floor — are each a tint (the chip's ground), an ink (its words)
+// and a dot. Each also differs in lightness, never by hue alone: the inks are all dark, the tints all pale, and the dot
+// is the one mid-tone mark. Ink 3 is the lightest grey text is set in; Ink 4 is for overlines only.
+theme OsyrinLook {
+  Colors {
+    /// Line 2: row dividers and the neutral chip's ground.
+    Line2 = Colors.ConsoleRowRule;
+    /// The soft outline of a card inside a card.
+    SoftLine = Colors.ConsoleBorderInner;
+    /// The outline of a secondary button, an input, a keycap.
+    ControlLine = Modes.Of(light: "#D6D3CB", dark: "#45433E");
+    /// The dashed outline of a Proposed tag.
+    ProposedLine = Modes.Of(light: "#A8A396", dark: "#6B675F");
+    /// The outline of an `OutlineChip`.
+    OutlineLine = Modes.Of(light: "#8C887D", dark: "#77736A");
+    /// The neutral wash: a table head, an inset panel, a permission note.
+    Wash = Colors.ConsoleSunken;
+    /// Ink 2 is the console's neutral ink; Ink 3 its text-2 (the console's text-3 is never words).
+    Ink2 = Colors.ConsoleNeutralInk;
+    Ink3 = Colors.ConsoleText2;
+    Ink4 = Modes.Of(light: "#6F6B61", dark: "#97938A");
+    /// The accent's deep ink: hover, the current tab's words, the editing banner.
+    AccentInk = Modes.Of(light: "#26208A", dark: "#CFC9FF");
+    /// The accent's tint: the current rail row, an editing chip.
+    AccentTint = Colors.ConsoleAccentSoft;
+    /// The accent's second tint: a selected row, a proposal band.
+    AccentTint2 = Modes.Of(light: "#F4F2FF", dark: "#221E42");
+    /// The outline of a proposal band, a drawer, the recommended option.
+    AccentLine = Modes.Of(light: "#CFC8FA", dark: "#4A4290");
+    AccentWash = Modes.Of(light: "#F8F7FF", dark: "#1B1838");
+    /// ok: done, healthy, on track.
+    OkTint = Modes.Of(light: "#E6F1E1", dark: "#1E3518");
+    OkInk = Modes.Of(light: "#24561F", dark: "#A6D98E");
+    OkDot = Modes.Of(light: "#2F7D32", dark: "#5FB35A");
+    /// run: running, in progress, in review.
+    RunTint = Modes.Of(light: "#E3EEF7", dark: "#17304A");
+    RunInk = Modes.Of(light: "#174E73", dark: "#9CC6F2");
+    RunDot = Modes.Of(light: "#2B6CB0", dark: "#5B9BDB");
+    /// wait: waits on something neutral.
+    WaitTint = Modes.Of(light: "#ECEAE3", dark: "#2C2B28");
+    WaitInk = Modes.Of(light: "#3A3833", dark: "#D6D3CA");
+    WaitDot = Modes.Of(light: "#8A8378", dark: "#8A8378");
+    /// you: needs a person; at risk.
+    YouTint = Modes.Of(light: "#FBEEDD", dark: "#43271A");
+    YouInk = Modes.Of(light: "#7A3E0B", dark: "#F4B994");
+    YouDot = Modes.Of(light: "#C0661A", dark: "#E08A40");
+    /// bad: blocked, refused, failed.
+    BadTint = Modes.Of(light: "#FCE7DF", dark: "#45201A");
+    BadInk = Modes.Of(light: "#8A2E12", dark: "#F2A994");
+    BadDot = Modes.Of(light: "#B4441F", dark: "#E0603A");
+    /// floor: locked by a policy.
+    FloorTint = Modes.Of(light: "#F1EFE8", dark: "#2A2926");
+    FloorInk = Modes.Of(light: "#1F1E1B", dark: "#ECEBE6");
+    FloorDot = Modes.Of(light: "#45423B", dark: "#ABA8A0");
+    OkLine = Modes.Of(light: "#CFE3C8", dark: "#2F4A27");
+    OkWash = Modes.Of(light: "#F3F9F0", dark: "#16230F");
+    YouLine = Modes.Of(light: "#F0D3AE", dark: "#5A3A20");
+    YouWash = Modes.Of(light: "#FFFCF7", dark: "#2A1B10");
+    BadLine = Modes.Of(light: "#F2C4B3", dark: "#5C2C20");
+    BadWash = Modes.Of(light: "#FFF8F5", dark: "#2B1410");
+    /// A skeleton line's stronger grey.
+    SkeletonInk = Modes.Of(light: "#ECEAE3", dark: "#2C2B28");
+
+    // The chart series, in the order a chart takes them: the accent, two lighter shades of it, then four greys. Each
+    // stands at 3:1 or more against the ground and a panel, light and dark, as a mark that is not words must. The
+    // status tones are not series: a chart uses them only where a series IS a state (done, running, failed), so a
+    // colour never says "failed" about a series that is merely the fifth.
+    /// The first series: the accent.
+    Series1 = Colors.Primary;
+    /// The second series: a lighter shade of the accent.
+    Series2 = Modes.Of(light: "#6B5FCE", dark: "#ABA3F0");
+    /// The third series: the lightest shade of the accent.
+    Series3 = Modes.Of(light: "#8A80D8", dark: "#CAC4F8");
+    /// The fourth series: the deepest grey.
+    Series4 = Modes.Of(light: "#2F2D29", dark: "#E4E1DA");
+    Series5 = Modes.Of(light: "#57544D", dark: "#C2BEB5");
+    Series6 = Modes.Of(light: "#77736A", dark: "#9C988F");
+    /// The seventh series: the lightest grey.
+    Series7 = Modes.Of(light: "#8F8B81", dark: "#7A766D");
+
+    // The signed-out frame (`LookSignedOutFrame`): a pale lavender page, the artwork, and a warm paper form. The
+    // artwork's dark is its own top-left tone: its ground while the picture loads, and the ink of the brand tile. It
+    // stays dark in both modes.
+    SignedOutPage = Modes.Of(light: "#E6DFEC", dark: "#121110");
+    SignedOutHeroDeep = "#10062B";
+    OnSignedOutHero = "#FFFFFF";
+    SignedOutForm = Modes.Of(light: "#F8F4EF", dark: "#1D1C1A");
+    SignedOutField = Modes.Of(light: "#FDFBFA", dark: "#252422");
+    SignedOutOutline = Modes.Of(light: "#A79DC8", dark: "#55516A");
+    SignedOutAction = Modes.Of(light: "#33227F", dark: "#5A48C8");
+    SignedOutActionHover = Modes.Of(light: "#291A6C", dark: "#4C3BB5");
+    OnSignedOutAction = "#FFFFFF";
+    SignedOutShadow = Modes.Of(light: "rgba(60,40,110,0.22)", dark: "rgba(0,0,0,0.6)");
+  }
+  // The type scale: page title 28/700 · section 18/700 · item title 17/600 · summary 15 · dense row 14 · metadata 13 ·
+  // chip and eyebrow 12 · table head 11/600 uppercase · keys in JetBrains Mono 13/600.
+  FontSize {
+    AreaTitle = "28px";
+    /// The lead card's title (ProductReleases "Next · planned"): 22/700.
+    LeadTitle = "22px";
+    SectionTitle = "18px";
+    ItemTitle = "17px";
+    Summary = "15px";
+    /// The signed-out frame's heading: sized so a long one ("Forgot your password?") stays on one line at 1280.
+    SignedOutHeading = "2rem";
+    SignedOutHeadingPhone = "1.875rem";
+  }
+  FontWeight {
+    Heavy = "700";
+  }
+  Font {
+    /// Keys, hashes, versions, branches and commands.
+    KeyFace = Font.ConsoleMono;
+  }
+  // Corners at the console's: 6 cards and inner cards · 5 buttons and inputs · 4 chips.
+  Radius {
+    Panel = "6px";
+    Inner = "6px";
+    Control = "5px";
+    Chip = "4px";
+    SignedOutCard = "20px";
+  }
+  // The signed-out frame's card, its form column, the brand tile and the form's buttons.
+  Length {
+    SignedOutCardW = "75rem";
+    SignedOutFormW = "27rem";
+    SignedOutMark = "36px";
+    SignedOutActionH = "46px";
+  }
+  Shadow {
+    SignedOutLift = "0 2px 6px rgba(0,0,0,0.05), 0 32px 72px -24px var(--colors-signedoutshadow)";
+  }
+}

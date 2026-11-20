@@ -1,0 +1,80 @@
+namespace Osysharp.Look;
+
+// A setting inherited from a wider scope, and a new value for it (Components §5; the organization settings boards):
+// effective value → the restriction that bounds it → where to change it → its provenance line, then an input whose
+// invalid value blocks Save in place. The kit's `ScopedSetting` shows a value and its provenance but takes no new value
+// and names no restriction, so this is drawn here on the kit's `SettingFrom`.
+
+/// One setting as a settings reader answers it: its effective value, where it comes from, the scope it comes from (or
+/// the scope a value set here overrides), the value it would inherit, and the restriction that locks or bounds it.
+public class InheritedSetting {
+  public string Value = "";
+  public SettingFrom From = SettingFrom.Default;
+  public string Scope = "";
+  public string Inherited = "";
+  public string Restriction = "";
+}
+
+/// The provenance line under a setting: "From organization: 45 minutes", "● Set here (organization: 2)", "Locked by
+/// policy floor v4", "Default: every 15 seconds".
+public string ProvenanceWords(InheritedSetting setting) {
+  if (setting.From == SettingFrom.Inherited) { return "From " + setting.Scope + ": " + setting.Value; }
+  if (setting.From == SettingFrom.SetHere) { return "● Set here" + (setting.Scope != "" ? " (" + setting.Scope + ": " + setting.Inherited + ")" : ""); }
+  if (setting.From == SettingFrom.Locked) { return "Locked by " + setting.Restriction; }
+  return "Default: " + setting.Value;
+}
+
+/// What is wrong with a typed value bounded at `atMost` by `restriction`, or "" when it is valid or nothing is typed.
+public string InheritedValueProblem(string typed, int atMost, string unit, string restriction) {
+  var trimmed = typed.Trim();
+  if (trimmed == "") { return ""; }
+  int number = 0;
+  if (!int.TryParse(trimmed, out number) || number < 1) { return "A whole number of " + unit; }
+  if (atMost > 0 && number > atMost) { return "At most " + atMost + " " + unit + (restriction != "" ? " (" + restriction + ")" : ""); }
+  return "";
+}
+
+/// An inherited setting and a new value for it: its name (14/600) and what it does (13 Ink 3) beside its effective
+/// value, the restriction that bounds it ("Policy floor v4: at most 120 minutes"), where to change it, the provenance
+/// line, then an input for a value set here. A value outside the restriction says so beside the field and Save stays
+/// disabled until it is valid; a locked setting takes no value.
+/// In a test it is the group "<label> setting"; the input is labelled `label`: `Ui.Fill("Stuck after", "60")`.
+[Composable]
+component InheritedValue(string label, string what, InheritedSetting setting, int atMost, string unit, string changeIn, string changeTo,
+                         Action<string> onSave) {
+  string typed = "";
+  action Save() { onSave(typed.Trim()); }
+  render {
+    var problem = InheritedValueProblem(typed, atMost, unit, setting.Restriction);
+    var valid = typed.Trim() != "" && problem == "";
+    Box(display: Display.Grid, cols: "minmax(0, 1fr) auto", gap: "6px 16px", py: "14px", px: "24px", borderTW: 1, border: Colors.Line2, role: UiRole.Group,
+        label: label + " setting") {
+      Stack(gap: "2px") {
+        Text(label, fontSize: FontSize.Body, fontWeight: FontWeight.Semibold);
+        Text(what, fontSize: FontSize.Label, color: Colors.Ink3);
+      }
+      Text(setting.Value, fontSize: FontSize.Body, alignSelf: AlignSelf.Center, py: "8px", px: "12px", rounded: Radius.Control, borderW: 1, border: Colors.ControlLine,
+           bg: setting.From == SettingFrom.Locked ? Colors.Line2 : Colors.Surface);
+      Stack(gap: "4px", colSpan: "1 / -1", fontSize: FontSize.Caption) {
+        if (setting.Restriction != "" && atMost > 0) {
+          Text(setting.Restriction.Substring(0, 1).ToUpper() + setting.Restriction.Substring(1) + ": at most " + atMost + " " + unit, color: Colors.Ink2);
+        }
+        Link(changeTo, label: "Change it in " + changeIn + " ›") { Text("Change it in " + changeIn + " ›", fontWeight: FontWeight.Semibold); }
+        Text(ProvenanceWords(setting),
+             color: setting.From == SettingFrom.SetHere ? Colors.Ink2 : (setting.From == SettingFrom.Locked ? Colors.OnSurface : Colors.Ink3),
+             fontWeight: setting.From == SettingFrom.SetHere || setting.From == SettingFrom.Locked ? FontWeight.Semibold : FontWeight.Regular);
+      }
+      if (setting.From != SettingFrom.Locked) {
+        Row(gap: "10px", align: Align.Center, wrap: Wrapping.Wrap, colSpan: "1 / -1", mt: "6px") {
+          Input(value: typed, label: label, w: "120px", minH: "36px", py: "6px", px: "10px", borderW: 1, border: problem != "" ? Colors.BadLine : Colors.ControlLine,
+                rounded: Radius.Control, bg: Colors.Surface, fontSize: FontSize.Body);
+          Text(unit, fontSize: FontSize.Label, color: Colors.Ink2);
+          LookButton("Save", Save, kind: valid ? ButtonKind.Primary : ButtonKind.Secondary, small: true, disabled: !valid);
+          if (problem != "") {
+            Text(problem, role: UiRole.Alert, fontSize: FontSize.Label, fontWeight: FontWeight.Semibold, color: Colors.BadInk);
+          }
+        }
+      }
+    }
+  }
+}

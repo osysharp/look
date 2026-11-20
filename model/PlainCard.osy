@@ -1,0 +1,20 @@
+namespace Osysharp.Look;
+
+/// A card with no title row (Release's facts card, Slice's "Right now"): white on the Line hairline, radius 14, `16px
+/// 20px`, its parts 10 apart. `heading`: an eyebrow as its level-2 heading (12/600 uppercase, Ink 4), the `heading`
+/// slot beside it 8 apart (a small `ProposedTag`). `label` names it for a test when it has no heading.
+[Composable]
+component PlainCard(string label, string heading = "") {
+  render {
+    Stack(gap: "10px", py: "16px", px: "20px", bg: Colors.Surface, borderW: 1, border: Colors.Border, rounded: Radius.Panel, minW: "0",
+          label: heading != "" ? heading : label) {
+      if (heading != "") {
+        Row(gap: "8px", align: Align.Center, wrap: Wrapping.Wrap) {
+          Box(role: UiRole.Heading, level: 2) { Eyebrow(heading); }
+          Slot("heading");
+        }
+      }
+      Slot;
+    }
+  }
+}

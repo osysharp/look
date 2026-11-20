@@ -1,0 +1,23 @@
+namespace Osysharp.Look;
+
+/// The desktop top bar: 52 high, white, its foot in the border colour, `0 16px`; the breadcrumb at the left (12.5
+/// text-2, a "/" 8 either side, the last crumb the page in text at 500), and at the right, 10 apart, the chrome's badge
+/// and the avatar; before them, when the page gives a search, the Search button.
+[Composable, Part]
+component ConsoleTopBar(ConsoleChrome chrome, List<Crumb> trail, Binding<string> searchText = null, List<ConsoleSearchGroup> searchGroups = null) {
+  render {
+    Row(h: "52px", minH: "52px", justify: Justify.Between, align: Align.Center, gap: "16px", px: "16px", bg: Colors.ConsoleSurface, borderBW: 1,
+        border: Colors.ConsoleBorder, minW: "0", label: "Top bar") {
+      ConsoleBreadcrumb(trail);
+      Row(gap: "10px", align: Align.Center) {
+        if (searchText != null) {
+          ConsoleSearchButton(searchText, searchGroups, chrome.SearchLabel, chrome.SearchPlaceholder);
+        }
+        if (chrome.Badge != "") {
+          ConsoleBadge(chrome.Badge, chrome.BadgeTone, dot: true);
+        }
+        ConsoleAvatar(chrome);
+      }
+    }
+  }
+}

@@ -1,0 +1,9 @@
+namespace Osysharp.Look;
+
+/// The busy label said to a screen reader: a polite live region, one pixel and clipped, so it is heard and not seen.
+[Composable]
+component BusyAnnounce(string said) {
+  render {
+    Box(position: Position.Absolute, w: "1px", h: "1px", overflow: Overflow.Hidden, role: UiRole.Status) { Text(said); }
+  }
+}

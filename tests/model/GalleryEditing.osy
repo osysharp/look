@@ -1,0 +1,145 @@
+namespace OsyrinLookTests;
+
+using Osysharp.Look;
+
+// Components §13–15: a settings area's section list (kit `SectionList`) under the look's `ScopeLine`; the impact preview
+// (kit `ImpactPanel` over the board's scrim); a list with a drawer (kit `Drawer`), with the board's sample content.
+
+/// §13 and §14, side by side.
+[Composable]
+component GallerySections() {
+  string why = "Two slow pages reached users in 2.3.";
+  action Nothing() { }
+  render {
+    BoardPair("minmax(0, 1.25fr) minmax(0, 1fr)") {
+      BoardCard("13 · Scope header and section list", gap: "14px") {
+        Caption("Only in a Settings tab or a settings area (organization Settings, a product’s Settings, a host’s Configuration). Grouped, one level deep, under one scope header. A count is what is set here.");
+        ScopeLine("Patient Portal settings", "inherits Northwind Health defaults · 6 set here · 9 locked by policy floor v4", help: "How scopes combine ›",
+                  helpTo: "/dev/components");
+        Row(gap: "20px", align: Align.Start) {
+          Box(w: "196px", minW: "196px") {
+            SectionList("Settings sections") {
+              SectionGroup("Definition") {
+                SectionLink("Repos", "/dev/components#repos");
+                SectionLink("Workflows", "/dev/components", count: "3", current: true);
+                SectionLink("Dependencies", "/dev/components#dependencies");
+                SectionLink("Standards", "/dev/components#standards");
+              }
+              SectionGroup("Settings") {
+                SectionLink("Git flow", "/dev/components#git", count: "2 set");
+                SectionLink("Review and merge", "/dev/components#review", count: "1 set");
+                SectionLink("Sessions", "/dev/components#sessions", count: "1 set");
+                SectionLink("Sandbox", "/dev/components#sandbox", count: "1 set");
+                SectionLink("… 9 more groups", "/dev/components#more");
+              }
+            }
+          }
+          Text("The selected section’s content: setting rows (5) or a list (14). Its address is the section, so a link opens it directly.", grow: 1,
+               minW: "0", p: "14px", borderW: 1, borderStyle: BorderStyle.Dashed, border: Colors.ControlLine, rounded: Radius.Inner, fontSize: FontSize.Label,
+               color: Colors.Ink2, lineHeight: "1.5");
+        }
+      }
+      BoardCard("14 · Impact preview dialog", gap: "12px") {
+        Caption("Opened by Review and save (or Review and publish) from the editing banner; modal, over the tab. Back to editing keeps every change.");
+        Box(display: Display.Flex, justify: Justify.Center, py: "24px", px: "20px", bg: "rgba(31,30,27,0.32)", rounded: "12px") {
+          Box(w: "100%", maxW: "524px") {
+            ImpactPanel("Makes Performance review a gate for new slices in Patient Portal.", onDismiss: Nothing,
+                        overline: "Review and save · workflow Reviewed v8") {
+              Box(fontSize: FontSize.Body, lineHeight: "1.6") {
+                Bullets {
+                  Bullet("12 active slices keep workflow v7; new slices get v8.");
+                  Bullet("Adds about 40 minutes of review lane time per slice.");
+                  Bullet("Patient Portal 2.4 stays on track (forecast Thu 12 Nov).");
+                }
+              }
+              Text("Policy floor v4: allowed — stricter than the floor.", fontSize: FontSize.Label, fontWeight: FontWeight.Semibold, color: Colors.OkInk);
+              LookTextArea("Why (required)", why, h: "48px");
+              slot actions {
+                LookButton("Back to editing", Nothing);
+                LookButton("Save as v8", Nothing, kind: ButtonKind.Primary);
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}
+
+/// §15 — a list with a drawer: the list in its card, the open row marked, the kit's `Drawer` beside it.
+[Composable]
+component GalleryDrawer() {
+  string show = "All 12";
+  string text = "Touch targets are at least 44 px";
+  string weight = "85";
+  string severity = "Should";
+  action Nothing() { }
+  render {
+    BoardCard("15 · List with a drawer", gap: "14px") {
+      Caption("A light item (about eight fields, no facets of its own) opens in a 420 px drawer beside the list; the list stays, the open row is marked, ↑ ↓ step to the next item. An item with facets (a workflow, a slice, a host) opens its own page instead. No tabs or section list inside a drawer.");
+      Row(gap: "16px", wrap: Wrapping.Wrap, align: Align.Start, p: "16px", bg: Colors.Wash, borderW: 1, border: Colors.SoftLine, rounded: "12px") {
+        Stack(gap: 0, grow: 999, basis: "420px", minW: "0", pb: "6px", bg: Colors.Surface, borderW: 1, border: Colors.Border, rounded: Radius.Panel,
+              overflow: Overflow.Hidden, label: "Rules in draft v4") {
+          Row(gap: "8px", wrap: Wrapping.Wrap, align: Align.Center, justify: Justify.Between, py: "14px", px: "16px") {
+            Row(gap: "8px", align: Align.Center, fontSize: FontSize.Label, fontWeight: FontWeight.Semibold) {
+              Text("Show", decorative: true);
+              LookSelect("Show", show, ["All 12", "Changed in draft v4 · 3"], w: "auto", inRow: true, small: true);
+            }
+            LookButton("+ Add a rule", Nothing, small: true);
+          }
+          Box(display: Display.Grid, cols: "62px minmax(0, 1fr) 46px 76px", gap: "10px", py: "9px", px: "16px", bg: Colors.Wash, fontSize: FontSize.Overline,
+              fontWeight: FontWeight.Semibold, letterSpacing: "0.06em", textTransform: TextTransform.Uppercase, color: Colors.Ink4) {
+            Text("Rule");
+            Text("Text");
+            Text("30 d", textAlign: TextAlign.Right);
+            Box;
+          }
+          DrawerListRow("AF-03", "Text contrast is at least 4.5:1", "4", "");
+          DrawerListRow("AF-04", "Touch targets are at least 44 px", "11", "Changed", current: true);
+          DrawerListRow("AF-05", "Required fields say so in text, not colour alone", "6", "");
+          DrawerListRow("AF-06", "Date and time inputs accept typed values", "2", "Changed");
+          DrawerListRow("AF-09", "A time-slot picker announces the selected slot and how long it is held", "—", "Added");
+        }
+        Drawer("AF-04", onClose: Nothing, subtitle: "Rule 4 of 12", onPrevious: Nothing, onNext: Nothing) {
+          slot badge { StatusChip("Changed in draft v4", StatusTone.Run); }
+          LookInput("Text", text);
+          Box(display: Display.Grid, cols: "repeat(2, minmax(0, 1fr))", gap: "12px") {
+            LookInput("Weight", weight, state: FieldState.Editing, message: "was 70 in v3", mono: true);
+            LookSelect("Severity", severity, ["Must", "Should", "May"], w: "100%");
+          }
+          Stack(gap: "6px", pt: "12px", borderTW: 1, border: Colors.Line2) {
+            Text("Findings · last 30 days", fontSize: FontSize.Body, fontWeight: FontWeight.Heavy);
+            Text("11 findings · 9 fixed · 2 dismissed · all in Care Companion", fontSize: FontSize.Label, lineHeight: "1.5");
+          }
+          slot actions {
+            LookButton("Cancel", Nothing);
+            LookButton("Apply to draft v4", Nothing, kind: ButtonKind.Primary);
+          }
+        }
+      }
+    }
+  }
+}
+
+/// One row of §15's list: the rule's key (mono 13/600 accent), its text, its 30-day count right-aligned, its mark; the
+/// open row on the accent's tint inside the accent line.
+[Composable]
+component DrawerListRow(string id, string text, string count, string mark, bool current = false) {
+  render {
+    Box(display: Display.Grid, cols: "62px minmax(0, 1fr) 46px 76px", gap: "10px", align: Align.Center, minH: "44px", py: "10px", px: "16px",
+        borderTW: 1, border: Colors.Line2, bg: current ? Colors.AccentTint : Colors.Surface, shadow: current ? "inset 0 0 0 1px #CFC8FA" : "none",
+        fontSize: FontSize.Label, role: UiRole.Row, label: id, current: current) {
+      KeyLink(id, "/dev/components#" + id, small: true);
+      Text(text, lineHeight: "1.45");
+      Text(count, textAlign: TextAlign.Right);
+      Box {
+        if (mark == "Changed") {
+          StatusChip("Changed", StatusTone.Run);
+        }
+        if (mark == "Added") {
+          StatusChip("Added", StatusTone.Ok);
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,10 @@
+namespace Osysharp.Look;
+
+/// A moment said exactly, for `RelativeDate`'s hover title: "Thu 12 Nov 2026, 09:05 UTC".
+public string ExactWhen(DateTime at) {
+  var days = new List<string> { "Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat" };
+  var months = new List<string> { "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec" };
+  var hour = at.Hour < 10 ? "0" + at.Hour.ToString() : at.Hour.ToString();
+  var minute = at.Minute < 10 ? "0" + at.Minute.ToString() : at.Minute.ToString();
+  return days[(int)at.DayOfWeek] + " " + at.Day.ToString() + " " + months[at.Month - 1] + " " + at.Year.ToString() + ", " + hour + ":" + minute + " UTC";
+}

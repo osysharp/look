@@ -1,0 +1,110 @@
+namespace Osysharp.Look;
+
+// The board's form fields (Components §3 "Inputs"): a label 13/600 over its control, 6 apart; the control 14/400 Ink on
+// white, `10px 12px` in, at least 44 high, radius 8, inside the control line; while it is being edited a 2 px accent
+// line (`9px 11px` in, so it keeps its size); refused, the bad dot's line, the label in the bad ink and a 12/400
+// message under it. The kit's `Field`/`TextAreaField` keep the kit's own shape and its label row, so the look draws its
+// fields on the atoms with these values. Its choices are its own dropdowns (LookSelect.osy, LookEnumSelect.osy), never
+// the browser's select.
+
+/// The label and message around one control (the block): 13/600 over it, 6 apart, the message 12/400 under it. In a test
+/// it is the group of its label. `inRow`: the label is drawn by the `FieldRow` it sits in, so only the control and its
+/// message are drawn here (the control keeps the label as its name). `linkLabel` and `linkTo` end the message with a
+/// link, its words the link's name: where to go to make the field useful ("Add one under Repositories first.").
+[Composable]
+component LookField(string label, FieldState state = FieldState.Normal, string message = "", bool inRow = false, string linkLabel = "",
+                    string linkTo = "") {
+  render {
+    Stack(gap: "6px", fontSize: FontSize.Label, fontWeight: FontWeight.Semibold, lineHeight: "normal",
+          color: state == FieldState.Refused ? Colors.BadInk : Colors.OnSurface, role: UiRole.Group, label: label) {
+      if (!inRow) {
+        Text(label);
+      }
+      Slot;
+      if (message != "" && linkLabel == "") {
+        Text(message, fontSize: FontSize.Caption, fontWeight: FontWeight.Regular);
+      }
+      if (linkLabel != "") {
+        Row(gap: "0 4px", wrap: Wrapping.Wrap, align: Align.Baseline, fontSize: FontSize.Caption, fontWeight: FontWeight.Regular, minW: "0") {
+          if (message != "") {
+            Text(message);
+          }
+          ConsoleLink(linkLabel, linkTo);
+        }
+      }
+    }
+  }
+}
+
+/// A text field: `LookField` around the board's text box. `w` its width (the board's 220, 180, 160 px; "100%" in a form
+/// column), `placeholder` the hint it holds while empty. `onInput` runs on each keystroke after the value is written
+/// (after a pause of `debounceMs` when set: one question to the server per pause, not per letter); `onEnter` on Return.
+/// `search`: a leading magnifier (Ink 3, 14 px, 12 in) and, while it holds text, a × at its right that clears it
+/// ("Clear <label>"); Escape clears it too. On no board as such: §3's input with the kit's search glass.
+/// In a test it is filled by its label: `Ui.Fill("Release name", "Patient Portal 2.5")`.
+[Composable]
+component LookInput(string label, Binding<string> value, string w = "100%", FieldState state = FieldState.Normal, string message = "",
+                    bool mono = false, string placeholder = "", bool inRow = false, Action onInput = null, int debounceMs = 0,
+                    Action onEnter = null, bool search = false) {
+  int typed = 0;
+  // Each keystroke: at once, or — with `debounceMs` — only when no keystroke has come for that long (the platform's
+  // `debounce:` takes a written number, so the pause is kept here).
+  action Typed() {
+    if (onInput == null) { return; }
+    if (debounceMs <= 0) {
+      onInput();
+      return;
+    }
+    typed = typed + 1;
+    var mine = typed;
+    await Task.Delay(debounceMs);
+    if (mine == typed) { onInput(); }
+  }
+  action Clear() {
+    value = "";
+    typed = typed + 1;
+    if (onInput != null) { onInput(); }
+  }
+  render {
+    LookField(label, state: state, message: message, inRow: inRow) {
+      if (search) {
+        Box(position: Position.Relative, w: w, maxW: "100%", minW: "0") {
+          Box(position: Position.Absolute, left: "12px", top: "50%", translateY: "-50%", pointerEvents: PointerEvents.None, color: Colors.Ink3,
+              display: Display.Flex, decorative: true) { Icon(Icons.Search, size: 14); }
+          Input(value: value, label: label, placeholder: placeholder, w: "100%", minH: "44px", py: state == FieldState.Editing ? "9px" : "10px",
+                pl: state == FieldState.Editing ? "33px" : "34px", pr: value != "" ? "40px" : (state == FieldState.Editing ? "11px" : "12px"),
+                fontSize: mono ? FontSize.Label : FontSize.Body, fontWeight: FontWeight.Regular, fontFamily: mono ? Font.KeyFace : Font.Sans,
+                color: Colors.OnSurface, bg: Colors.Surface, rounded: Radius.Control, borderW: state == FieldState.Editing ? 2 : 1,
+                border: state == FieldState.Editing ? Colors.Primary : (state == FieldState.Refused ? Colors.BadDot : Colors.ControlLine),
+                onInput: Typed, onEnter: onEnter, onEscape: Clear, textOverflow: TextOverflow.Ellipsis);
+          if (value != "") {
+            Box(position: Position.Absolute, right: "6px", top: "50%", translateY: "-50%") {
+              LookInputClear(Clear, "Clear " + label);
+            }
+          }
+        }
+      } else {
+        Input(value: value, label: label, placeholder: placeholder, w: w, minH: "44px", py: state == FieldState.Editing ? "9px" : "10px", px: state == FieldState.Editing ? "11px" : "12px",
+              fontSize: mono ? FontSize.Label : FontSize.Body, fontWeight: FontWeight.Regular, fontFamily: mono ? Font.KeyFace : Font.Sans,
+              color: Colors.OnSurface, bg: Colors.Surface, rounded: Radius.Control, borderW: state == FieldState.Editing ? 2 : 1,
+              border: state == FieldState.Editing ? Colors.Primary : (state == FieldState.Refused ? Colors.BadDot : Colors.ControlLine),
+              onInput: onInput != null ? Typed : null, onEnter: onEnter);
+      }
+    }
+  }
+}
+
+/// A few lines of plain text (a reason, a note): `LookField` around the board's text area, `w` × `h` (300 × 64 on the
+/// board). A long text that is an instruction or documentation is Markdown and takes the platform's markdown editor
+/// instead. In a test it is filled by its label.
+[Composable]
+component LookTextArea(string label, Binding<string> value, string w = "100%", string h = "64px", FieldState state = FieldState.Normal,
+                       string message = "", string placeholder = "") {
+  render {
+    LookField(label, state: state, message: message) {
+      TextArea(value: value, label: label, placeholder: placeholder, w: w, h: h, py: state == FieldState.Editing ? "9px" : "10px", px: state == FieldState.Editing ? "11px" : "12px",
+               fontSize: FontSize.Body, fontWeight: FontWeight.Regular, fontFamily: Font.Sans, color: Colors.OnSurface, bg: Colors.Surface,
+               rounded: Radius.Control, borderW: state == FieldState.Editing ? 2 : 1, border: state == FieldState.Editing ? Colors.Primary : (state == FieldState.Refused ? Colors.BadDot : Colors.ControlLine));
+    }
+  }
+}

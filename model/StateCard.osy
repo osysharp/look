@@ -1,0 +1,44 @@
+namespace Osysharp.Look;
+
+// The shared states (Components §11; StatesErrors "Loading"). Empty says what would be here and offers the one action
+// that fills it. Error says what could not load, why, that the rest of the page is current, and its ways out. Loading
+// draws the frame first and says what it is still loading. A permission note says what you may do, what changing it
+// needs and who holds that. The kit's EmptyState is centred and muted; the board's is a left-aligned card with an
+// overline, so these are drawn here.
+
+/// What a state card is: its ground and outline differ.
+public enum StateKind { Empty, Error, Note, Loading, Dashed }
+
+/// A state's card: white on the hairline (the bad line for an error, the neutral wash for a note; `Dashed`, white in a
+/// dashed proposed line, `14px 20px` — orgsettings/Policies "Not yet governable"), radius 14, 20 px in, 8 px between its
+/// lines.
+[Composable]
+component StateCard(StateKind kind) {
+  variants {
+    base {
+      Display = Display.Flex;
+      H = "100%";
+      P = "20px";
+      Rounded = Radius.Panel;
+      BorderW = 1;
+      BorderStyle = BorderStyle.Solid;
+      Border = Colors.Border;
+      Bg = Colors.Surface;
+    }
+    kind {
+      Empty { }
+      Error { Border = Colors.BadLine; }
+      Note { Bg = Colors.Wash; }
+      Loading {
+        P = "16px";
+        Overflow = Overflow.Hidden;
+      }
+      Dashed {
+        Py = "14px";
+        BorderStyle = BorderStyle.Dashed;
+        Border = Colors.ProposedLine;
+      }
+    }
+  }
+  render { Stack(gap: kind == StateKind.Loading ? "10px" : "8px", w: "100%") { Slot; } }
+}

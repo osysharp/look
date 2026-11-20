@@ -1,0 +1,106 @@
+namespace Osysharp.Look;
+
+// A table inside a section card (ProductPlan's release card, Release "Contents", PolicyFloor's rules, a settings
+// board's policies): plain grid rows, not the kit's `DataGrid`, which is a spreadsheet the boards use only for
+// execution inspection. The head and every row share the board's columns (`cols`, a CSS grid template such as
+// "34px minmax(0, 1fr) 190px 150px") and take their gap and paddings from `TableRhythm`, so a head sits on its columns.
+
+/// The table: its head, then its rows and group bands (the block). `spacing` is the table's family (`TableRhythm`):
+/// `Plain` Release's (head 11/600 under a Line 2 rule, rows `10px 20px`), `Roomy` ProductPlan's (head 12/600 with no
+/// rule, rows `12px 20px`; `roomy: true` says the same), `Settings` the settings boards' (cells 14 apart, head
+/// `7px 20px`, rows `11px 20px`), `Tight` PolicyFloorEffective's. `dense`: the compact row (34–36 high) and a tighter
+/// head. Give the rows the same `spacing`/`roomy` and `dense`.
+/// `minWidth` (the settings board's "900px"): a table wider than its card scrolls sideways INSIDE the card — the card's
+/// head and foot stay put, and at 390 the columns keep their widths instead of crushing.
+/// `aligns`: one per column (`TextAlign.Right` for a number or "Applies to"); a right-aligned head sits over
+/// right-aligned cells — set the cells' own `textAlign` the same.
+/// `sortable`: the heads a reader may sort by; each becomes a button with a small arrow, its column header says
+/// `aria-sort`, and pressing it REPORTS the column and direction to `onSort(head, descending)` — the caller's query
+/// sorts and passes back `sortBy`/`sortDescending`. Pressing the sorted head turns its direction; another head starts
+/// ascending. `label` names the table for a test and a screen reader.
+/// `stack` (default true): below the Phone breakpoint (the table's room under 480 px) the rows stack into one column
+/// (see `CardTableRow`, `SettingTableRow`), so the head row is not drawn — it stays for a screen reader and for
+/// `Assert.Cell`, one pixel and clipped — and `minWidth` is ignored: nothing scrolls sideways in a card on a phone. Give
+/// the rows the same `stack`; `stack: false` keeps the columns (and `minWidth`'s sideways scroll) at every width.
+/// `quietHead`: the head as the owner's mock-up draws it — its words 13/600 in Ink 3 as written (not uppercase), on the
+/// card's white with a hairline under it.
+[Composable]
+component CardTable(string label, string cols, List<string> heads, bool roomy = false, TableSpacing spacing = TableSpacing.Plain,
+                    bool dense = false, string minWidth = "", List<TextAlign>? aligns = null, List<string>? sortable = null,
+                    string sortBy = "", bool sortDescending = false, Action<string, bool>? onSort = null, bool stack = true,
+                    bool quietHead = false) {
+  string Wide(bool columns) => minWidth != "" && columns ? minWidth : "";
+  render {
+    Box(overflowX: Wide(!stack || Layout.AtLeast(Phone)) != "" ? Overflow.Auto : Overflow.Visible) {
+      Stack(gap: 0, role: UiRole.Table, label: label, minW: Wide(!stack || Layout.AtLeast(Phone)) != "" ? minWidth : "0", position: Position.Relative) {
+        if (stack && !Layout.AtLeast(Phone)) {
+          Box(position: Position.Absolute, top: "0", left: "0", w: "1px", h: "1px", overflow: Overflow.Hidden) {
+            CardTableHead(cols, heads, roomy, spacing: spacing, dense: dense, aligns: aligns, sortable: sortable, sortBy: sortBy,
+                          sortDescending: sortDescending, onSort: onSort, quiet: quietHead);
+          }
+        } else {
+          CardTableHead(cols, heads, roomy, spacing: spacing, dense: dense, aligns: aligns, sortable: sortable, sortBy: sortBy,
+                        sortDescending: sortDescending, onSort: onSort, quiet: quietHead);
+        }
+        Slot;
+      }
+    }
+  }
+}
+
+/// The head row: uppercase in Ink 4 on the wash, `8px 20px` (`TableRhythm.HeadPy`); 11/600 under a Line 2 rule
+/// (`Plain`), 12/600 (`Roomy`), 11/600 with no rule (`Settings`, `Tight`). Each head cell is a column header, aligned
+/// by `aligns`; a sortable one a button that reports the sort (see `CardTable`). `quiet`: the mock-up's head (see
+/// `CardTable`'s `quietHead`).
+[Composable]
+component CardTableHead(string cols, List<string> heads, bool roomy = false, TableSpacing spacing = TableSpacing.Plain, bool dense = false,
+                        List<TextAlign>? aligns = null, List<string>? sortable = null, string sortBy = "", bool sortDescending = false,
+                        Action<string, bool>? onSort = null, bool quiet = false) {
+  TableSpacing family = TableRhythm.Of(spacing, roomy);
+  string Arrow(string head) => head != sortBy ? "↕" : (sortDescending ? "↓" : "↑");
+  UiSort SortOf(string head) => head != sortBy ? UiSort.None : (sortDescending ? UiSort.Descending : UiSort.Ascending);
+  bool Sorts(string head) => onSort != null && sortable != null && sortable.Contains(head);
+  TextAlign AlignOf(int index) => aligns != null && index < aligns.Count ? aligns[index] : TextAlign.Left;
+  Justify JustifyOf(int index) => AlignOf(index) == TextAlign.Right ? Justify.End : (AlignOf(index) == TextAlign.Center ? Justify.Center : Justify.Start);
+  render {
+    Box(display: Display.Grid, cols: cols, gap: TableRhythm.Gap(family), py: quiet ? "11px" : TableRhythm.HeadPy(family, dense), px: "20px",
+        bg: quiet ? Colors.Surface : Colors.Wash, borderTW: !quiet && TableRhythm.HeadRuled(family) ? 1 : 0, borderBW: quiet ? 1 : 0,
+        border: quiet ? Colors.Border : Colors.Line2, fontSize: family == TableSpacing.Roomy ? FontSize.Caption : FontSize.Overline,
+        lineHeight: "normal", role: UiRole.Row) {
+      // Over `HeadCell`s, which have no `Id`: a `foreach` over strings would stamp each head as a list row, and
+      // `Assert.Items(<table>)` would count the head's cells with the data rows.
+      foreach (var cell in HeadCells(heads)) {
+        var i = cell.Index;
+        var head = cell.Words;
+        if (Sorts(head)) {
+          Row(role: UiRole.ColumnHeader, sort: SortOf(head), justify: JustifyOf(i), minW: "0") {
+            Pressable(onClick: () => onSort!(head, head == sortBy ? !sortDescending : false), label: head, bg: Colors.Transparent,
+                      borderW: 0, p: 0, cursor: Cursor.Pointer, color: Colors.Ink4, display: Display.InlineFlex, align: Align.Center, gap: "4px",
+                      lineHeight: "normal") {
+              TableHeadWords(head, family, quiet);
+              Text(Arrow(head), fontSize: "10px", color: head == sortBy ? Colors.OnSurface : Colors.Ink4, decorative: true);
+            }
+          }
+        } else if (AlignOf(i) == TextAlign.Left) {
+          Box(role: UiRole.ColumnHeader, minW: "0") { TableHeadWords(head, family, quiet); }
+        } else {
+          Row(role: UiRole.ColumnHeader, justify: JustifyOf(i), minW: "0") { TableHeadWords(head, family, quiet); }
+        }
+      }
+    }
+  }
+}
+
+/// A head cell's words: `Eyebrow` (12/600) in a roomy table, else `Overline` (11/600); `quiet`, 13/600 Ink 3 as written.
+[Composable, Part]
+component TableHeadWords(string head, TableSpacing family, bool quiet = false) {
+  render {
+    if (quiet) {
+      Text(head, fontSize: "13px", fontWeight: FontWeight.Semibold, color: Colors.Ink3, lineHeight: "normal");
+    } else if (family == TableSpacing.Roomy) {
+      Eyebrow(head);
+    } else {
+      Overline(head);
+    }
+  }
+}

@@ -1,0 +1,96 @@
+namespace Osysharp.Look;
+
+// Where a setting's value comes from, as a chip (canvas4/PolicyFloorEffective, the "From" column): the kit's
+// `SettingFrom` drawn small, with the words as the page says them ("Inherited", "Narrowed here", "Set here",
+// "Exception waiting"). It serves any app's settings: the page picks the tone from where the value comes from.
+
+/// The four grounds of a source chip: inherited from a wider scope (Line 2 ground, Wait ink), narrowed at this scope
+/// (the ok tint), set at this scope (white in a 1 px Ink 2 line), or waiting on somebody (a dashed outline).
+public enum SourceTone { Inherited, Narrowed, SetHere, Waiting }
+
+/// The source tone of a kit `SettingFrom`: set here is `SetHere`; inherited, locked and the default are `Inherited`.
+public SourceTone SourceToneOf(SettingFrom from) {
+  if (from == SettingFrom.SetHere) { return SourceTone.SetHere; }
+  return SourceTone.Inherited;
+}
+
+/// A source chip: 11/600, radius 6, `2px 7px`. Inherited #F1EFE8/#3A3833, narrowed #E6F1E1/#24561F, set here white with
+/// a 1 px #45423B line (Ink words), waiting a 1 px dashed #A8A396 line (Ink 2 words). The outlined ones keep their size
+/// (`1px 6px` inside the line). In a test it is read by its words: `Assert.Visible("Narrowed here")`.
+[Composable]
+component SourceChip(string words, SourceTone tone = SourceTone.Inherited) {
+  variants {
+    base {
+      Display = Display.InlineFlex;
+      W = "fit-content";
+      AlignSelf = AlignSelf.Start;
+      Px = "7px";
+      Py = "2px";
+      Rounded = Radius.Chip;
+      FontSize = FontSize.Overline;
+      FontWeight = FontWeight.Semibold;
+      WhiteSpace = WhiteSpace.Nowrap;
+      LineHeight = "normal";
+    }
+    tone {
+      Inherited {
+        Bg = Colors.Line2;
+        Color = Colors.WaitInk;
+      }
+      Narrowed {
+        Bg = Colors.OkTint;
+        Color = Colors.OkInk;
+      }
+      SetHere {
+        Px = "6px";
+        Py = "1px";
+        Bg = Colors.Surface;
+        BorderW = 1;
+        BorderStyle = BorderStyle.Solid;
+        Border = Colors.Ink2;
+        Color = Colors.OnSurface;
+      }
+      Waiting {
+        Px = "6px";
+        Py = "1px";
+        Bg = Colors.Surface;
+        BorderW = 1;
+        BorderStyle = BorderStyle.Dashed;
+        Border = Colors.ProposedLine;
+        Color = Colors.Ink2;
+      }
+    }
+  }
+  render { Text(words); }
+}
+
+/// A source chip over the link to where the value is changed (the "From" cell of a settings table): 3 apart, the link
+/// 12/600 in the accent with its "›". No link when `linkTo` is empty.
+/// e.g. `SourceCell("Inherited", SourceTone.Inherited, "Policy floor ›", "/policies")`
+[Composable]
+component SourceCell(string words, SourceTone tone = SourceTone.Inherited, string linkLabel = "", string linkTo = "") {
+  render {
+    Stack(gap: "3px", align: Align.Start) {
+      SourceChip(words, tone: tone);
+      if (linkTo != "") {
+        SmallLink(linkLabel, linkTo);
+      }
+    }
+  }
+}
+
+/// The 12/600 accent link of a table cell ("Policy floor ›"), no underline, its hover the accent's deep ink.
+[Composable]
+component SmallLink(string label, string to) {
+  variants {
+    base {
+      FontSize = FontSize.Caption;
+      FontWeight = FontWeight.Semibold;
+      Color = Colors.Primary;
+      TextDecoration = TextDecoration.None;
+      LineHeight = "normal";
+      Hover { Color = Colors.AccentInk; }
+    }
+  }
+  render { Link(to, label: label) { Text(label); } }
+}

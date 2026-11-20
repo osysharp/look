@@ -1,0 +1,33 @@
+namespace Osysharp.Look;
+
+/// Text cut after `lines` lines (1 or 2), for a long title or note in a row or a tile that must not grow the row. One
+/// line ends in an ellipsis; two lines are cut at the second line's foot (the platform has no line clamp, so no ellipsis
+/// there — see P2.D18b's result). With `title` (the default) the whole text shows on hover as the look's hover title: a
+/// small dark label under the text (12/500, `6px 8px`, at most 360 wide, radius 6), a `tooltip` named "Whole text"
+/// (the platform has no `title` attribute). A screen reader reads the whole text either way: the cut is drawn, the words
+/// are all there. It inherits its size, weight and colour from where it stands; give a table cell's role through `role`
+/// (`UiRole.GridCell`). On no board; the boards cut a long line the same way (`text-overflow: ellipsis`).
+/// Escape closes an open title. `focusable`: the text is a keyboard stop and its title opens on focus too, closing on
+/// Escape and when focus leaves — for text standing on its own; leave it off in a pressed row or a tree, whose own
+/// stop is the keyboard's way in.
+[Composable]
+component ClampText(string text, int lines = 1, bool title = true, string lineHeight = "1.4", UiRole? role = null, bool focusable = false) {
+  bool hovered = false;
+  action Enter() { hovered = true; }
+  action Leave() { hovered = false; }
+  string MaxH() => "calc(" + lines.ToString() + " * " + lineHeight + "em)";
+  render {
+    Box(position: Position.Relative, minW: "0", maxW: "100%", role: role, onPointerEnter: Enter, onPointerLeave: Leave,
+        onFocus: title && focusable ? Enter : null, onBlur: title && focusable ? Leave : null, onEscape: title && hovered ? Leave : null) {
+      if (lines <= 1) {
+        Text(text, display: Display.Block, minW: "0", lineHeight: lineHeight, overflow: Overflow.Hidden, textOverflow: TextOverflow.Ellipsis,
+             whiteSpace: WhiteSpace.Nowrap);
+      } else {
+        Text(text, display: Display.Block, minW: "0", lineHeight: lineHeight, maxH: MaxH(), overflow: Overflow.Hidden, wordBreak: WordBreak.BreakWord);
+      }
+      if (title && hovered) {
+        HoverTitle(text, "Whole text");
+      }
+    }
+  }
+}

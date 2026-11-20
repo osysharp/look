@@ -1,0 +1,84 @@
+namespace Osysharp.Look;
+
+/// The head a page draws itself inside `ConsoleShell`: on a tablet and wider the 52 px white top bar with the
+/// breadcrumb `trail` at its left (the shell's cluster stands at its right), then the header band (`ConsoleHeader`:
+/// the h1 `title` with `slot badge`, the `description`, `slot lines`, `slot primary` at the right, the `tabs` on its
+/// foot, `current` marked, named `tabsLabel`, else "<title> tabs"). On a phone the band alone, a "‹ <parent>" link at
+/// its top in place of the breadcrumb.
+/// e.g. `ConsolePageHead(trail, "Organizations", description: "…", tabs: Tabs(), current: "/orgs") { slot primary { … } }`;
+/// in a test the band is "<title> header", the breadcrumb "Breadcrumb".
+[Composable, Part] [Section(SectionKey)]
+component ConsolePageHead(List<Crumb> trail, string title, string description = "", List<TabItem> tabs = null, string current = "",
+                          string tabsLabel = "") {
+  /// Routes whose heads show the same tabs are one section: moving between them keeps this head mounted. A head with no
+  /// tabs is one section with the heads under the same trail — the pages of one object or area (an application's
+  /// Overview, Access, Logs): its breadcrumb and band stay, the title and the rest are patched in place.
+  string SectionKey() {
+    if (tabs != null && tabs.Count() > 0) { return string.Join("|", tabs.Select(t => t.To)); }
+    var up = trail == null ? "" : string.Join("|", trail.Where(c => c.To != "").Select(c => c.To));
+    return up == "" ? "" : "under " + up;
+  }
+  render {
+    if (Viewport.AtLeast(Tablet)) {
+      Row(h: "52px", minH: "52px", align: Align.Center, gap: "16px", px: "16px", bg: Colors.ConsoleSurface, borderBW: 1, border: Colors.ConsoleBorder,
+          minW: "0") {
+        ConsoleBreadcrumb(trail);
+      }
+    }
+    ConsoleHeader(title, description, tabs, current, trail, tabsLabel) {
+      slot badge { Slot("badge"); }
+      slot lines { Slot("lines"); }
+      slot primary { Slot("primary"); }
+    }
+  }
+}
+
+/// The header band: white, its foot in the border colour, `20px 16px` (`16px` on a phone); the h1 with `slot badge`
+/// beside it (at the right on a phone, under the title when it does not fit beside it), the description 2 under it in text-2 (at most 720 wide), the primary action at
+/// the right (full width under the words on a phone), and the tabs on the band's foot.
+[Composable, Part]
+component ConsoleHeader(string title, string description, List<TabItem> tabs, string current, List<Crumb> trail, string tabsLabel = "") {
+  bool HasTabs() => tabs != null && tabs.Count() > 0;
+
+  /// The crumb before the page, for the phone's back link; none when the page is the trail's first.
+  Crumb? Parent() => trail != null && trail.Count() > 1 ? trail[trail.Count() - 2] : null;
+  render {
+    var wide = Layout.AtLeast(Tablet);
+    Stack(gap: 0, bg: Colors.ConsoleSurface, borderBW: 1, border: Colors.ConsoleBorder, pt: wide ? "20px" : "16px", px: "16px",
+          pb: HasTabs() ? "0" : (wide ? "20px" : "16px"), minW: "0", role: UiRole.Banner, label: title + " header") {
+      if (wide) {
+        Row(justify: Justify.Between, align: Align.Center, gap: "16px", wrap: Wrapping.Wrap, minW: "0") {
+          Stack(gap: "2px", minW: "0") {
+            Row(gap: "10px", align: Align.Center, wrap: Wrapping.Wrap, minW: "0") {
+              Text(title, role: UiRole.Heading, level: 1, fontSize: FontSize.ConsoleTitle, fontWeight: 600, letterSpacing: "-0.01em", lineHeight: "1.5");
+              Slot("badge");
+            }
+            if (description != "") {
+              Text(description, color: Colors.ConsoleText2, maxW: "720px");
+            }
+            Row(gap: "8px", align: Align.Center, wrap: Wrapping.Wrap, minW: "0") { Slot("lines"); }
+          }
+          Row(gap: "8px", align: Align.Center) { Slot("primary"); }
+        }
+      } else {
+        Stack(gap: 0, minW: "0") {
+          if (Parent() != null && Parent().To != "") {
+            Box(mt: "-8px", mb: "4px") { ConsoleLink("‹ " + Parent().Label, Parent().To, "Back to " + Parent().Label); }
+          }
+          Row(justify: Justify.Between, align: Align.Center, gap: "4px 12px", wrap: Wrapping.Wrap, minW: "0") {
+            Text(title, role: UiRole.Heading, level: 1, fontSize: FontSize.ConsoleTitlePhone, fontWeight: 600, letterSpacing: "-0.01em", lineHeight: "1.5");
+            Slot("badge");
+          }
+          if (description != "") {
+            Text(description, mt: "4px", fontSize: FontSize.ConsoleBody, color: Colors.ConsoleText2);
+          }
+          Row(gap: "8px", align: Align.Center, wrap: Wrapping.Wrap, minW: "0", mt: "4px") { Slot("lines"); }
+          Stack(gap: "8px", mt: "14px", minW: "0") { Slot("primary"); }
+        }
+      }
+      if (HasTabs()) {
+        ConsoleTabs(tabsLabel != "" ? tabsLabel : title + " tabs", tabs, current);
+      }
+    }
+  }
+}

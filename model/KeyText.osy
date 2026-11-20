@@ -1,0 +1,15 @@
+namespace Osysharp.Look;
+
+/// A key, hash, branch or version as text: JetBrains Mono 13/600. A key that opens its item is a `KeyLink`.
+[Composable]
+component KeyText(string text) {
+  variants {
+    base {
+      FontFamily = Font.KeyFace;
+      FontSize = FontSize.Label;
+      FontWeight = FontWeight.Semibold;
+      Color = Colors.OnSurface;
+    }
+  }
+  render { Text(text); }
+}

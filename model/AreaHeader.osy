@@ -1,0 +1,14 @@
+namespace Osysharp.Look;
+
+/// An area's page head: its header (no breadcrumb), 14 px over its tabs.
+[Composable] [Section(SectionKey)]
+component AreaHeader(string title, List<TabItem> tabs, string current, string situation = "") {
+  /// Routes whose heads show the same tabs are one section: moving between them keeps this head mounted.
+  string SectionKey() => tabs == null ? "" : string.Join("|", tabs.Select(t => t.To));
+  render {
+    Stack(gap: "14px") {
+      ObjectHeader(title, situation: situation) { Slot; }
+      TabBar(title + " tabs", tabs, current);
+    }
+  }
+}

@@ -1,0 +1,16 @@
+namespace Osysharp.Look;
+
+/// The phone bar's menu mark: three 14 x 2 px bars in the rail's ink (white in light and dark — the console's surface is near-black in
+/// dark, and the bars drawn in it vanished on the dark bar), 3 px apart, drawn as boxes so each bar sits on whole pixels
+/// and reads white at every screen scale (the kit's 20 px glyph has ~0.8 px lines that land between pixel rows and read
+/// grey on a 1x screen; a package's own SVG icons do not reach the apps that use it).
+[Composable]
+component ConsoleMenuGlyph() {
+  render {
+    Stack(gap: "3px", w: "14px", decorative: true) {
+      Box(w: "14px", h: "2px", bg: Colors.ConsoleRailInk, rounded: "1px");
+      Box(w: "14px", h: "2px", bg: Colors.ConsoleRailInk, rounded: "1px");
+      Box(w: "14px", h: "2px", bg: Colors.ConsoleRailInk, rounded: "1px");
+    }
+  }
+}

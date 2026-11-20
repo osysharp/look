@@ -1,0 +1,32 @@
+namespace Osysharp.Look;
+
+/// One item of a `MoreMenu`: 14/400 Ink, left aligned, `9px 10px`, radius 6, the wash when hovered; `danger` in the bad
+/// ink (Release's "Roll back production to 1.8.0…"). `announce` (default: its words): its announced name in place of
+/// its words, as `LookButton`'s — a row's menu item "Remove" read as "Remove UPKEEP-41"; begin it with the words.
+[Composable]
+component MenuAction(string label, Action onPress, bool danger = false, string announce = "") {
+  variants {
+    base {
+      Display = Display.Flex;
+      Py = "9px";
+      Px = "10px";
+      Rounded = Radius.Tag;
+      Bg = Colors.Transparent;
+      BorderW = 0;
+      FontFamily = Font.Sans;
+      FontSize = FontSize.Body;
+      FontWeight = FontWeight.Regular;
+      LineHeight = "normal";
+      Color = Colors.OnSurface;
+      Cursor = Cursor.Pointer;
+      Hover { Bg = Colors.Wash; }
+      Focus { Shadow = Shadow.Ring; }
+    }
+    danger {
+      Color = Colors.BadInk;
+    }
+  }
+  render {
+    Pressable(onClick: onPress, label: announce != "" ? announce : label, role: UiRole.MenuItem, align: Align.Center, justify: Justify.Start) { Text(label); }
+  }
+}

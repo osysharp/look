@@ -1,0 +1,12 @@
+namespace Osysharp.Look;
+
+/// A small share bar: `done` of `total` filled in the ok dot on the neutral ground, 6 px high, radius 3, as wide as its
+/// place (`w` to fix it). Decorative: the words beside it say the count.
+[Composable]
+component ConsoleShareBar(int done, int total, string w = "100%") {
+  render {
+    Box(w: w, h: "6px", rounded: Radius.ConsoleKbd, overflow: Overflow.Hidden, bg: Colors.ConsoleNeutralBg, decorative: true) {
+      Box(w: MeterWidth(done, total), h: "6px", bg: Colors.ConsoleOkDot);
+    }
+  }
+}

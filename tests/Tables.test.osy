@@ -1,0 +1,101 @@
+// The look's tables (P2.D14a): the head on its columns, the dense row's height, a key with no page, a disclosure under
+// the value column, a wide table scrolling inside its card at 390, and a TableCard sorted and paged by its caller.
+
+using Osysharp.Look;
+using OsyrinLookTests;
+
+[Test]
+void A_settings_head_sits_on_its_columns_and_a_dense_row_is_34_to_36_high() {
+  Ui.Viewport(1440);
+  Ui.Visit("/dev/controls/tables");
+  // The guides are the board's own columns (gap 14, `0 20px`): every head and every cell lies inside its own.
+  Ui.Within("Settings sample with guides") {
+    Assert.Inside("Policy", "Guide: policy");
+    Assert.Inside("In force", "Guide: in force");
+    Assert.Inside("Kind", "Guide: kind");
+    Assert.Inside("Applies to", "Guide: applies to");
+    Assert.Inside("3 hosts allowed", "Guide: in force");
+    Assert.Inside("12 of 14", "Guide: applies to");
+    // Right-aligned: the head's words end in the column's right-hand 74 px (left-aligned they would not fit there). A
+    // cell's text box fills its column, so the cells are held to the column by the guide above.
+    Assert.Inside("Applies to", "Guide: right end of applies to");
+    // A key with no page is words, not a link; the disclosure sits under the value column.
+    Assert.Visible("egress.hosts");
+    Assert.Inside("Where it is enforced", "Guide: in force");
+    Ui.Click("Where it is enforced");
+    Assert.Visible("At save on the settings screen, and again by the host when an app calls out.");
+  }
+  // The dense rows, both families, between the 32 and 38 px marks (the comparisons allow a pixel; measured: 36).
+  Assert.Taller("Dense plain row", "32 px mark");
+  Assert.Shorter("Dense plain row", "38 px mark");
+  Assert.Taller("Dense settings row", "32 px mark");
+  Assert.Shorter("Dense settings row", "38 px mark");
+  Assert.Shorter("Dense plain row", "Plain row");
+  Ui.Shot("tables-1440");
+  Ui.Theme("dark");
+  Ui.Visit("/dev/controls/tables");
+  Ui.Within("Settings sample with guides") { Assert.Readable("Applies to"); }
+  Ui.Shot("tables-dark");
+  Ui.Theme("light");
+}
+
+[Test]
+void A_wide_table_scrolls_inside_its_card_on_a_phone() {
+  Ui.Viewport(390);
+  Ui.Visit("/dev/controls/tables");
+  // The page does not widen (NoOverflow); the table keeps its 900 px inside a card a phone wide, so it scrolls there
+  // (Wider), while the card's head, its first column and its foot stay inside the card.
+  Assert.NoOverflow();
+  Assert.Wider("Network table", "Network");
+  Assert.Inside("All policies ›", "Network");
+  Assert.Inside("Inbound webhooks", "Network");
+  Assert.Inside("Changes go through a draft and a review.", "Network");
+  Assert.FitsOn("Signed requests only");
+  Ui.Shot("tables-390");
+  Ui.Shot("tables-wide-390", within: "Network");
+}
+
+[Test]
+void A_table_card_reports_its_sort_and_its_page_and_the_caller_orders_them() {
+  Ui.Viewport(1440);
+  Ui.Visit("/dev/controls/tables");
+  Ui.Within("Hosts") {
+    Assert.Visible("1–25 of 312");
+    Assert.Disabled("Previous");
+    Assert.Before("host-001", "host-002");
+    Ui.Click("Next");
+    Assert.Visible("26–50 of 312");
+    Assert.Visible("host-026");
+    Assert.Hidden("host-001");
+    Assert.Enabled("Previous");
+    Ui.Click("Lanes");
+    // Ascending by lanes, from page 1: host-013 has none.
+    Assert.Visible("1–25 of 312");
+    Assert.Before("host-013", "host-026");
+    Ui.Click("Lanes");
+    // Descending: host-011 has 12.
+    Assert.Before("host-011", "host-024");
+    Ui.Click("Host");
+    Assert.Before("host-001", "host-002");
+    Ui.Click("Host");
+    Assert.Before("host-312", "host-311");
+  }
+  Ui.Shot("tables-sorted-1440", within: "Hosts");
+}
+
+[Test]
+void A_look_table_counts_its_data_rows_and_reads_a_cell_by_column_name() {
+  Ui.Viewport(1440);
+  Ui.Visit("/dev/controls/tables");
+  // CardTable: three rows (the head is not one), each cell under its column's header.
+  Assert.Items("Contents table", 3);
+  Assert.Cell("UPKEEP-44", "State", "Building", within: "Contents table");
+  Assert.Cell("UPKEEP-41", "Tokens", "41k", within: "Contents table");
+  // TableCard: a page of 25 hosts; host-001 has 7 lanes and is taking work.
+  Assert.Items("Hosts table", 25);
+  Assert.Cell("host-001", "Lanes", "7");
+  Assert.Cell("host-013", "State", "Idle");
+  // Rows under group bands: the bands are not data rows.
+  Assert.Items("Grouped contents table", 4);
+  Assert.Cell("UPKEEP-50", "State", "Done", within: "Grouped contents table");
+}

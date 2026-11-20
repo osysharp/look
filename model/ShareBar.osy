@@ -1,0 +1,32 @@
+namespace Osysharp.Look;
+
+/// A small progress bar: `done` of `total` filled in the tone's dot colour on Line 2, 6 px high, pill ends, as wide as
+/// its place (`w` to fix it). Decorative: the words beside it say the count.
+[Composable]
+component ShareBar(int done, int total, StatusTone tone = StatusTone.Ok, string w = "100%") {
+  render {
+    Row(w: w, h: "6px", minW: "0", rounded: Radius.Pill, overflow: Overflow.Hidden, bg: Colors.Line2, decorative: true) {
+      ShareFill(tone, StatShareWidth(done, total));
+    }
+  }
+}
+
+/// The filled part of a `ShareBar`: `width` of it in the tone's dot colour.
+[Composable]
+component ShareFill(StatusTone tone, string width) {
+  variants {
+    base {
+      H = "6px";
+      Rounded = Radius.Pill;
+    }
+    tone {
+      Ok { Bg = Colors.OkDot; }
+      Run { Bg = Colors.RunDot; }
+      Wait { Bg = Colors.WaitDot; }
+      You { Bg = Colors.YouDot; }
+      Bad { Bg = Colors.BadDot; }
+      Floor { Bg = Colors.FloorDot; }
+    }
+  }
+  render { Box(w: width, decorative: true); }
+}

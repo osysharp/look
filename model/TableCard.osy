@@ -1,0 +1,63 @@
+namespace Osysharp.Look;
+
+// A table in a card in one call, for the common case: a `SectionCard` head, a `CardTable` with its head, the caller's
+// rows (the block), and a foot. It holds no rows and no order of its own: sorting and paging are the caller's query,
+// and the card only REPORTS what the reader chose.
+
+/// `TableCard(title, cols, heads, sub, linkLabel, linkTo, foot)`: the card's head (`SectionCard`: `title` 18/700, the
+/// `sub` line, the link top right), then the table on `cols` with `heads`, then the block — `CardTableRow`s (or
+/// `SettingTableRow`s) given the same `spacing` and `dense` — then `foot` as a `CardFoot` line.
+/// `spacing`, `dense`, `minWidth`, `aligns`, `sortable`/`sortBy`/`sortDescending`/`onSort`: as `CardTable` (a wide table
+/// scrolls inside the card; the card's head and foot stay put).
+/// Paging (`pageSize` > 0): a foot row "1–25 of 312 · Previous · Next" (13, Ink 2) under the rows; `page` is the page
+/// shown, from 1, of `total` rows; Previous and Next are quiet buttons, drawn disabled at either end, and REPORT the page
+/// wanted to `onPage(page)` — the caller's query takes that page and passes it back.
+/// In a test the card is the region of its title, the table that of `title + " table"` (`Assert.Wider("Network table",
+/// "Network")` where it scrolls), the paging row that of "Pages of " + `title`.
+/// `actions: true` draws the `actions` slot at the right of the head, after the link (as `SectionCard`): the card's
+/// primary "Add …" (`LookButton(…, kind: ButtonKind.Primary, small: true)`).
+/// The card does not clip (`SectionCard`): a row's menu and a hover title on the last row open whole over its edge.
+/// `stack` (default true): on a phone the rows stack and the head row is not drawn, as `CardTable`; give the rows the
+/// same `stack` and the table's `heads` (`CardTableRow(…, heads: heads)`) so each cell is labelled by its column.
+[Composable]
+component TableCard(string title, string cols, List<string> heads, string sub = "", string linkLabel = "", string linkTo = "", string foot = "",
+                    TableSpacing spacing = TableSpacing.Plain, bool dense = false, string minWidth = "", List<TextAlign>? aligns = null,
+                    List<string>? sortable = null, string sortBy = "", bool sortDescending = false, Action<string, bool>? onSort = null,
+                    int pageSize = 0, int total = 0, int page = 1, Action<int>? onPage = null, bool stack = true, bool actions = false) {
+  int First() => total == 0 ? 0 : (page - 1) * pageSize + 1;
+  int Last() => Math.Min(page * pageSize, total);
+  bool HasPrevious() => page > 1;
+  bool HasNext() => page * pageSize < total;
+  action Previous() {
+    if (onPage != null && HasPrevious()) {
+      onPage(page - 1);
+    }
+  }
+  action Next() {
+    if (onPage != null && HasNext()) {
+      onPage(page + 1);
+    }
+  }
+  render {
+    SectionCard(title, sub: sub, linkLabel: linkLabel, linkTo: linkTo, actions: actions) {
+      slot actions { Slot("actions"); }
+      CardTable(title + " table", cols, heads, spacing: spacing, dense: dense, minWidth: minWidth, aligns: aligns, sortable: sortable, sortBy: sortBy,
+                sortDescending: sortDescending, onSort: onSort, stack: stack) {
+        Slot;
+      }
+      if (pageSize > 0) {
+        Row(gap: "8px", align: Align.Center, wrap: Wrapping.Wrap, pt: "10px", px: "20px", pb: "14px", borderTW: 1, border: Colors.Line2,
+            fontSize: FontSize.Label, color: Colors.Ink2, lineHeight: "normal", role: UiRole.Navigation, label: "Pages of " + title) {
+          Text(First().ToString() + "–" + Last().ToString() + " of " + total.ToString(), role: UiRole.Status);
+          Text("·", decorative: true);
+          LookButton("Previous", Previous, kind: ButtonKind.Inline, disabled: onPage == null || !HasPrevious());
+          Text("·", decorative: true);
+          LookButton("Next", Next, kind: ButtonKind.Inline, disabled: onPage == null || !HasNext());
+        }
+      }
+      if (foot != "") {
+        CardFoot(foot);
+      }
+    }
+  }
+}

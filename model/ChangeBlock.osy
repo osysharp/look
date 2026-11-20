@@ -1,0 +1,51 @@
+namespace Osysharp.Look;
+
+/// One proposed change, inside a conversation or a version (canvas2/PlannerPanel "Proposed changes"): `9px 10px`, its
+/// parts 6 apart, under a soft-line rule (it sits in a `ChangeList`; alone, give it `framed`). Its head, wrapping: what
+/// kind of change it is as a small chip (`kind`, 11/700 `2px 7px` radius 6 on `kindTone`'s tint — the board's Create
+/// ok, Update run, Acceptance accent), the item it touches (`key` as a small `KeyLink` to `keyTo`, or as mono text with
+/// no `keyTo`), `what` 12 Ink 2 ("new criterion"), and at the right its state (`state` as a `StatusChip` in
+/// `stateTone`: "Open", "Accepted", "Refused"). Then the block — the body: `DiffLines` of what it changes, a small tree
+/// of proposed parts (`PartTree`), an edit field — then `note` 12 Ink 2 (why it is proposed), then `slot actions`
+/// right-aligned 6 apart (Reject · Edit · the one primary Accept; small `LookButton`s, each `announce`d with the change:
+/// "Reject: Update on BOOK-14").
+/// In a test it is the group named `label` (default "<kind> on <key>"): `Ui.Click("Accept the criterion", within:
+/// "Acceptance on BOOK-17")`.
+/// e.g. `ChangeBlock("Update", ChipTone.Run, key: "BOOK-14", keyTo: to, what: "done check", note: "Makes the expired case
+/// testable.") { DiffLines([…]); slot actions { LookButton("Reject", R, small: true, announce: "Reject: Update on BOOK-14"); … } }`
+[Composable]
+component ChangeBlock(string kind, ChipTone kindTone = ChipTone.Accent, string key = "", string keyTo = "", string what = "",
+                      string state = "", StatusTone stateTone = StatusTone.Wait, string note = "", string label = "", bool framed = false) {
+  render {
+    Stack(gap: "6px", py: "9px", px: "10px", minW: "0", bg: Colors.Surface, borderTW: framed ? 0 : 1, borderW: framed ? 1 : 0,
+          border: framed ? Colors.AccentLine : Colors.SoftLine, rounded: framed ? Radius.Inner : "0", role: UiRole.Group,
+          label: label != "" ? label : (key != "" ? kind + " on " + key : kind)) {
+      Row(gap: "6px", align: Align.Center, wrap: Wrapping.Wrap, minW: "0") {
+        Text(kind, fontSize: FontSize.Overline, fontWeight: FontWeight.Heavy, py: "2px", px: "7px", rounded: Radius.Chip, whiteSpace: WhiteSpace.Nowrap,
+             lineHeight: "normal",
+             bg: kindTone == ChipTone.Ok ? Colors.OkTint : kindTone == ChipTone.Run ? Colors.RunTint : kindTone == ChipTone.Wait ? Colors.WaitTint
+               : kindTone == ChipTone.You ? Colors.YouTint : kindTone == ChipTone.Bad ? Colors.BadTint : kindTone == ChipTone.Floor ? Colors.FloorTint : Colors.AccentTint,
+             color: kindTone == ChipTone.Ok ? Colors.OkInk : kindTone == ChipTone.Run ? Colors.RunInk : kindTone == ChipTone.Wait ? Colors.WaitInk
+               : kindTone == ChipTone.You ? Colors.YouInk : kindTone == ChipTone.Bad ? Colors.BadInk : kindTone == ChipTone.Floor ? Colors.FloorInk : Colors.AccentInk);
+        if (key != "") {
+          if (keyTo != "") {
+            KeyLink(key, keyTo, small: true);
+          } else {
+            Text(key, fontFamily: Font.KeyFace, fontSize: FontSize.Caption, fontWeight: FontWeight.Semibold, color: Colors.OnSurface);
+          }
+        }
+        if (what != "") {
+          Text(what, fontSize: FontSize.Caption, color: Colors.Ink2, lineHeight: "normal", minW: "0");
+        }
+        if (state != "") {
+          Box(ml: "auto") { StatusChip(state, stateTone); }
+        }
+      }
+      Slot;
+      if (note != "") {
+        Text(note, fontSize: FontSize.Caption, color: Colors.Ink2, lineHeight: "1.4");
+      }
+      Row(gap: "6px", justify: Justify.End, align: Align.Center, wrap: Wrapping.Wrap) { Slot("actions"); }
+    }
+  }
+}

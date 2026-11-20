@@ -1,0 +1,29 @@
+namespace Osysharp.Look;
+
+/// A person: their initials in a 22 px circle (11/700 run ink on the run tint) and their name, 13/600. A person is a
+/// circle; an agent is drawn otherwise. `quiet`: the name 13/400 Ink 2, beside a header's title ("Anna Berg · lead").
+[Composable]
+component PersonChip(string name, string initials, bool quiet = false) {
+  variants {
+    base {
+      Display = Display.InlineFlex;
+      W = "fit-content";
+      FontSize = FontSize.Label;
+      FontWeight = FontWeight.Semibold;
+      Color = Colors.OnSurface;
+    }
+    quiet {
+      FontWeight = FontWeight.Regular;
+      Color = Colors.Ink2;
+    }
+  }
+  render {
+    Row(gap: "6px", align: Align.Center) {
+      Row(w: "22px", h: "22px", minW: "22px", rounded: Radius.Pill, bg: Colors.RunTint, color: Colors.RunInk, align: Align.Center,
+          justify: Justify.Center, fontSize: "11px", fontWeight: 700, decorative: true) {
+        Text(initials);
+      }
+      Text(name);
+    }
+  }
+}

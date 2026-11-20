@@ -1,0 +1,4 @@
+namespace Osysharp.Look;
+
+/// Where one named check stands: passed, failed (with its reason), or not judged yet.
+public enum MarkState { Passed, Failed, NotJudged }

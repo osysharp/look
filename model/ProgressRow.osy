@@ -1,0 +1,26 @@
+namespace Osysharp.Look;
+
+/// A row with a bar, in a `ListCard` (a stage of a sequence that is not in front, a group of items): under a Line 2 rule,
+/// `12px 20px`, the title link (`RowTitle`, 16/600) over its 13 px line (`sub`), then a `ShareBar` of `done` of `total`
+/// in `barTone`, none when `total` is 0 (a quarter of the row's room, at most 120 px, set to the right), then the `side` slot (the `under` slot continues the line: a chip) (a `StatusChip`) at the right, centred. In a test it is the region of
+/// its title.
+[Composable]
+component ProgressRow(string title, string to, string sub, int done, int total, StatusTone barTone = StatusTone.Ok) {
+  render {
+    Box(display: Display.Grid, cols: "minmax(0, 3fr) minmax(40px, 1fr) auto", gap: "4px 16px", align: Align.Center, py: "12px", px: "20px",
+        borderTW: 1, border: Colors.Line2, label: title) {
+      Stack(gap: "2px", minW: "0", wordBreak: WordBreak.BreakWord) {
+        RowTitle(title, to);
+        MetaLine([sub]);
+        Slot("under");
+      }
+      // Nothing to share out: no empty bar, the room stays.
+      Row(justify: Justify.End, minW: "0") {
+        if (total > 0) {
+          Box(w: "100%", maxW: "120px", minW: "0") { ShareBar(done, total, barTone); }
+        }
+      }
+      Box { Slot("side"); }
+    }
+  }
+}

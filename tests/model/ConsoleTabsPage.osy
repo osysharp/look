@@ -1,0 +1,58 @@
+namespace OsyrinLookTests;
+
+using Osysharp.Look;
+
+/// The header band with five tabs (Policy's: Policies, Requests, Versions, Approvals, Floor) and the current one the last,
+/// so a phone has to scroll the strip to show it; and the dashed strip as a statement and as an offer.
+[Route("/dev/console-tabs")]
+[AllowAnonymous]
+[Title("Console tabs")]
+[Render(CSR)]
+component ConsoleTabsPage() {
+  render {
+    Stack(gap: "16px", minW: "0") {
+      ConsoleHeader("Policy", "What the organization allows.",
+                    [ new TabItem { Label = "Policies", To = "/dev/console-tabs/policies" }, new TabItem { Label = "Requests", To = "/dev/console-tabs/requests", Count = "2", CountTone = Tone.Warning },
+                      new TabItem { Label = "Versions", To = "/dev/console-tabs/versions" }, new TabItem { Label = "Approvals", To = "/dev/console-tabs/approvals" },
+                      new TabItem { Label = "Floor", To = "/dev/console-tabs" } ],
+                    "/dev/console-tabs", [ new Crumb { Label = "Organizations", To = "/dev/console" }, new Crumb { Label = "Policy" } ], "Policy tabs");
+      Box(p: "16px") {
+        Stack(gap: "12px") {
+          ConsoleDashedStrip("Nothing is set here.", "Statement");
+          ConsoleDashedStrip("Nobody has asked for this yet.", "Offer", action: true) {
+            ConsoleButton("Ask", Noop, primary: true);
+          }
+        }
+      }
+    }
+  }
+  action Noop() {
+  }
+}
+
+/// Foundry's Measures page: the strip bare in a bordered `Box`, not in ConsoleHeader; seven tabs, the current one
+/// (Performance) the sixth, so at 390 it starts past the strip's right edge.
+[Route("/dev/console-tabs-bare")]
+[AllowAnonymous]
+[Title("Console tabs, bare")]
+[Render(CSR)]
+component ConsoleTabsBarePage() {
+  ConsoleChrome Chrome() => new ConsoleChrome {
+    Product = "Osyrin", Context = "Foundry", Home = "/dev/console-tabs-bare", Address = "ops@osyrin.test", Initials = "O", Account = "/dev/console-tabs-bare",
+    Groups = [ new ConsoleNavGroup { Items = [ new ConsoleNavItem { Label = "Measures", To = "/dev/console-tabs-bare", Icon = Icons.Home, Exact = true } ] } ],
+  };
+
+  render {
+    ConsoleFrame(Chrome(), [ new Crumb { Label = "Home", To = "/dev/console" }, new Crumb { Label = "Measures" } ], "Measures", description: "What was delivered.") {
+      Box(borderBW: 1, minW: "0") {
+        ConsoleTabs("Measures tabs",
+                    [ new TabItem { Label = "Overview", To = "/dev/console-tabs-bare/overview" }, new TabItem { Label = "Throughput", To = "/dev/console-tabs-bare/throughput" },
+                      new TabItem { Label = "Quality", To = "/dev/console-tabs-bare/quality" }, new TabItem { Label = "Cost", To = "/dev/console-tabs-bare/cost" },
+                      new TabItem { Label = "Reviews", To = "/dev/console-tabs-bare/reviews" }, new TabItem { Label = "Performance", To = "/dev/console-tabs-bare" },
+                      new TabItem { Label = "Portfolio", To = "/dev/console-tabs-bare/portfolio" } ],
+                    "/dev/console-tabs-bare");
+      }
+      Text("Measures body");
+    }
+  }
+}

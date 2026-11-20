@@ -1,0 +1,21 @@
+namespace Osysharp.Look;
+
+/// A card title that is itself the link to what the card is about (ProductReleases "Patient Portal 2.5"): 18/700 Ink,
+/// no underline until hovered. `lead`: 22/700, the lead card's title ("Next · planned"). Put it in the card's heading.
+[Composable]
+component CardTitleLink(string title, string to, bool lead = false) {
+  variants {
+    base {
+      FontSize = FontSize.SectionTitle;
+      FontWeight = FontWeight.Heavy;
+      Color = Colors.OnSurface;
+      TextDecoration = TextDecoration.None;
+      LineHeight = "normal";
+      Hover { TextDecoration = TextDecoration.Underline; }
+    }
+    lead {
+      FontSize = FontSize.LeadTitle;
+    }
+  }
+  render { Link(to, label: title) { Text(title); } }
+}

@@ -1,0 +1,12 @@
+namespace Osysharp.Look;
+
+/// One result of the console's search: its `Kind` ("Product", "Plan item", "Host"), its `Key` in mono (may be empty), its
+/// `Title`, where `To` leads, and for a plan item the key of its `Product` and its level as a `Badge`.
+public class ConsoleSearchResult {
+  public string Kind = "";
+  public string Key = "";
+  public string Title = "";
+  public string To = "";
+  public string Product = "";
+  public string Badge = "";
+}

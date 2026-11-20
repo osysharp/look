@@ -1,0 +1,91 @@
+namespace OsyrinLookTests;
+
+using Osysharp.Look;
+
+// The settings parts any app's settings page is built from (canvas4 PolicyFloorEdit/Effective, orgsettings Bundle and
+// EditData), drawn with sample content after the page boards' parts. Not on the Components board, so not diffed here:
+// the effective table and the check row are measured in /dev/page-parts/effective.
+
+/// The settings parts, editable and shown-only side by side.
+[Composable]
+component GallerySettingsParts() {
+  string adding = "hooks.example-analytics.com";
+  string why = "Care Companion publishes Preview builds to Play internal testing.";
+  string checking = "nuget.org";
+  bool onlyAllowed = true;
+  int idleMinutes = 60;
+  action Nothing() { }
+  action Remove(string host) { }
+  render {
+    Stack(gap: "16px", label: "Settings parts") {
+      H2("Settings parts — any app's settings");
+      EditBanner("Editing draft v6 · revision 4, not saved · 2 changes against v5", onDiscard: Nothing, onSave: Nothing,
+                 second: "Saving clears Olive Owner's approval on revision 3", save: "Review and send for approval");
+      BoardPair {
+        Stack(gap: "16px", minW: "0") {
+          Row(gap: "8px", wrap: Wrapping.Wrap, label: "Source chips") {
+            SourceChip("Inherited");
+            SourceChip("Narrowed here", tone: SourceTone.Narrowed);
+            SourceChip("Set here", tone: SourceTone.SetHere);
+            SourceChip("Exception waiting", tone: SourceTone.Waiting);
+            AgentChip("Prepared by a factory agent");
+          }
+          // The kit's settings controls in the look: a switch a policy holds, a number set for one app, and a fixed fact.
+          SettingsCard("Lane settings", description: "How Patient Portal's lanes work.") {
+            SettingSwitch("Only allowed hosts", value: onlyAllowed, help: "Where an app may call out to: 3 allowed hosts, every other call refused.",
+                          lockedBy: "Northwind Health's policy · version 5",
+                          lockedWhy: "Patient data stays with named processors. An Owner or Admin of Northwind Health can change it.");
+            SettingNumber("Idle after", value: idleMinutes, unit: "minutes", min: 5, max: 600, help: "How long a lane may go without progress before it is called idle.",
+                          setFor: "Patient Portal", setBy: "Anna Berg", setWhen: "today 09:12", resetTo: "45 minutes", onReset: Nothing);
+            SettingAlways("Audit trail", help: "Every change is kept with who made it and why.", note: "Always kept: Northwind Health's policy requires it.");
+          }
+          HostsCard("Outbound hosts", tag: "Exception-eligible", editable: true) {
+            HostChipRow("Allowed", [new HostEntry { Host = "github.com", Removable = false }, new HostEntry { Host = "registry.npmjs.org", Removable = false },
+                                    new HostEntry { Host = "play.googleapis.com", Mark = "added" }, new HostEntry { Host = "status.northwind.internal" }],
+                        onRemove: Remove);
+            HostChipRow("Blocked", [new HostEntry { Host = "fax-relay.example" }, new HostEntry { Host = "*.pastebin.com" }], blocked: true,
+                        note: "Blocked for every application of Northwind Health.");
+            slot add {
+              HostAddField("Add a host", adding, Nothing, ceiling: "At most what Northwind Health's policy allows.",
+                           problemLead: "hooks.example-analytics.com is not on the policy's outbound hosts.",
+                           problem: "Only an Owner or Admin of Northwind Health can widen it.");
+            }
+            slot why { LookInput("Why this host", why, state: FieldState.Editing); }
+            slot under { ToneStrip("Any edit creates revision 4 with a new hash; Elif's approval stays on revision 3.", lead: "Editing clears approvals."); }
+          }
+        }
+        Stack(gap: "16px", minW: "0") {
+          HostsCard("Outbound hosts · shown only") {
+            HostChipRow("", [new HostEntry { Host = "*.vercel.com" }, new HostEntry { Host = "nuget.org", Mark = "narrowed here" }]);
+          }
+          ToneStrip("1 account may approve and 2 are asked.", tone: StripTone.Bad);
+          ToneStrip("Allows a choice; refuses nothing.", tone: StripTone.Ok);
+          ToneStrip("No deploys scheduled in that window yet.", tone: StripTone.Plain);
+          Stack(gap: "12px", py: "18px", px: "20px", bg: Colors.Surface, borderW: 1, border: Colors.Border, rounded: Radius.Panel, label: "Check a host") {
+            CheckValue("Check a host", checking, outcome: "Allowed", outcomeTone: StatusTone.Ok,
+                       lead: "Removing nuget.org from Patient Portal's outbound hosts is allowed: it only narrows.");
+          }
+          Stack(gap: 0, bg: Colors.Surface, borderW: 1, border: Colors.Border, rounded: Radius.Panel, overflow: Overflow.Hidden, label: "Policies table") {
+            SettingTableGroup("Outbound hosts");
+            SettingTableRow("Outbound hosts", "minmax(0, 1fr) 150px 100px", key: "egress.hosts", keyTo: "/dev/components", tag: "Draft v6",
+                            tagText: "adds play.googleapis.com") {
+              slot value { StatusChip("v5 in force", StatusTone.Floor); }
+              SolidChip("Hard boundary");
+            }
+          }
+          Stack(gap: "10px", py: "14px", px: "20px", bg: Colors.Surface, borderW: 1, border: Colors.Border, rounded: Radius.Panel, label: "Approving") {
+            ApprovalRow {
+              ApprovalSlot("Elif Demir", detail: "approved 3be1…7d4a · 09:41", given: true);
+              ApprovalSlot("Planner", detail: "checked 3be1…7d4a · 09:40", given: true, agent: true);
+              ApprovalSlot("Second approver");
+              slot action { LookButton("Review and approve 3be1…7d4a", Nothing, kind: ButtonKind.Primary, small: true); }
+            }
+            DiffLines(["  default: never", "− clinical: long-context", "+ clinical, research: long-context"], label: "Draft v6 against v5");
+            DarkTextCard("llm.data:\n  default: never            # a pair not listed is refused\n  rules:\n    - data: clinical\n      model: long-context",
+                         label: "The signed text");
+          }
+        }
+      }
+    }
+  }
+}

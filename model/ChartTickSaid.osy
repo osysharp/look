@@ -1,0 +1,6 @@
+namespace Osysharp.Look;
+
+/// A tick on a chart's value axis (MS2b, shared by the bar and line charts in MS2c): the value in its unit, the top tick
+/// (`top`) with the unit's word when the unit is a word ("6 builds", "150k tokens").
+internal string ChartTickSaid(double tick, string unit, bool top) => ChartValueSaid(tick, unit, tick: true)
+  + (top && unit != "" && unit != "%" && unit != "$" && unit != "h" && unit != "GB" ? " " + unit : "");

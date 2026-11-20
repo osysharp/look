@@ -1,0 +1,31 @@
+namespace OsyrinLookTests;
+
+using Osysharp.Look;
+
+// A look dropdown in a sheet that comes in below the window — as a layout's drawer that stands beside its 100vh shell
+// does (Foundry's Edit product). Under --pixels a press scrolls to its field first, so its list opens at the field.
+
+/// A page as tall as the window, and a drawer ("The check") an "Edit the check" press opens after it.
+[Route("/dev/controls/select-in-opened-sheet")]
+[AllowAnonymous]
+[Title("A dropdown in an opened sheet")]
+[Render(CSR)]
+component SelectInOpenedSheetPage() {
+  CheckCadence cadence = CheckCadence.Never;
+  bool editing = false;
+  action StartEditing() { editing = true; }
+  action StopEditing() { editing = false; }
+  render {
+    Box {
+      Stack(minH: "100vh", gap: "16px", p: "24px", minW: "0") {
+        LookButton("Edit the check", StartEditing);
+      }
+      if (editing) {
+        Drawer("The check", onClose: StopEditing, subtitle: "One dropdown") {
+          LookEnumSelect("Check runs when", cadence);
+          Box(h: "400px") { }
+        }
+      }
+    }
+  }
+}

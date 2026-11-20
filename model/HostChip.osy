@@ -1,0 +1,69 @@
+namespace Osysharp.Look;
+
+// A list of hosts a setting allows or blocks, and its edit surface (canvas4/PolicyFloorEdit "Outbound hosts";
+// org-policy's hosts editor). Generic: any list of short mono values an app shows or edits — hosts, domains,
+// registries. Editability is per chip (`Removable`) and per chip row (a remove handler, an add field); none given =
+// shown only.
+
+/// One value in a chip row: its words, a mark after them ("added", "narrowed here"), and whether this scope may remove it.
+public class HostEntry {
+  public string Host = "";
+  public string Mark = "";
+  public bool Removable = true;
+}
+
+/// A host chip: JetBrains Mono 13/500, radius 8, `4px 10px` (`4px 6px 4px 10px` with its ×), white in the control line.
+/// `mark`: the 11/600 accent-ink word after the host, on the accent's second tint inside a 2 px accent line (`added`).
+/// `blocked`: a host on the block list — the bad tint in the bad line, the bad ink, struck through by nothing (no
+/// board draws it; the tone is the look's choice). `onRemove` draws the × (13/600 Ink 2, at least 28 high), named
+/// "Remove <host>"; absent, the chip is shown only.
+/// In a test the × is pressed by its name: `Ui.Click("Remove nuget.org")`.
+[Composable]
+component HostChip(string host, Action? onRemove = null, string mark = "", bool blocked = false) {
+  render {
+    Row(gap: "6px", align: Align.Center, w: "fit-content", minH: "28px", py: mark != "" ? "3px" : "4px",
+        pl: mark != "" ? "9px" : "10px", pr: onRemove != null ? (mark != "" ? "5px" : "6px") : (mark != "" ? "9px" : "10px"), rounded: Radius.Control,
+        borderW: mark != "" ? 2 : 1, border: mark != "" ? Colors.Primary : (blocked ? Colors.BadLine : Colors.ControlLine),
+        bg: mark != "" ? Colors.AccentTint2 : (blocked ? Colors.BadTint : Colors.Surface), color: blocked ? Colors.BadInk : Colors.OnSurface,
+        fontFamily: Font.KeyFace, fontSize: FontSize.Label, fontWeight: FontWeight.Medium, lineHeight: "normal", role: UiRole.Group, label: host) {
+      Text(host);
+      if (mark != "") {
+        Text(mark, fontFamily: Font.Sans, fontSize: FontSize.Overline, fontWeight: FontWeight.Semibold, color: Colors.AccentInk);
+      }
+      if (onRemove != null) {
+        Pressable(onClick: onRemove, label: "Remove " + host, minH: "28px", px: "2px", py: 0, bg: Colors.Transparent, borderW: 0,
+                  fontFamily: Font.Sans, fontSize: FontSize.Label, fontWeight: FontWeight.Semibold, color: Colors.Ink2, cursor: Cursor.Pointer,
+                  align: Align.Center) {
+          Text("×", decorative: true);
+        }
+      }
+    }
+  }
+}
+
+/// A labelled row of host chips ("Allowed", "Blocked"): the label 13/600 over the chips, wrapping 8 apart. `onRemove`
+/// given, every `Removable` entry gets its ×; absent, the row is shown only. `blocked` draws every chip in the blocked
+/// tone. `note`: a 12 Ink 3 line under the chips ("Blocked for every application of Northwind Health."). `label` empty:
+/// the chips alone, as PolicyFloorEdit draws its one list.
+[Composable]
+component HostChipRow(string label, List<HostEntry> hosts, Action<string>? onRemove = null, bool blocked = false, string note = "") {
+  render {
+    Stack(gap: "6px", role: UiRole.Group, label: label != "" ? label : "Hosts") {
+      if (label != "") {
+        Text(label, fontSize: FontSize.Label, fontWeight: FontWeight.Semibold, lineHeight: "normal");
+      }
+      Row(gap: "8px", wrap: Wrapping.Wrap, align: Align.Center) {
+        foreach (var entry in hosts) {
+          if (onRemove != null && entry.Removable) {
+            HostChip(entry.Host, onRemove: () => onRemove(entry.Host), mark: entry.Mark, blocked: blocked);
+          } else {
+            HostChip(entry.Host, mark: entry.Mark, blocked: blocked);
+          }
+        }
+      }
+      if (note != "") {
+        Text(note, fontSize: FontSize.Caption, color: Colors.Ink3, lineHeight: "normal");
+      }
+    }
+  }
+}

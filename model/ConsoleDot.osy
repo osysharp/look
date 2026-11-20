@@ -1,0 +1,24 @@
+namespace Osysharp.Look;
+
+/// A 6 px round status dot. Decorative: the words beside it say the state.
+[Composable]
+component ConsoleDot(ConsoleDotTone tone) {
+  variants {
+    base {
+      W = "6px";
+      H = "6px";
+      MinW = "6px";
+      Rounded = Radius.Pill;
+      Display = Display.Block;
+    }
+    tone {
+      Ok { Bg = Colors.ConsoleOkDot; }
+      Warn { Bg = Colors.ConsoleWarnDot; }
+      Neutral { Bg = Colors.ConsoleText3; }
+      RailOk { Bg = Colors.ConsoleRailOk; }
+      RailWarn { Bg = Colors.ConsoleRailWarn; }
+      RailNeutral { Bg = Colors.ConsoleRailNeutral; }
+    }
+  }
+  render { Box(decorative: true); }
+}

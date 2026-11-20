@@ -1,0 +1,18 @@
+namespace Osysharp.Look;
+
+/// A plan item's key as a chip in its level's colours that opens the item (`ConsoleKeyChip` in a link): one focus stop,
+/// a ring on focus; read as "Arc ALPHA-4", so the level is never told by colour alone. Pressed in a test by its key.
+[Composable]
+component ConsoleKeyChipLink(string key, string to, ConsoleTypeKind kind, string level) {
+  variants {
+    base {
+      Display = Display.InlineFlex;
+      Shrink = 0;
+      TextDecoration = TextDecoration.None;
+      Rounded = Radius.ConsoleBadgeCorner;
+      Hover { Opacity = "0.85"; }
+      Focus { Shadow = Shadow.Ring; }
+    }
+  }
+  render { Link(to, label: level + " " + key) { ConsoleKeyChip(key, kind, level); } }
+}

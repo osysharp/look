@@ -1,0 +1,7 @@
+namespace Osysharp.Look;
+
+/// One crumb of a breadcrumb. The last (the page itself) has no address.
+public class Crumb {
+  public string Label = "";
+  public string To = "";
+}

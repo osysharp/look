@@ -1,0 +1,56 @@
+namespace OsyrinLookTests;
+
+using Osysharp.Look;
+
+// The look's edit-form rows, drawn from the SagaArcEdit board: a group head, then field rows — one at rest, one
+// changed with its old value, one with a provenance note, one whose control takes the whole column. In the gallery as its last section, and
+// alone at /dev/field-rows in a frame as wide as the window, so it can be read at a phone's width.
+
+/// The gallery's "Field rows" section.
+[Composable]
+component GalleryFieldRows() {
+  render {
+    Stack(gap: "16px", label: "Field rows") {
+      H2("Field rows");
+      Caption("An edit form's fields, as SagaArcEdit draws them: what it is on the left, the control on the right.");
+      FieldRowSample();
+    }
+  }
+}
+
+/// A form card of field rows under two group heads, as an item's editing mode draws it.
+[Composable]
+component FieldRowSample() {
+  string title = "Online booking for returning patients";
+  string owner = "Mara Lind";
+  string goal = "";
+
+  render {
+    Stack(gap: 0, pb: "10px", bg: Colors.Surface, borderW: 1, border: Colors.Border, rounded: Radius.Panel, minW: "0", label: "Sample form") {
+      FieldGroupHead("What it is", first: true);
+      FieldRow("Title", help: "Shown everywhere BOOK-14 is named.", changed: true, was: "Online booking") {
+        LookInput("Title", title, state: FieldState.Editing, inRow: true);
+      }
+      FieldRow("Goal", help: "What it is for: the outcome it brings about.", controlW: "100%") {
+        LookInput("Goal", goal, placeholder: "No goal yet.", inRow: true);
+      }
+      FieldGroupHead("Who");
+      FieldRow("Owner", help: "Who answers for it.", note: "Set by Ada Lovelace on Mon 9 Nov") {
+        LookInput("Owner", owner, inRow: true);
+      }
+    }
+  }
+}
+
+/// The field rows alone, in a frame as wide as the window.
+[Route("/dev/field-rows")]
+[AllowAnonymous]
+[Title("Field rows")]
+[Render(CSR)]
+component FieldRowsPage() {
+  render {
+    Box(p: "24px", bg: Colors.Bg, color: Colors.OnSurface, fontSize: "16px", lineHeight: "normal", fontFamily: Font.Sans, minH: "100vh") {
+      FieldRowSample();
+    }
+  }
+}

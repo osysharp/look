@@ -1,0 +1,25 @@
+namespace Osysharp.Look;
+
+/// A small card holding a form (ReleasePlan's "Add items"): white on the Line hairline, radius 14, `14px 18px`, its
+/// parts 8 apart; the title 15/600 in the sans face (an h3), a quiet `subtitle` after it (13, Ink 3), and at the right on
+/// the title's line the `actions` slot (its close). Then the block — the field, its rows — and nothing under them.
+/// In a test it is the region of its title.
+[Composable]
+component FormCard(string title, string subtitle = "") {
+  render {
+    Stack(gap: "8px", py: "14px", px: "18px", bg: Colors.Surface, borderW: 1, border: Colors.Border, rounded: Radius.Panel, minW: "0",
+          label: title) {
+      Row(justify: Justify.Between, align: Align.Center, gap: "8px", wrap: Wrapping.Wrap) {
+        Row(gap: "4px 8px", align: Align.Baseline, wrap: Wrapping.Wrap, minW: "0") {
+          Text(title, role: UiRole.Heading, level: 3, fontFamily: Font.Sans, fontSize: FontSize.Summary, fontWeight: FontWeight.Semibold,
+               color: Colors.OnSurface, lineHeight: "normal");
+          if (subtitle != "") {
+            Text(subtitle, fontSize: FontSize.Label, color: Colors.Ink3);
+          }
+        }
+        Row(gap: "8px", align: Align.Center, shrink: 0) { Slot("actions"); }
+      }
+      Slot;
+    }
+  }
+}

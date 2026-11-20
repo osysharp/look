@@ -1,0 +1,16 @@
+namespace Osysharp.Look;
+
+// The v3 chips (Components §3 "Chips"; Slice, Release and PolicyFloor boards): a key that opens its item, the key in a
+// header, a person, the release a piece of work goes to, the Proposed tag, a neutral fact, "rides 2.4", a policy's kind
+// and a hash. A status is not a chip here: it is a `StatusChip` with its tone (Status.osy).
+
+/// The kit's tone for a board tone, so a chip without a dot is the kit's `Badge(words, tone: KitTone(tone))`.
+public Tone KitTone(ChipTone tone) {
+  if (tone == ChipTone.Ok) { return Tone.Success; }
+  if (tone == ChipTone.Run) { return Tone.Info; }
+  if (tone == ChipTone.You) { return Tone.Warning; }
+  if (tone == ChipTone.Bad) { return Tone.Danger; }
+  if (tone == ChipTone.Floor) { return Tone.Default; }
+  if (tone == ChipTone.Accent) { return Tone.Primary; }
+  return Tone.Waiting;
+}

@@ -1,0 +1,34 @@
+namespace Osysharp.Look;
+
+/// A name cell's words: the name (500) and, under it, its identifier in mono 11.5 text-2. The name wraps, whatever its
+/// length: text is never cut. With `to` the name is the link to its page, in the text colour, underlined when hovered.
+/// `strong` sets the name at 600 (B-Policy's policy names), not the console's 500.
+[Composable]
+component ConsoleNamed(string name, string identifier, string to = "", bool strong = false) {
+  render {
+    Stack(gap: 0, minW: "0", maxW: "100%") {
+      if (to != "") {
+        ConsoleNameLink(name, to);
+      } else {
+        Text(name, fontWeight: strong ? 600 : 500, display: Display.Block, wordBreak: WordBreak.BreakWord);
+      }
+      Text(identifier, fontFamily: Font.ConsoleMono, fontSize: FontSize.ConsoleBadge, color: Colors.ConsoleText2);
+    }
+  }
+}
+
+/// A name that leads to its page: the text colour at 500, underlined when hovered.
+[Composable, Part]
+component ConsoleNameLink(string name, string to) {
+  variants {
+    base {
+      Color = Colors.ConsoleText;
+      FontWeight = 500;
+      TextDecoration = TextDecoration.None;
+      Display = Display.Block;
+      MinW = "0";
+      Hover { Color = Colors.ConsoleAccentHover; TextDecoration = TextDecoration.Underline; }
+    }
+  }
+  render { Link(to, label: name) { Text(name, display: Display.Block, minW: "0", wordBreak: WordBreak.BreakWord); } }
+}

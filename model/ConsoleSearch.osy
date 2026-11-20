@@ -1,0 +1,33 @@
+namespace Osysharp.Look;
+
+/// What every search source in the app finds for `text`, as the console's search groups in the sources' order; a source
+/// that finds nothing gives no group. Text under 2 or over 100 characters asks no source. When the text typed is the key
+/// of a group's first row exactly, that group comes first, so the exact key is the first result. A source that throws gives
+/// no group and the others still answer.
+[Server, Authorize(IsAuthenticated)]
+public List<ConsoleSearchGroup> ConsoleSearch(string text) {
+  var groups = new List<ConsoleSearchGroup>();
+  var typed = (text ?? "").Trim();
+  if (typed.Length < 2 || typed.Length > 100) {
+    return groups;
+  }
+  foreach (var source in App.Implementations<IConsoleSearchSource>()) {
+    var results = new List<ConsoleSearchResult>();
+    try {
+      results = source.Search(typed);
+    } catch (Exception) {
+      // One source failing must not take the other groups with it.
+      continue;
+    }
+    if (results.Count() > 0) {
+      var group = new ConsoleSearchGroup { Label = source.Group() };
+      group.Results.AddRange(results);
+      if (results[0].Key.ToLower() == typed.ToLower()) {
+        groups.Insert(0, group);
+      } else {
+        groups.Add(group);
+      }
+    }
+  }
+  return groups;
+}

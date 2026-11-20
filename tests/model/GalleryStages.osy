@@ -1,0 +1,75 @@
+namespace OsyrinLookTests;
+
+using Osysharp.Look;
+
+// Stages and readiness marks: canvas2/SliceDesign's "Design stages" with the board's content, a design's own three
+// stages as links, and the four readiness marks of a proposed slice. In the gallery and alone at /dev/parts/stages.
+
+/// The gallery's "Stages and readiness" section.
+[Composable]
+component GalleryStages() {
+  render {
+    Stack(gap: "16px", label: "Stages and readiness") {
+      H2("Stages and readiness");
+      Caption("SliceDesign's design stages, a design's three stages as links, a proposed slice's four readiness marks, open questions as Markdown, and four independent checks.");
+      StagesSample();
+    }
+  }
+}
+
+/// The samples: the board's four stages, three short ones, two rows of readiness marks.
+[Composable]
+component StagesSample() {
+  render {
+    Stack(gap: "18px", minW: "0") {
+      Stack(gap: "10px", minW: "0") {
+        Row(justify: Justify.Between, align: Align.Baseline, gap: "8px", wrap: Wrapping.Wrap) {
+          Text("Design stages", role: UiRole.Heading, level: 3, fontSize: FontSize.SectionTitle, fontWeight: FontWeight.Heavy);
+          Text("Then: built · reviewed · verified live · documented", fontSize: FontSize.Label, color: Colors.Ink3);
+        }
+        StageStrip([
+          new StripStage { Title = "Drafted", What = "The Design agent wrote the public doc and the mail design from BRIEF-6, and suggested 5 criteria.",
+                           State = "by Design agent · Opus · Sun 1 Nov 17:05" },
+          new StripStage { Title = "Design approved", What = "Anna shapes it with the planner until it reads right, then approves the doc, the design and the criteria together.",
+                           State = "Waiting for Anna Berg’s answer · asked Sun 1 Nov 18:40", Rule = "Needs the screenshot criterion first — 1 suggested, not accepted yet" },
+          new StripStage { Title = "Validated against the code", What = "A grounding session reads develop and writes the implementation doc. A disagreement that changes the design sends it back to stage 2: it needs approval again.",
+                           State = "after stage 2" },
+          new StripStage { Title = "Ready to build", What = "The public doc, the implementation doc and the criteria go to the builder as its brief.", State = "not yet" }],
+          1, label: "Design stages");
+      }
+      StageStrip([
+        new StripStage { Title = "Brief", State = "by Anna Berg · 10 Nov", To = "/dev/components" },
+        new StripStage { Title = "Breakdown", State = "v4 · 9 slices · 7 ready", To = "/dev/components" },
+        new StripStage { Title = "Accepted", State = "not yet" }], 1, label: "Stages of PORTAL-D3");
+      ReadinessMarks([
+        new ReadinessMark { Name = "Outcome", State = MarkState.Passed },
+        new ReadinessMark { Name = "Tests named", State = MarkState.Failed, Reason = "Criterion 2 names no test." },
+        new ReadinessMark { Name = "Fits a session", State = MarkState.Passed },
+        new ReadinessMark { Name = "Buildable", State = MarkState.NotJudged }], label: "Readiness of BOOK-26", reasons: true);
+      ReadinessMarks([
+        new ReadinessMark { Name = "Outcome", State = MarkState.Passed },
+        new ReadinessMark { Name = "Tests named", State = MarkState.Passed },
+        new ReadinessMark { Name = "Fits a session", State = MarkState.Failed, Reason = "Estimated 300k, over the 160k session size." },
+        new ReadinessMark { Name = "Buildable", State = MarkState.Failed, Reason = "Judged by Erik Sund: the swap needs BOOK-19 first." }],
+        label: "Readiness of BOOK-22", focusable: true);
+      ToneStrip("- Does a shared list show **prices**?\n- May a friend add to it?", lead: "Open questions.", markdown: true);
+      CheckStrip([
+        new StripCheck { Title = "Outcome", Mark = MarkState.Passed, What = "The goal says what a patient sees.", State = "Passes" },
+        new StripCheck { Title = "Tests named", Mark = MarkState.Failed, What = "A criterion names no test: \"- [ ] The reminder shows the clinic\".",
+                         State = "Fails", Rule = "Name a test on every criterion" },
+        new StripCheck { Title = "Fits one session", Mark = MarkState.Passed, What = "Estimated at 120,000 tokens, within the session size of 200,000.",
+                         State = "Fits" },
+        new StripCheck { Title = "Buildable", Mark = MarkState.NotJudged, What = "Nobody has judged it yet.", State = "Not judged",
+                         Rule = "Waiting for somebody to judge it" }], label: "Checks of BOOK-26");
+    }
+  }
+}
+
+/// The stages and marks alone.
+[Route("/dev/parts/stages")]
+[AllowAnonymous]
+[Title("Stages and readiness")]
+[Render(CSR)]
+component StagesPage() {
+  render { ControlsFrame("Stages and readiness") { StagesSample(); } }
+}

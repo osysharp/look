@@ -1,0 +1,11 @@
+namespace Osysharp.Look;
+
+/// One tab of an area or an object: its view's address, and a count only while it needs you or a draft changed it.
+/// A view that is not built yet keeps `Built = false` and is drawn as its words, never as a dead link.
+public class TabItem {
+  public string Label = "";
+  public string To = "";
+  public string Count = "";
+  public Tone CountTone = Tone.Warning;
+  public bool Built = true;
+}

@@ -1,0 +1,56 @@
+namespace Osysharp.Look;
+
+/// One option of a `LookChoiceGroup`: §22's ring and its words — or, with `boxed`, §21's option row with its second line.
+/// `lit`: the keyboard is on it (the accent's 2 px ring outside it while its group has focus).
+[Composable, Part]
+component LookChoiceRow(string words, string detail, bool chosen, bool lit, bool boxed, bool disabled) {
+  variants {
+    base {
+      Display = Display.Grid;
+      W = "100%";
+      MinH = "32px";
+      Rounded = Radius.Control;
+      Color = Colors.OnSurface;
+      FontFamily = Font.Sans;
+      LineHeight = "normal";
+      Cursor = Cursor.Pointer;
+      TextAlign = TextAlign.Left;
+    }
+    boxed {
+      Py = "10px";
+      Px = "12px";
+      BorderW = 1;
+      BorderStyle = BorderStyle.Solid;
+      Border = Colors.Border;
+      Rounded = Radius.Inner;
+    }
+    chosen { }
+    lit {
+      OutlineW = 2;
+      OutlineStyle = OutlineStyle.Solid;
+      OutlineColor = Colors.Primary;
+      OutlineOffset = 1;
+    }
+    disabled {
+      Color = Colors.Ink4;
+      Cursor = Cursor.Default;
+    }
+  }
+  render {
+    Box(display: Display.Grid, cols: "20px minmax(0, 1fr)", gap: boxed ? "4px 10px" : "0 8px", align: Align.Start, w: "100%",
+        bg: boxed && chosen ? Colors.AccentWash : (boxed ? Colors.Surface : Colors.Transparent), rounded: boxed ? Radius.Inner : Radius.Control,
+        border: boxed && chosen ? Colors.AccentLine : Colors.Border) {
+      Box(w: "20px", h: "20px", mt: boxed ? "1px" : "6px", rounded: "999px", borderW: 2,
+          border: disabled ? Colors.ControlLine : (chosen ? Colors.Primary : Colors.Ink3), display: Display.Flex, align: Align.Center, justify: Justify.Center,
+          decorative: true) {
+        if (chosen) { Box(w: "10px", h: "10px", rounded: "999px", bg: disabled ? Colors.Ink4 : Colors.Primary); }
+      }
+      Stack(gap: "2px", minW: "0", py: boxed ? "0" : "6px") {
+        Text(words, fontSize: boxed ? FontSize.Summary : FontSize.Body, fontWeight: boxed ? FontWeight.Semibold : FontWeight.Regular);
+        if (detail != "") {
+          Text(detail, fontSize: FontSize.Label, color: Colors.Ink3, lineHeight: "1.45");
+        }
+      }
+    }
+  }
+}

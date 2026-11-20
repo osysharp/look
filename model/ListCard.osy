@@ -1,0 +1,18 @@
+namespace Osysharp.Look;
+
+/// A card of plain rows with no table head (ProductReleases "Released", lines 95–98): white on the Line hairline,
+/// radius 14, clipped; the title 17/700 (a level-2 heading) in `14px 20px 8px`, then the block — its `ListCardRow`s.
+/// In a test it is the region of its `label` (the title when none is given).
+[Composable]
+component ListCard(string title, string label = "") {
+  render {
+    Stack(gap: 0, bg: Colors.Surface, borderW: 1, border: Colors.Border, rounded: Radius.Panel, overflow: Overflow.Hidden, minW: "0",
+          label: label == "" ? title : label) {
+      Box(pt: "14px", px: "20px", pb: "8px") {
+        Text(title, role: UiRole.Heading, level: 2, fontSize: FontSize.ItemTitle, fontWeight: FontWeight.Heavy, color: Colors.OnSurface,
+             lineHeight: "normal");
+      }
+      Slot;
+    }
+  }
+}

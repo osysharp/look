@@ -1,0 +1,16 @@
+namespace Osysharp.Look;
+
+/// A column's head over its cell in a row stacked on a phone (`CardTableRow`, `SettingTableRow`): the head's
+/// `Overline` (11/600 uppercase, Ink 4), 6 px above it, placed in the one-column grid's row `row` so the caller's cell
+/// that follows lands under it. Decorative: the table's own head row (kept for a reader) names the cell. An empty head
+/// (an actions column) still holds its grid row, with no height, so the cells after it keep their places.
+[Composable, Part]
+component StackedHead(string head, int row) {
+  render {
+    Box(gridArea: row.ToString() + " / 1", pt: head != "" ? "6px" : "0", minW: "0", decorative: true) {
+      if (head != "") {
+        Overline(head);
+      }
+    }
+  }
+}

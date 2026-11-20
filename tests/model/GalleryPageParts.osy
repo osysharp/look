@@ -1,0 +1,109 @@
+namespace OsyrinLookTests;
+
+using Osysharp.Look;
+
+/// The parts the Components board does not draw and the page replicas (/dev/page-parts) do not hold either: the
+/// headers' and PolicyFloor's chips, PolicyFloor's table in a card, the small buttons, and ReleaseEditing's refusal
+/// card, editing card and Release's "More ▾" menu (drawn open).
+[Composable]
+component GalleryPageParts() {
+  bool moreOpen = true;
+  string findText = "waiting list";
+  action Nothing() { }
+  action ToggleMore() {
+    moreOpen = !moreOpen;
+  }
+  render {
+    BoardCard("The page boards’ parts", gap: "16px") {
+      Caption("Drawn from PolicyFloor and the headers of Slice and Release; the ProductPlan, Release and Slice pages are replicated part by part at /dev/page-parts.");
+      Row(gap: "10px", wrap: Wrapping.Wrap, align: Align.Center, label: "Header and fact chips") {
+        KeyChip("BOOK-12");
+        KeyChip("9c41e7a");
+        PlainChip("Next.js web app");
+        PlainChip("2.4 · set on the arc");
+        RideChip("Patient Portal 2.4");
+        SolidChip("Hard boundary");
+        OutlineChip("Exception-eligible");
+        OutlineChip("Enforced at save and at run");
+        HashBox("4e1a07c");
+        ProposedTag(small: true);
+      }
+      SectionCard("What the floor says", sub: "Enforced at save and again at run.") {
+        CardTable("Floor rules", PolicyColumns(), ["Rule", "Value", "Kind", "Where it is enforced", "Narrowed"]) {
+          CardTableRow(PolicyColumns(), label: "AI providers and models") {
+            Stack(gap: "2px", minW: "0") {
+              Text("AI providers and models", fontWeight: FontWeight.Semibold);
+              Text("Accounts offer only these.", fontSize: FontSize.Label, color: Colors.Ink3);
+            }
+            Text("Anthropic · Opus, Sonnet, Haiku");
+            OutlineChip("Exception-eligible");
+            Text("Models and tiers; a host refuses any other model.", fontSize: FontSize.Label, color: Colors.Ink2);
+            Text("2");
+          }
+          CardTableRow(PolicyColumns(), label: "Kit minimums") {
+            Stack(gap: "2px", minW: "0") {
+              Text("Kit minimums", fontWeight: FontWeight.Semibold);
+              Text("Northwind UI kit 0.5 or later.", fontSize: FontSize.Label, color: Colors.Ink3);
+            }
+            Text("0.5");
+            SolidChip("Hard boundary");
+            Text("At build and on Product dependencies.", fontSize: FontSize.Label, color: Colors.Ink2);
+            Text("0");
+          }
+        }
+      }
+      Row(gap: "10px", wrap: Wrapping.Wrap, align: Align.Center, label: "Button recipes, small") {
+        LookButton("Accept", Nothing, kind: ButtonKind.Primary, small: true);
+        LookButton("Edit", Nothing, small: true);
+        LookButton("Remove from release", Nothing, kind: ButtonKind.Danger, small: true);
+        LookButton("Take out", Nothing, kind: ButtonKind.Inline);
+      }
+      ProblemCard("Not saved: Care Companion 3.1 changed while you edited") {
+        Text("Lena Fors saved revision 2 at 09:36; yours is based on revision 1 · Reload and compare.");
+      }
+      EditingCard("Release") {
+        Text("Version 3.1 · target date 2026-11-27 · share 25 %");
+        Row(gap: "8px", wrap: Wrapping.Wrap) {
+          LookButton("Review and save", Nothing, kind: ButtonKind.Primary);
+          LookButton("Discard", Nothing);
+        }
+      }
+      LookButton("Open Notes ›", Nothing, kind: ButtonKind.CardLink);
+      // ReleasePlan's "Add items" card, and its group band with the right-hand note.
+      Box(maxW: "360px") {
+        FormCard("Add items", subtitle: "to 2.4") {
+          slot actions {
+            LookButton("Done", Nothing, kind: ButtonKind.Inline);
+          }
+          LookInput("Find a slice, arc or saga", findText);
+          Box(display: Display.Grid, cols: "minmax(0, 1fr) auto", gap: "8px", align: Align.Center, label: "BOOK-24 Waiting list") {
+            Box(minW: "0", fontSize: FontSize.Label, lineHeight: "1.45") {
+              KeyText("BOOK-24");
+              Text(" Waiting list when no slot is free · Backlog", whiteSpace: WhiteSpace.PreWrap);
+            }
+            LookButton("Add", Nothing, small: true);
+          }
+        }
+      }
+      SectionCard("Group band with a note") {
+        TableGroupBand("Saga", "Online booking", key: "BOOK", keyTo: "/dev/page-parts", innerKey: "BOOK-REMIND", innerKeyTo: "/dev/page-parts",
+                       innerTitle: "Reminders", label: "Band BOOK-REMIND") {
+          Text("arc set to Next · 5 slices");
+          LookButton("Take out", Nothing, kind: ButtonKind.Inline, announce: "Take out BOOK-REMIND");
+        }
+      }
+      Row(gap: "8px", wrap: Wrapping.Wrap, pb: "100px", label: "More release actions") {
+        LookButton("Hold the release", Nothing);
+        MoreMenu("More ▾", moreOpen, ToggleMore, menuLabel: "More release actions") {
+          MenuAction("Export evidence", Nothing, announce: "Export evidence of 2.4");
+          MenuAction("Roll back production to 1.8.0…", Nothing, danger: true);
+        }
+      }
+    }
+  }
+}
+
+/// The PolicyFloor board's rule columns: rule (two lines), value, kind, where it is enforced, how many narrow it.
+string PolicyColumns() {
+  return "minmax(0, 1.2fr) minmax(0, 1fr) 150px minmax(0, 1.2fr) 80px";
+}

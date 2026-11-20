@@ -1,0 +1,54 @@
+namespace Osysharp.Look;
+
+/// The console's table (spec "Components", Table), set edge to edge in a panel: the head row on the sunken ground,
+/// sentence-case 11.5/500 text-2 words `9px 16px` over a `border-inner` rule; then the rows (`ConsoleTableRow`). Wider
+/// than its panel (`minWidth`, raised to what its own columns need: `ConsoleTableFloor`) it scrolls sideways inside it, and below a laptop's width, where that is what happens, its far edge fades (2rem, as the tabs' does) to show there is more past it. A table named `label`, its head one row of column heads.
+/// `opens` for rows that are `ConsoleRowLink`s: the head keeps their chevron's 44 px track, blank. `details` for rows
+/// that open a detail under themselves (`ConsoleTableRow(detail:)`): the head keeps the detail chevron's 38 px track
+/// first, blank but for a reader ("Details"), and the scroller is what the detail measures its width against, so on a
+/// phone an opened detail is as wide as the panel shows and stays in view however far the table is scrolled.
+/// The scroller's bottom
+/// corners are the panel's inside (`Radius.ConsolePanelFoot`), so a tinted or hovered last row keeps the panel's corners
+/// now that the panel does not clip (PO1); it holds rows of words and links, never a field, so its clip hides nothing.
+/// Sorting (MS2): with `onSort`, each column marked `Sorts` has a head that is a button, its words and a small arrow (↕
+/// unsorted, ↓ or ↑ for `sortBy` by `sortDescending`), its header saying `aria-sort`. Pressing the sorted column turns
+/// its direction; pressing another REPORTS it to `onSort(label, descending)`, a number column (`Right`) largest first, a
+/// words column from A. The caller sorts its rows. In a test: `Ui.Click("Sort by Delivered", within: <table>)`.
+[Composable]
+component ConsoleTable(string label, List<ConsoleColumn> columns, string minWidth = "760px", bool opens = false, bool details = false,
+                       string sortBy = "", bool sortDescending = false, Action<string, bool>? onSort = null) {
+  string Arrow(ConsoleColumn column) => column.Label != sortBy ? "↕" : (sortDescending ? "↓" : "↑");
+  UiSort SortOf(ConsoleColumn column) => column.Label != sortBy ? UiSort.None : (sortDescending ? UiSort.Descending : UiSort.Ascending);
+  bool Next(ConsoleColumn column) => column.Label == sortBy ? !sortDescending : column.Right;
+  render {
+    Box(overflowX: Overflow.Auto, edgeFade: Layout.AtLeast(Laptop) ? EdgeFade.None : EdgeFade.End, minW: "0", rounded: Radius.ConsolePanelFoot, containerType: details ? ContainerType.InlineSize : ContainerType.Normal) {
+      Stack(gap: 0, role: UiRole.Table, label: label, minW: ConsoleTableFloor(columns, opens, minWidth, details)) {
+        Box(display: Display.Grid, cols: opens ? ConsoleDetailTracks(columns, details) + " 44px" : ConsoleDetailTracks(columns, details),
+            bg: Colors.ConsoleSunken, borderBW: 1, border: Colors.ConsoleBorderInner, role: UiRole.Row) {
+          if (details) {
+            Box(role: UiRole.ColumnHeader, label: "Details");
+          }
+          foreach (var column in columns) {
+            if (onSort != null && column.Sorts) {
+              Row(role: UiRole.ColumnHeader, sort: SortOf(column), justify: column.Right ? Justify.End : Justify.Start, py: "9px", px: "16px", minW: "0") {
+                Pressable(onClick: () => onSort!(column.Label, Next(column)), label: "Sort by " + column.Label, bg: Colors.Transparent, borderW: 0, p: 0,
+                          cursor: Cursor.Pointer, display: Display.InlineFlex, align: Align.Center, gap: "4px", lineHeight: "normal") {
+                  Text(column.Label, fontSize: FontSize.ConsoleBadge, fontWeight: 500, color: column.Label == sortBy ? Colors.ConsoleText : Colors.ConsoleText2,
+                       whiteSpace: WhiteSpace.Nowrap);
+                  Text(Arrow(column), fontSize: "10px", color: column.Label == sortBy ? Colors.ConsoleText : Colors.ConsoleText2, decorative: true);
+                }
+              }
+            } else {
+              Text(column.Label, role: UiRole.ColumnHeader, py: "9px", px: "16px", fontSize: FontSize.ConsoleBadge, fontWeight: 500,
+                   color: Colors.ConsoleText2, whiteSpace: WhiteSpace.Nowrap, textAlign: column.Right ? TextAlign.Right : TextAlign.Left);
+            }
+          }
+          if (opens) {
+            Box();
+          }
+        }
+        Slot;
+      }
+    }
+  }
+}

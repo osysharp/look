@@ -1,0 +1,39 @@
+namespace OsyrinLookTests;
+
+using Osysharp.Look;
+
+/// The org-policy Policies table as a phone reads it (L1): a settings `TableCard` 900 px wide at a desk; on a phone each
+/// row is one column — the name and key, the value and its draft tag, the other cells under their heads, then the
+/// "Where it is enforced" disclosure at full width. Nothing scrolls sideways.
+[Composable]
+component PhonePoliciesSample() {
+  string Cols() => "minmax(0, 1.1fr) minmax(0, 1.5fr) 150px 150px 110px";
+  List<string> Heads() => new List<string> { "Policy", "In force (v5)", "Kind", "Enforced at", "Applies to" };
+  bool Hosts(string name) => name == "Outbound hosts";
+  render {
+    TableCard("Network policies", Cols(), Heads(), sub: "2 policies · the organisation's floor", linkLabel: "All policies ›", linkTo: "/dev/components",
+              foot: "Changes go through a draft and a review.", spacing: TableSpacing.Settings, minWidth: "900px",
+              aligns: [TextAlign.Left, TextAlign.Left, TextAlign.Left, TextAlign.Left, TextAlign.Right]) {
+      foreach (var name in ["Outbound hosts", "Deploy freeze"]) {
+        SettingTableRow(name, Cols(), key: Hosts(name) ? "egress.hosts" : "deploy.freeze", tag: Hosts(name) ? "Draft v6" : "",
+                        tagText: Hosts(name) ? "17 allowed hosts, removes fax-relay.example.com" : "", heads: Heads()) {
+          slot value { Text(Hosts(name) ? "18 allowed hosts, every other call is refused" : "Friday 16:00 to Monday 08:00, and 20 Dec to 3 Jan"); }
+          if (Hosts(name)) {
+            Box(role: UiRole.GridCell) { SolidChip("Hard boundary"); }
+          } else {
+            Box(role: UiRole.GridCell) { OutlineChip("Exception-eligible"); }
+          }
+          Box(role: UiRole.GridCell) { StatusChip(Hosts(name) ? "At save and at run" : "At deploy", Hosts(name) ? StatusTone.Ok : StatusTone.Run); }
+          Text(Hosts(name) ? "All apps" : "12 of 14", textAlign: TextAlign.Right, color: Colors.Ink2, role: UiRole.GridCell);
+          slot under {
+            if (Hosts(name)) {
+              Disclosure("Where it is enforced", ruled: false) {
+                Text("Enforced at: an app's save, and by the host's egress filter when an app calls out. Why: patient data stays with named processors.");
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

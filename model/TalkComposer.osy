@@ -1,0 +1,47 @@
+namespace Osysharp.Look;
+
+// The design conversation's composer (designer.dc.html, under the conversation at its 680 px measure): a white box in the
+// accent's line holding what the talk is about, the words being written, and Send. `Composer` stays for the planner panel.
+
+/// THE COMPOSER: white, the accent line, radius 12, `12px 14px`, parts 10 apart. With `about` a chip first — "About:",
+/// the level's mark and word, the title 600, then "×" (`onClearAbout`, named `clearLabel`), on the accent's tint in its
+/// ink. Then the text area, frameless, 15/1.6, 72 px high, growing to `maxRows` lines; `label` names it (no visible label:
+/// the chip and the placeholder say it). Then `sendLabel` at the right, the primary button. Enter sends when something
+/// is written and nothing is being sent; `busy` disables Send with "Sending…"; `held` disables it while the page says why.
+/// In a test: `Ui.Fill("Talk about Waiting list", "…")`, `Ui.Click("Send")`, `Ui.Click("Talk about the whole design")`.
+[Composable]
+component TalkComposer(string label, Binding<string> value, Action onSend, string about = "", PartLevel aboutLevel = PartLevel.Arc,
+                       Action? onClearAbout = null, string clearLabel = "Talk about the whole design", bool busy = false, bool held = false, string placeholder = "",
+                       int maxRows = 8, string sendLabel = "Send") {
+  action Send() {
+    if (busy || held || value.Trim() == "") { return; }
+    onSend();
+  }
+  render {
+    Stack(gap: "10px", minW: "0", py: "12px", px: "14px", bg: Colors.Surface, borderW: 1, border: Colors.AccentLine, rounded: "12px",
+          role: UiRole.Group, label: label + " composer") {
+      if (about != "") {
+        Row(gap: "6px", align: Align.Center, alignSelf: AlignSelf.Start, py: "3px", px: "8px", rounded: Radius.Chip, bg: Colors.AccentTint,
+            color: Colors.AccentInk, fontSize: FontSize.Caption, lineHeight: "normal", whiteSpace: WhiteSpace.Nowrap, maxW: "100%",
+            role: UiRole.Group, label: "About " + about) {
+          Text("About:");
+          LevelMark(aboutLevel, word: true);
+          Text(about, fontWeight: FontWeight.Semibold, overflow: Overflow.Hidden, textOverflow: TextOverflow.Ellipsis, minW: "0");
+          if (onClearAbout != null) {
+            Pressable(onClick: onClearAbout!, label: clearLabel, color: Colors.Primary, fontSize: FontSize.Body, fontWeight: FontWeight.Semibold,
+                      bg: Colors.Transparent, borderW: 0, p: "0", pl: "2px", minH: "20px", cursor: Cursor.Pointer) {
+              Text("×");
+            }
+          }
+        }
+      }
+      TextArea(value: value, label: label, placeholder: placeholder, w: "100%", minH: "72px", maxH: (maxRows * 24) + "px",
+               fieldSizing: FieldSizing.Content, resize: Resize.None, overflowY: Overflow.Auto, p: "0", borderW: 0, bg: Colors.Transparent,
+               fontFamily: Font.Sans, fontSize: FontSize.Summary, lineHeight: "1.6", color: Colors.OnSurface, onEnter: Send);
+      Row(justify: Justify.End, align: Align.Center, gap: "8px") {
+        LookButton(busy ? "Sending…" : sendLabel, Send, kind: ButtonKind.Primary, disabled: busy || held || value.Trim() == "", name: sendLabel,
+                   whenDenied: busy ? "Sending…" : "Write something first.");
+      }
+    }
+  }
+}

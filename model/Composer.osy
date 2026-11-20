@@ -1,0 +1,43 @@
+namespace Osysharp.Look;
+
+/// The box a turn of a conversation is written in (canvas2/PlannerPanel's foot): the label 12/600 over a text area
+/// (14/1.5, `8px 10px`, radius 8 in the control line, 64 high empty) that grows with what is written up to `maxRows`
+/// lines and then scrolls; under it a row: the `hint` 12 Ink 3 at the left ("@ an item · / a command · Enter sends"),
+/// at the right `slot quiet` (quiet actions, e.g. `LookButton("Attach", …, kind: ButtonKind.Quiet, small: true)`) then
+/// the one primary `sendLabel` button (small, as the panel draws it).
+/// Keys, as the board says: Enter sends (`onSend`), when something is written and nothing is being sent. The text is
+/// Markdown typed as text: the platform's `MarkdownEditor` cannot be the field — it edits a STORED document by its
+/// owner's address (`ownerType`, `ownerId`, `property`), so an unsent turn has nothing to point it at, and it has no
+/// "Enter sends" and no grow-to-a-limit; the turn is rendered with `Markdown` once sent (`ConversationTurn`).
+/// `busy`: a turn is being sent (bind the page's action: `busy: Ask.Pending`) — the button says "Sending…", is
+/// disabled with that as its reason, and Enter does nothing, so a turn is sent once. The page empties `value` itself
+/// once the turn is kept. In a test it is filled by its label and pressed by `sendLabel`:
+/// `Ui.Fill("Ask, plan or change something", "Split BOOK-17")` then `Ui.Press("Enter")` or `Ui.Click("Send")`.
+/// e.g. `Composer("Ask, plan or change something in BOOK-CONFIRM", draft, Ask, busy: Ask.Pending, hint: "Enter sends")`
+[Composable]
+component Composer(string label, Binding<string> value, Action onSend, bool busy = false, string placeholder = "", string hint = "",
+                   int maxRows = 8, string sendLabel = "Send") {
+  action Send() {
+    if (busy || value.Trim() == "") { return; }
+    onSend();
+  }
+  render {
+    Stack(gap: "8px", minW: "0", role: UiRole.Group, label: label + " composer") {
+      Stack(gap: "4px", minW: "0", fontSize: FontSize.Caption, fontWeight: FontWeight.Semibold, color: Colors.OnSurface, lineHeight: "normal") {
+        Text(label);
+        TextArea(value: value, label: label, placeholder: placeholder, w: "100%", minH: "64px", maxH: (maxRows * 21 + 18) + "px",
+                 fieldSizing: FieldSizing.Content, resize: Resize.None, overflowY: Overflow.Auto, py: "8px", px: "10px",
+                 fontFamily: Font.Sans, fontSize: FontSize.Body, fontWeight: FontWeight.Regular, lineHeight: "1.5", color: Colors.OnSurface,
+                 bg: Colors.Surface, rounded: Radius.Control, borderW: 1, border: Colors.ControlLine, onEnter: Send);
+      }
+      Row(justify: Justify.Between, align: Align.Center, gap: "8px", minW: "0") {
+        Text(hint, fontSize: FontSize.Caption, color: Colors.Ink3, lineHeight: "1.4", minW: "0", shrink: 1);
+        Row(gap: "6px", align: Align.Center, ml: "auto", shrink: 0) {
+          Slot("quiet");
+          LookButton(busy ? "Sending…" : sendLabel, Send, kind: ButtonKind.Primary, small: true, disabled: busy || value.Trim() == "",
+                     name: sendLabel, whenDenied: busy ? "Sending…" : "Write something first.");
+        }
+      }
+    }
+  }
+}

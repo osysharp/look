@@ -1,0 +1,10 @@
+// The look's tests app: the gallery at /dev/components, a replica of the Components board drawn with the package's
+// parts, and the page replicas at /dev/page-parts (ProductPlan, Release, Slice), photographed by their tests and diffed
+// against the boards part by part (scripts/design/pixel-budget.sh).
+app OsyrinLookTests {
+  model "model/**/*.osy";
+  tests "**/*.test.osy";
+  use Osysharp.Ui;
+  use Osysharp.Markdown;
+  use Osysharp.Look;
+}

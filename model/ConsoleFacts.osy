@@ -1,0 +1,28 @@
+namespace Osysharp.Look;
+
+/// A grid of `ConsoleFact`s in a panel's body. Plain (`ruled` false): `repeat(auto-fit, minmax(min(220px, 100%), 1fr))`,
+/// `16px 24px` apart, `16px` in from the panel's edges. `ruled: true` is console v6's `.facts` (an organisation's
+/// account panel: plan, apps, members, created): no gaps, edge to edge in the panel under its head, the cells ruled off
+/// from the head and from each other by divider lines, each `14px 16px` — give its facts `ruled: true` too. In a test
+/// it is the region `label`.
+/// e.g. `ConsolePanel("Account") { ConsoleFacts("Account facts", ruled: true) { ConsoleFact("Plan", "Team", ruled: true); ConsoleFact("Slug", "northwind", mono: true, ruled: true); } }`
+[Composable]
+component ConsoleFacts(string label, bool ruled = false) {
+  render {
+    if (ruled) {
+      // Each cell draws its divider above it and on its left; the grid stands 1 px up and left of its box, which cuts
+      // the outer ones away, so only the lines between cells show (the head's own rule is the one above them).
+      Box(overflow: Overflow.Hidden, minW: "0", rounded: Radius.ConsolePanelFoot) {
+        Box(display: Display.Grid, cols: "repeat(auto-fit, minmax(min(170px, 100%), 1fr))", gap: "0", mt: "-1px", ml: "-1px", minW: "0",
+            role: UiRole.Region, label: label) {
+          Slot;
+        }
+      }
+    } else {
+      Box(display: Display.Grid, cols: "repeat(auto-fit, minmax(min(220px, 100%), 1fr))", gap: "16px 24px", p: "16px", minW: "0",
+          role: UiRole.Region, label: label) {
+        Slot;
+      }
+    }
+  }
+}

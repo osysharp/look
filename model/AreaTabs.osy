@@ -1,0 +1,92 @@
+namespace Osysharp.Look;
+
+// A plan part's areas as tabs, one shown at a time, each with a done mark (DECISIONS 13 Nov: "the different sections to be
+// on separate tabs ... and an indicator somewhere that shows that we are done (have accepted) all the areas";
+// plan-part.dc.html `.ptab`).
+
+/// THE AREAS RAIL: a vertical tab list named `label`, 188 px wide, `16px 12px` inside, a soft hairline on its right, tabs 2
+/// apart. A tab, in the console look (docs/designs/console-B) and as the rail draws its rows: the full width of the list,
+/// `6px 10px`, at least 30 high, radius 5; the state's 6 px dot (`ConsoleDot`: ok agreed, warn asks again, neutral not
+/// agreed yet), 10 px, then the name 13/500 (wrapping, never past the tab's edge) and its count 12/400 in text-2 under it.
+/// The current one as the rail's current row: rail-active with white words, its count rail-text-2 and its dot the rail's;
+/// a hovered one on the sunken ground.
+/// `onSelect` is called with a tab's `Key`. Keyboard: each tab is a Tab stop; ↑/↓ on a tab choose the one before or after.
+/// On a phone (under Tablet) the rail takes the full width above the area, its hairline under it.
+/// In a test the rail is the tab list `label`, each tab "<Label>, agreed" / "<Label>, open": `Assert.Selected("Decisions, open", true)`.
+[Composable]
+component AreaTabs(string label, List<AreaTab> areas, string current, Action<string> onSelect) {
+  action Key(string name) {
+    int place = 0;
+    int index = 0;
+    foreach (var area in areas) {
+      if (area.Key == current) { place = index; }
+      index = index + 1;
+    }
+    var key = name.Replace("Arrow", "");
+    if ((key == "Down" || key == "Right") && place < areas.Count - 1) { onSelect(areas[place + 1].Key); }
+    if ((key == "Up" || key == "Left") && place > 0) { onSelect(areas[place - 1].Key); }
+  }
+  render {
+    var wide = Viewport.AtLeast(Tablet);
+    Stack(gap: "2px", w: wide ? "188px" : "100%", minW: wide ? "188px" : "0", shrink: 0,
+          pt: wide ? "16px" : "8px", px: "12px", pb: wide ? "16px" : "8px", borderRW: wide ? 1 : 0, borderBW: wide ? 0 : 1, border: Colors.SoftLine,
+          role: UiRole.TabList, label: label, keys: [Up, Down, Left, Right], onKeyDown: Key) {
+      foreach (var area in areas) {
+        AreaTabFace(area, area.Key == current, () => onSelect(area.Key));
+      }
+    }
+  }
+}
+
+/// One tab of `AreaTabs`, drawn.
+[Composable, Part]
+component AreaTabFace(AreaTab area, bool current, Action onPress) {
+  variants {
+    base {
+      Display = Display.Flex;
+      W = "100%";
+      MinH = "30px";
+      Py = "6px";
+      Px = "10px";
+      Rounded = Radius.ConsoleButtonCorner;
+      BorderW = 0;
+      Bg = Colors.Transparent;
+      Color = Colors.ConsoleText;
+      FontFamily = Font.ConsoleSans;
+      FontSize = FontSize.ConsoleBody;
+      FontWeight = 500;
+      LineHeight = "18px";
+      TextAlign = TextAlign.Left;
+      Cursor = Cursor.Pointer;
+      Hover { Bg = Colors.ConsoleSunken; }
+      Focus { Shadow = Shadow.Ring; }
+    }
+    current {
+      Bg = Colors.ConsoleRailActive;
+      Color = Colors.ConsoleRailInk;
+      Hover { Bg = Colors.ConsoleRailActive; }
+    }
+  }
+  ConsoleDotTone Tone() {
+    if (area.Done) {
+      return current ? ConsoleDotTone.RailOk : ConsoleDotTone.Ok;
+    }
+    if (area.AsksAgain) {
+      return current ? ConsoleDotTone.RailWarn : ConsoleDotTone.Warn;
+    }
+    return current ? ConsoleDotTone.RailNeutral : ConsoleDotTone.Neutral;
+  }
+  render {
+    Pressable(onClick: onPress, role: UiRole.Tab, selected: current, label: area.Label + ", " + (area.Done ? "agreed" : "open"), align: Align.Start,
+              justify: Justify.Start, gap: "10px", minW: "0") {
+      Box(h: "18px", display: Display.Flex, align: Align.Center, shrink: 0, decorative: true) { ConsoleDot(Tone()); }
+      Stack(gap: 0, minW: "0", grow: 1) {
+        Text(area.Label, wordBreak: WordBreak.BreakWord);
+        if (area.Count != "") {
+          Text(area.Count, fontSize: FontSize.ConsoleSmall, fontWeight: 400, color: current ? Colors.ConsoleRailText2 : Colors.ConsoleText2,
+               lineHeight: "16px");
+        }
+      }
+    }
+  }
+}

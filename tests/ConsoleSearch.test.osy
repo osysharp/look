@@ -1,0 +1,31 @@
+// The console's ⌘K search through an app's own search source (/dev/console-search): `OrganizationSearch` implements
+// IConsoleSearchSource, and what it finds shows in the dialog under the source's group.
+
+using Osysharp.Look;
+using OsyrinLookTests;
+
+[TestFixture]
+void ConsoleOrganizations() {
+  new ConsoleOperator { Email = "ops@osyrin.test" };
+  new ConsoleOrganization { Slug = "masoli", Name = "Javier's Org" };
+  new ConsoleOrganization { Slug = "preview", Name = "Osyrin Preview" };
+}
+
+principal Ops => ConsoleOperator.Single(o => o.Email == "ops@osyrin.test");
+
+[Test(ConsoleOrganizations)]
+void The_search_shows_what_the_apps_search_source_finds_under_its_group() {
+  Ui.SignInAs(Ops);
+  Ui.Viewport(1440);
+  Ui.Visit("/dev/console-search");
+  Ui.Press("Mod+K");
+  Ui.Fill("Search the console", "jav");
+  Assert.Visible("Javier's Org", within: "Organizations");
+  Assert.Visible("masoli", within: "Organizations");
+  Assert.Hidden("Osyrin Preview");
+  Ui.Fill("Search the console", "preview");
+  Assert.Visible("Osyrin Preview", within: "Organizations");
+  Assert.Hidden("Javier's Org");
+  Ui.Fill("Search the console", "nowhere");
+  Assert.Visible("Nothing found for “nowhere”.", within: "Search");
+}

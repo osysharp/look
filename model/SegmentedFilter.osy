@@ -1,0 +1,48 @@
+namespace Osysharp.Look;
+
+// The Backlog board's "Show" filter (canvas2/Backlog: "All · 12 | Needs shaping · 3 | …"): one white strip in the
+// control line, radius 10, its segments `8px 14px`, at least 40 high, 14 px, a control line between them; the chosen one
+// 600 in the accent's ink on its tint, the others 500 Ink 2. The board writes the count into the words; here it is a count
+// pill after them (12/600 `1px 7px`, round), the chip a count gets everywhere else in the look.
+
+/// A row of filters, one chosen: `segments` (`FilterSegment`: key, words, count, address), `selected` the chosen key.
+/// A segment with `To` is a link to its own address (`aria-current` when chosen), so a reload keeps it; one without is a
+/// button (`aria-pressed`) that hands its key to `onSelect`. `label` names the group. Wider than its column (a phone), it
+/// scrolls sideways inside itself; the page does not.
+/// `console`: in the console look (docs/designs/console-B) — the strip radius 5 in the console's control line, a segment
+/// a console button's size, 12.5/500 at least 30 high (14/500 at least 44 on a phone), the chosen one as the rail's current row (rail-active, white words), the
+/// count plain 12/400 words after the name.
+/// In a test: `Ui.Click("Needs shaping")`, `Assert.Current("Needs shaping", true)` (links) or `Assert.Visible(…)`.
+[Composable]
+component SegmentedFilter(string label, List<FilterSegment> segments, string selected, Action<string>? onSelect = null, bool console = false) {
+  action Choose(string key) {
+    if (onSelect != null) { onSelect(key); }
+  }
+  render {
+    Box(maxW: "100%", minW: "0", overflowX: Overflow.Auto, scrollbarWidth: "thin") {
+      Row(role: UiRole.Group, label: label, display: Display.InlineFlex, gap: 0, wrap: Wrapping.NoWrap, align: Align.Stretch, bg: Colors.Surface, borderW: 1,
+          border: console ? Colors.ConsoleControlLine : Colors.ControlLine, rounded: console ? Radius.ConsoleButtonCorner : Radius.Inner, overflow: Overflow.Hidden) {
+        foreach (var s in segments) {
+          if (s.To != "") {
+            Link(s.To, label: s.Label, current: s.Key == selected, shrink: 0, borderRW: s == segments.Last() ? 0 : 1, border: console ? Colors.ConsoleControlLine : Colors.ControlLine) {
+              if (console) {
+                ConsoleSegmentFace(s.Label, s.Count, s.Key == selected, !Layout.AtLeast(Tablet));
+              } else {
+                SegmentFace(s.Label, s.Count, s.Key == selected);
+              }
+            }
+          } else {
+            Pressable(onClick: () => Choose(s.Key), pressed: s.Key == selected, label: s.Label, shrink: 0, borderRW: s == segments.Last() ? 0 : 1,
+                      border: console ? Colors.ConsoleControlLine : Colors.ControlLine) {
+              if (console) {
+                ConsoleSegmentFace(s.Label, s.Count, s.Key == selected, !Layout.AtLeast(Tablet));
+              } else {
+                SegmentFace(s.Label, s.Count, s.Key == selected);
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,35 @@
+namespace Osysharp.Look;
+
+/// A small square button holding one glyph, as the Plan board draws its "↑" and "↓" at the right of a row: at least
+/// 32 × 32, 600 13 Ink 2 on white in the control line, radius 8, the wash when hovered, the focus ring. `name` is what
+/// it is called ("Move BOOK-SLOTS up"): the glyph alone says nothing to a screen reader.
+/// In a test: `Ui.Click("Move BOOK-SLOTS up")`.
+[Composable]
+component GlyphButton(string glyph, Action onPress, string name) {
+  variants {
+    base {
+      Display = Display.InlineFlex;
+      MinW = "32px";
+      MinH = "32px";
+      W = "32px";
+      H = "32px";
+      P = "0";
+      Rounded = Radius.Control;
+      BorderW = 1;
+      BorderStyle = BorderStyle.Solid;
+      Border = Colors.ControlLine;
+      Bg = Colors.Surface;
+      Color = Colors.Ink2;
+      FontFamily = Font.Sans;
+      FontSize = FontSize.Label;
+      FontWeight = FontWeight.Semibold;
+      LineHeight = "normal";
+      Cursor = Cursor.Pointer;
+      Hover { Bg = Colors.Wash; }
+      Focus { Shadow = Shadow.Ring; }
+    }
+  }
+  render {
+    Pressable(onClick: onPress, label: name, align: Align.Center, justify: Justify.Center) { Text(glyph); }
+  }
+}

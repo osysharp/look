@@ -1,0 +1,234 @@
+namespace OsyrinLookTests;
+
+using Osysharp.Look;
+
+// The look's tables (P2.D14a): both families (canvas2's plain table and the settings boards' table), each at its own
+// rhythm and dense, side by side; a settings table wider than its card that scrolls inside it; a `TableCard` that sorts
+// and pages through the caller's query. In the gallery and alone at /dev/controls/tables.
+
+/// The gallery's "Tables" section.
+[Composable]
+component GalleryTables() {
+  render {
+    Stack(gap: "16px", label: "Tables") {
+      H2("Tables");
+      Caption("A table in a card: its head and rows on one set of columns and one gap, a compact row where a list is long, a wide table that scrolls inside its card, and a card that sorts and pages through its caller's query.");
+      TableSamples();
+    }
+  }
+}
+
+/// Every table sample, in the order the section draws them.
+[Composable]
+component TableSamples() {
+  render {
+    Stack(gap: "16px", minW: "0") {
+      Box(display: Display.Grid, cols: "repeat(auto-fit, minmax(min(100%, 560px), 1fr))", gap: "16px") {
+        PlainTableSample(false);
+        PlainTableSample(true);
+        SettingsTableSample(false);
+        SettingsTableSample(true);
+      }
+      Row(gap: "8px", align: Align.End, fontSize: FontSize.Caption, color: Colors.Ink3) {
+        Text("Row heights:");
+        Box(w: "6px", h: "32px", bg: Colors.Border, label: "32 px mark");
+        Text("32 px");
+        Box(w: "6px", h: "38px", bg: Colors.Border, label: "38 px mark");
+        Text("38 px — a dense row falls between them.");
+      }
+      WideTableSample();
+      SortedTableSample();
+      GroupedTableSample();
+    }
+  }
+}
+
+/// canvas2's table family (Release "Contents"), at its rhythm or dense; the last column right-aligned.
+[Composable]
+component PlainTableSample(bool dense) {
+  string Cols() => "110px minmax(0, 1fr) 100px 70px";
+  string Title() => dense ? "Contents · dense" : "Contents";
+  string RowTitle(string key) => key == "UPKEEP-41" ? "Round claim totals half-up in the summary"
+    : (key == "UPKEEP-44" ? "Show the rounding rule beside each total" : "Mail the claims desk when a total is corrected");
+  string State(string key) => key == "UPKEEP-41" ? "Done" : (key == "UPKEEP-44" ? "Building" : "Waiting");
+  StatusTone ToneOf(string key) => key == "UPKEEP-41" ? StatusTone.Ok : (key == "UPKEEP-44" ? StatusTone.Run : StatusTone.Wait);
+  string Tokens(string key) => key == "UPKEEP-41" ? "41k" : (key == "UPKEEP-44" ? "12k" : "—");
+  string RowLabel(string key) => key != "UPKEEP-41" ? "" : (dense ? "Dense plain row" : "Plain row");
+  render {
+    SectionCard(Title()) {
+      CardTable(Title() + " table", Cols(), ["Slice", "Title", "State", "Tokens"], dense: dense,
+                aligns: [TextAlign.Left, TextAlign.Left, TextAlign.Left, TextAlign.Right]) {
+        // The caller's cells: each direct child of the row is one cell, and says so (`role: UiRole.GridCell`, or a
+        // `TableCell` around it), so a reader and `Assert.Cell` find it under its column.
+        foreach (var key in ["UPKEEP-41", "UPKEEP-44", "UPKEEP-45"]) {
+          CardTableRow(Cols(), label: RowLabel(key), dense: dense, heads: ["Slice", "Title", "State", "Tokens"]) {
+            TableCell { KeyLink(key, "/dev/components"); }
+            Text(RowTitle(key), minW: "0", role: UiRole.GridCell);
+            TableCell { StatusChip(State(key), ToneOf(key)); }
+            Text(Tokens(key), textAlign: TextAlign.Right, color: Colors.Ink2, role: UiRole.GridCell);
+          }
+        }
+      }
+    }
+  }
+}
+
+/// The settings boards' table family (org-policy Policies), at its rhythm or dense: a plain key under a name, and
+/// (at its rhythm) a disclosure under the value column. Behind the table, invisible, the board's own columns (gap 14,
+/// `0 20px`) as guides a test measures the head and the cells against.
+[Composable]
+component SettingsTableSample(bool dense) {
+  string Cols() => "minmax(0, 1.1fr) minmax(0, 1.5fr) 110px 90px";
+  string Title() => dense ? "Effective policies · dense" : "Effective policies";
+  List<string> Heads() => new List<string> { "Policy", "In force", "Kind", "Applies to" };
+  render {
+    SectionCard(Title()) {
+      Box(position: Position.Relative, label: dense ? "Dense settings sample" : "Settings sample with guides") {
+        if (!dense) {
+          Box(position: Position.Absolute, inset: "0", px: "20px", display: Display.Grid, cols: Cols(), gap: "14px", pointerEvents: PointerEvents.None) {
+            Box(label: "Guide: policy");
+            Box(label: "Guide: in force");
+            Box(label: "Guide: kind");
+            Box(label: "Guide: applies to", display: Display.Flex, justify: Justify.End) {
+              // The column's right-hand 74 px: a right-aligned head and its cells end here; a left-aligned one would not fit.
+              Box(w: "74px", label: "Guide: right end of applies to");
+            }
+          }
+        }
+        CardTable(Title() + " table", Cols(), ["Policy", "In force", "Kind", "Applies to"], spacing: TableSpacing.Settings, dense: dense,
+                  aligns: [TextAlign.Left, TextAlign.Left, TextAlign.Left, TextAlign.Right]) {
+          SettingTableRow("Outbound hosts", Cols(), key: dense ? "" : "egress.hosts", dense: dense, heads: Heads()) {
+            slot value { Text("3 hosts allowed"); }
+            Box(role: UiRole.GridCell) { SolidChip("Hard"); }
+            Text("All apps", textAlign: TextAlign.Right, color: Colors.Ink2, role: UiRole.GridCell);
+            slot under {
+              if (!dense) {
+                Disclosure("Where it is enforced", ruled: false) { Text("At save on the settings screen, and again by the host when an app calls out."); }
+              }
+            }
+          }
+          SettingTableRow("Models", Cols(), key: dense ? "" : "models.allowed", dense: dense, label: dense ? "Dense settings row" : "", heads: Heads()) {
+            slot value { Text("Sonnet, Haiku"); }
+            Box(role: UiRole.GridCell) { StatusChip("Exception-eligible", StatusTone.Wait); }
+            Text("12 of 14", textAlign: TextAlign.Right, color: Colors.Ink2, role: UiRole.GridCell);
+          }
+          SettingTableRow("Reviews", Cols(), key: dense ? "" : "reviews.security", keyTo: "/dev/components", dense: dense, heads: Heads()) {
+            slot value { Text("Security review required"); }
+            Box(role: UiRole.GridCell) { SolidChip("Hard"); }
+            Text("All apps", textAlign: TextAlign.Right, color: Colors.Ink2, role: UiRole.GridCell);
+          }
+        }
+      }
+    }
+  }
+}
+
+/// The settings board's policies table at its own width (900): wider than a phone's card, it scrolls inside the card;
+/// the card's head and its foot stay put. It says `stack: false` — the old behaviour, kept on a phone as a caller may
+/// ask; the stacked rows are at /dev/controls/phone-tables.
+[Composable]
+component WideTableSample() {
+  string Cols() => "minmax(0, 1.1fr) minmax(0, 1.5fr) 150px 150px 110px";
+  render {
+    TableCard("Network", Cols(), ["Policy", "In force (v14)", "Kind", "Enforced at", "Applies to"], sub: "2 policies · the organisation's floor",
+              linkLabel: "All policies ›", linkTo: "/dev/components", foot: "Changes go through a draft and a review.", spacing: TableSpacing.Settings,
+              minWidth: "900px", aligns: [TextAlign.Left, TextAlign.Left, TextAlign.Left, TextAlign.Left, TextAlign.Right], stack: false) {
+      SettingTableRow("Outbound hosts", Cols(), key: "egress.hosts", tag: "Draft v15", tagText: "adds play.googleapis.com", stack: false) {
+        slot value { Text("3 hosts allowed: *.vercel.com, nuget.org, api.stripe.com"); }
+        Box(role: UiRole.GridCell) { SolidChip("Hard"); }
+        Box(role: UiRole.GridCell) { StatusChip("At save and at run", StatusTone.Ok); }
+        Text("All apps", textAlign: TextAlign.Right, color: Colors.Ink2, label: "Applies to: all apps", role: UiRole.GridCell);
+      }
+      SettingTableRow("Inbound webhooks", Cols(), key: "ingress.hooks", stack: false) {
+        slot value { Text("Signed requests only"); }
+        Box(role: UiRole.GridCell) { StatusChip("Exception-eligible", StatusTone.Wait); }
+        Box(role: UiRole.GridCell) { StatusChip("At run", StatusTone.Run); }
+        Text("9 of 14", textAlign: TextAlign.Right, color: Colors.Ink2, role: UiRole.GridCell);
+      }
+    }
+  }
+}
+
+/// A `TableCard` over 312 hosts that sorts and pages: the card reports the column, the direction and the page; this,
+/// the caller, orders and takes the page — as a page's query would.
+[Composable]
+component SortedTableSample() {
+  string sortBy = "Host";
+  bool descending = false;
+  int page = 1;
+  action Sort(string head, bool desc) {
+    sortBy = head;
+    descending = desc;
+    page = 1;
+  }
+  action Go(int wanted) { page = wanted; }
+  string Cols() => "minmax(0, 1fr) 120px 80px";
+  string Name(int i) => "host-" + i.ToString("000");
+  int Lanes(int i) => (i * 7) % 13;
+  List<int> Shown() {
+    var all = Enumerable.Range(1, 312);
+    var ordered = sortBy == "Lanes"
+      ? (descending ? all.OrderByDescending(i => Lanes(i)) : all.OrderBy(i => Lanes(i)))
+      : (descending ? all.OrderByDescending(i => i) : all.OrderBy(i => i));
+    return ordered.Skip((page - 1) * 25).Take(25).ToList();
+  }
+  render {
+    TableCard("Hosts", Cols(), ["Host", "State", "Lanes"], sub: "Sorted and paged by the caller", dense: true,
+              aligns: [TextAlign.Left, TextAlign.Left, TextAlign.Right], sortable: ["Host", "Lanes"], sortBy: sortBy, sortDescending: descending,
+              onSort: Sort, pageSize: 25, total: 312, page: page, onPage: Go) {
+      foreach (var i in Shown()) {
+        CardTableRow(Cols(), label: Name(i), dense: true, heads: ["Host", "State", "Lanes"]) {
+          TableCell { KeyText(Name(i)); }
+          Box(role: UiRole.GridCell) { StatusChip(Lanes(i) == 0 ? "Idle" : "Taking work", Lanes(i) == 0 ? StatusTone.Floor : StatusTone.Ok); }
+          Text(Lanes(i).ToString(), textAlign: TextAlign.Right, color: Colors.Ink2, role: UiRole.GridCell);
+        }
+      }
+    }
+  }
+}
+
+/// A group of the grouped sample: its key and title. No `Id`, so a loop over groups is not a list of rows.
+public class SampleGroup {
+  public string Key = "";
+  public string Title = "";
+}
+
+/// A table whose rows fall into groups, each under a `TableGroupBand`: the bands are not data rows, so the table counts
+/// its four slices and reads a cell of any of them by its column.
+[Composable]
+component GroupedTableSample() {
+  string resolved = "";
+  action Resolve(string key) { resolved = key; }
+  string Cols() => "110px minmax(0, 1fr) 100px 70px";
+  List<string> Slices(string group) => group == "UPKEEP-ROUND" ? new List<string> { "UPKEEP-41", "UPKEEP-44" } : new List<string> { "UPKEEP-50", "UPKEEP-51" };
+  string State(string key) => key == "UPKEEP-41" || key == "UPKEEP-50" ? "Done" : "Building";
+  // The groups' loop is over `SampleGroup`s, which have no `Id`, so it stamps no row: only the slices are counted.
+  List<SampleGroup> Groups() => new List<SampleGroup> { new SampleGroup { Key = "UPKEEP-ROUND", Title = "Rounding fix" },
+                                                        new SampleGroup { Key = "UPKEEP-EXPORT", Title = "Claims export" } };
+  render {
+    TableCard("Grouped contents", Cols(), ["Slice", "Title", "State", ""], foot: resolved == "" ? "Each row's action is announced with its slice." : "Resolved " + resolved,
+              aligns: [TextAlign.Left, TextAlign.Left, TextAlign.Left, TextAlign.Right]) {
+      foreach (var group in Groups()) {
+        TableGroupBand("Arc", group.Title, key: group.Key);
+        foreach (var key in Slices(group.Key)) {
+          CardTableRow(Cols(), heads: ["Slice", "Title", "State", ""]) {
+            TableCell { KeyText(key); }
+            Text(group.Title + ": " + key, minW: "0", role: UiRole.GridCell);
+            TableCell { StatusChip(State(key), State(key) == "Done" ? StatusTone.Ok : StatusTone.Run); }
+            // Every row shows "Resolve"; each is announced, and pressed by a test, as "Resolve <its slice>".
+            TableCell(align: TextAlign.Right) { LookButton("Resolve", () => Resolve(key), kind: ButtonKind.Inline, announce: "Resolve " + key); }
+          }
+        }
+      }
+    }
+  }
+}
+
+/// The tables alone.
+[Route("/dev/controls/tables")]
+[AllowAnonymous]
+[Title("Tables")]
+[Render(CSR)]
+component TablesPage() {
+  render { ControlsFrame("Tables") { TableSamples(); } }
+}

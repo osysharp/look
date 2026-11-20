@@ -1,0 +1,34 @@
+namespace Osysharp.Look;
+
+/// One link of a chain (Slice "Waits on · Unlocks"): its level tag, then its key and state over what it is (12 Ink 2
+/// at 1.4), `6px 0` under a Line 2 rule; `lit` on the highlighted path (the accent's second tint, radius 6). A link to
+/// something the reader may not see passes no key and no state, and `quiet` sets what it is in Ink 3. The block
+/// follows what it is, 2 below (a reason, a quiet remove). In a test it is the region of its key, or of what it is.
+/// `keyLevel` (with `keyKind`): the key is a chip in its level's colours (`ConsoleKeyChipLink`), read as "Arc ALPHA-4".
+[Composable]
+component ChainRow(string level, string what, string key = "", string keyTo = "", string state = "", StatusTone tone = StatusTone.Wait,
+                   bool lit = false, bool quiet = false, ConsoleTypeKind keyKind = ConsoleTypeKind.Slice, string keyLevel = "") {
+  render {
+    Box(display: Display.Grid, cols: "64px minmax(0, 1fr)", gap: "8px", py: "6px", borderTW: 1, border: Colors.Line2, bg: lit ? Colors.AccentTint2 : Colors.Transparent,
+        rounded: lit ? Radius.Chip : "0", label: key != "" ? key : what) {
+      LevelTag(level, lit: lit);
+      Stack(gap: "2px", minW: "0") {
+        if (key != "" || state != "") {
+          Row(gap: "4px 8px", wrap: Wrapping.Wrap, align: Align.Center) {
+            if (key != "" && keyLevel != "") {
+              ConsoleKeyChipLink(key, keyTo, keyKind, keyLevel);
+            }
+            if (key != "" && keyLevel == "") {
+              KeyLink(key, keyTo, small: true);
+            }
+            if (state != "") {
+              StatusChip(state, tone);
+            }
+          }
+        }
+        Text(what, fontSize: FontSize.Caption, color: quiet ? Colors.Ink3 : Colors.Ink2, lineHeight: "1.4");
+        Slot;
+      }
+    }
+  }
+}

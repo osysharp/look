@@ -1,0 +1,15 @@
+namespace OsyrinLookTests;
+
+using Osysharp.Look;
+
+/// The gallery's "Row menus and card actions" section (L1). Alone, as wide as the window, at /dev/controls/row-menus.
+[Composable]
+component GalleryRowMenus() {
+  render {
+    Stack(gap: "16px", label: "Row menus and card actions") {
+      H2("Row menus and card actions");
+      Caption("A row's menu is named for its row and opens over the card's edge; on a phone the page shows it as a sheet. A table card's head holds its primary action; a hover title on the last row is whole; an empty card is as tall as what it says.");
+      RowMenuSamples();
+    }
+  }
+}

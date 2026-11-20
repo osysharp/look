@@ -1,0 +1,56 @@
+namespace Osysharp.Look;
+
+/// The stages of a pipeline with one current (`StripStage` as `StageStrip` takes it: `Title`, `State`), set as the console
+/// draws a sequence: on a tablet and up ONE bordered strip of equal cells, each a 20 px marker (done: a white ✓ on the ok
+/// dot; current: the number white on the accent; later: the number in a control-line ring) before the title 13/600 and the
+/// `State` words 12 text-2 under it; on a phone a compact list, one 36 px row to a stage: the marker, the title, the state at
+/// the right. Stages before `current` are done, the one at `current` is current, those after are later (`current` =
+/// `stages.Count`: all done). A list named `label`, each stage an item named by its title; the current one says so.
+[Composable]
+component ConsoleStageList(List<StripStage> stages, int current, string label = "Stages") {
+  render {
+    var wide = Layout.AtLeast(Tablet);
+    if (wide) {
+      Box(display: Display.Grid, cols: "repeat(auto-fit, minmax(min(160px, 100%), 1fr))", bg: Colors.ConsoleSurface, borderW: 1, border: Colors.ConsoleBorder,
+          rounded: Radius.ConsoleCorner, overflow: Overflow.Hidden, role: UiRole.List, label: label, minW: "0") {
+        foreach (var i in PlacesOf(stages.Count)) {
+          ConsoleStageCell(stages[i], i + 1, i < current ? 0 : i == current ? 1 : 2, i > 0, true);
+        }
+      }
+    } else {
+      Stack(gap: 0, bg: Colors.ConsoleSurface, borderW: 1, border: Colors.ConsoleBorder, rounded: Radius.ConsoleCorner, overflow: Overflow.Hidden,
+            role: UiRole.List, label: label, minW: "0") {
+        foreach (var i in PlacesOf(stages.Count)) {
+          ConsoleStageCell(stages[i], i + 1, i < current ? 0 : i == current ? 1 : 2, i > 0, false);
+        }
+      }
+    }
+  }
+}
+
+/// One stage: `kind` 0 done, 1 current, 2 later; `rule` a line between it and the one before (a left rule in the strip, a top
+/// rule in the list); `strip` the cell's own layout, else the phone's row.
+[Composable, Part]
+component ConsoleStageCell(StripStage stage, int number, int kind, bool rule, bool strip) {
+  render {
+    Row(gap: "10px", align: strip ? Align.Start : Align.Center, py: strip ? "12px" : "8px", px: "14px", minH: strip ? "0" : "36px", minW: "0",
+        borderLW: strip && rule ? 1 : 0, borderTW: !strip && rule ? 1 : 0, border: Colors.ConsoleDivider, role: UiRole.ListItem, label: stage.Title,
+        current: kind == 1) {
+      Box(w: "20px", h: "20px", minW: "20px", rounded: Radius.Pill, display: Display.Flex, alignItems: Align.Center, justify: Justify.Center,
+          bg: kind == 0 ? Colors.ConsoleOkDot : kind == 1 ? Colors.ConsoleAccent : Colors.ConsoleSurface,
+          borderW: kind == 2 ? 1 : 0, border: Colors.ConsoleControlLine, color: kind == 2 ? Colors.ConsoleText2 : (kind == 1 ? Colors.ConsoleOnAccent : Colors.ConsoleRailInk), decorative: true) {
+        Text(kind == 0 ? "✓" : number.ToString(), fontSize: "11px", fontWeight: 600, lineHeight: "1");
+      }
+      if (strip) {
+        Stack(gap: "1px", minW: "0") {
+          Text(stage.Title, fontWeight: 600, wordBreak: WordBreak.BreakWord);
+          Text(stage.State, fontSize: FontSize.ConsoleSmall, color: kind == 1 ? Colors.ConsoleText : Colors.ConsoleText2, wordBreak: WordBreak.BreakWord);
+        }
+      } else {
+        Text(stage.Title, fontWeight: kind == 1 ? 600 : 500, minW: "0", grow: 1, wordBreak: WordBreak.BreakWord);
+        Text(stage.State, fontSize: FontSize.ConsoleSmall, color: kind == 1 ? Colors.ConsoleText : Colors.ConsoleText2, textAlign: TextAlign.Right, minW: "0",
+             maxW: "55%", wordBreak: WordBreak.BreakWord);
+      }
+    }
+  }
+}

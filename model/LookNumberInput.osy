@@ -1,0 +1,71 @@
+namespace Osysharp.Look;
+
+// The board's number field with its unit inside (Components §22 "Never below [10] slots", "Triage after [30] min"): the
+// field frame — 44 high, radius 8, the control line, white — holding the digits 14/400 Ink at `0 12px` and the unit
+// 14/400 Ink 3 at its right edge, 12 in; while edited the 2 px accent line (`0 11px`). The browser's steppers are not
+// drawn (they ate the width on a phone); ↑/↓ step the value by `step` within `min`…`max` instead.
+
+/// A whole number, bound: `value` a two-way `Binding<int>`, `min`/`max` its range, `step` what ↑/↓ add, `unit` the word
+/// inside the box at its right ("slots", "min"); `right` puts the digits at the right. A value outside the range is
+/// refused under the field ("At least 1 slot." / "At most 12 slots.", or `message` when given), the line in the bad dot.
+/// `label` is drawn 13/600 above and is its name (`inRow`: a `FieldRow` draws it). `w` its width (the column by default).
+/// `console`: the console's form control, as the dropdowns' `console` — `ConsoleField`'s label (12.5/500) and the console's box
+/// (`0 10px`, radius 5, 13 px, the console's control line and surface, the unit 13 px in text-2): 30 px on a desktop window
+/// (`Viewport.AtLeast(Tablet)`), the look's 44 px box on a phone; its refusal is 12 px in the console's critical ink under the box, the
+/// box's line the critical colour, and while edited the console's accent line; the refusal is the input's description (`Assert.Described`).
+/// In a test it is filled by its label: `Ui.Fill("Never above", "14")`; `Ui.Press("ArrowUp")` steps it.
+[Composable]
+component LookNumberInput(string label, Binding<int> value, int min = -2147483648, int max = 2147483647, int step = 1, string unit = "",
+                          string w = "100%", FieldState state = FieldState.Normal, string message = "", bool right = false,
+                          bool inRow = false, bool console = false) {
+  action Key(string name) {
+    var key = name.Replace("Arrow", "");
+    if (key == "Up") {
+      value = value + step > max ? max : value + step;
+    } else if (key == "Down") {
+      value = value - step < min ? min : value - step;
+    }
+  }
+  // The right padding that keeps the digits clear of the unit: the unit's width at 14 px (about 8 px a letter) and 12 + 8.
+  string UnitRoom() { return (unit.Length * 8 + 20) + "px"; }
+  string Refusal() {
+    if (message != "") { return message; }
+    if (value < min) { return "At least " + min + (unit != "" ? " " + unit : "") + "."; }
+    if (value > max) { return "At most " + max + (unit != "" ? " " + unit : "") + "."; }
+    return "";
+  }
+  render {
+    var desk = console && Viewport.AtLeast(Tablet);
+    var editing = state == FieldState.Editing;
+    var h = desk ? "30px" : "44px";
+    var pad = desk ? (editing ? "9px" : "10px") : (editing ? "11px" : "12px");
+    // A console number says its refusal itself, under the box in the console's critical ink (as `ConsoleField` does); LookField
+    // keeps the Look's 12 px bad ink for the §22 face.
+    LookField(label, state: Refusal() != "" && !console ? FieldState.Refused : state, message: console ? "" : Refusal(), inRow: inRow || console) {
+      if (console && !inRow) {
+        Text(label, fontSize: FontSize.ConsoleControl, fontWeight: 500, lineHeight: "1.3", fontFamily: Font.ConsoleSans, decorative: true,
+             color: Refusal() != "" ? Colors.ConsoleCriticalInk : Colors.ConsoleText);
+      }
+      // The input IS the box (its own line and focus ring); the unit is laid over its right padding, kept clear for it.
+      Box(position: Position.Relative, w: w, maxW: "100%", minW: "0") {
+        Input(value: value, label: label, min: min, max: max, invalid: Refusal() != "", keys: [Up, Down], onKeyDown: Key, w: "100%", h: h,
+              describedBy: note,
+              pl: pad, pr: unit != "" ? UnitRoom() : pad, borderW: editing ? 2 : 1,
+              border: Refusal() != "" ? (console ? Colors.ConsoleCriticalIcon : Colors.BadDot) : (editing ? (console ? Colors.ConsoleAccent : Colors.Primary) : (desk ? Colors.ConsoleControlLine : Colors.ControlLine)),
+              bg: desk ? Colors.ConsoleSurface : Colors.Surface, rounded: desk ? Radius.ConsoleButtonCorner : Radius.Control,
+              fontSize: desk ? FontSize.ConsoleBody : FontSize.Body, fontWeight: FontWeight.Regular, fontFamily: desk ? Font.ConsoleSans : Font.Sans,
+              color: desk ? Colors.ConsoleText : Colors.OnSurface, textAlign: right ? TextAlign.End : TextAlign.Start);
+        if (unit != "") {
+          Row(position: Position.Absolute, top: "0", right: "0", h: h, align: Align.Center, pr: desk ? "10px" : "12px", pointerEvents: PointerEvents.None) {
+            Text(unit, fontSize: desk ? FontSize.ConsoleBody : FontSize.Body, fontWeight: FontWeight.Regular, color: desk ? Colors.ConsoleText2 : Colors.Ink3,
+                 whiteSpace: WhiteSpace.Nowrap, decorative: true);
+          }
+        }
+      }
+      if (console && Refusal() != "") {
+        Text(Refusal(), fontSize: FontSize.ConsoleSmall, fontWeight: 400, lineHeight: "1.4", fontFamily: Font.ConsoleSans, color: Colors.ConsoleCriticalInk,
+             role: UiRole.Alert, id: note);
+      }
+    }
+  }
+}

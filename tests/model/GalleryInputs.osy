@@ -1,0 +1,69 @@
+namespace OsyrinLookTests;
+
+using Osysharp.Look;
+
+// The look's number field (its unit inside, no steppers) and the text field's extras — a hint while empty, a question
+// on each keystroke or each pause, Return, and the search glass with its clear. Laid as Components §22's form grid (two
+// equal columns, 16 apart). In the gallery and alone at /dev/controls/inputs.
+
+/// The gallery's "Number and search fields" section.
+[Composable]
+component GalleryInputs() {
+  render {
+    Stack(gap: "16px", label: "Number and search fields") {
+      H2("Number and search fields");
+      Caption("A whole number with its unit inside the field and its range said under it; a text field that answers as it is typed, and a search field with its clear.");
+      InputSample();
+    }
+  }
+}
+
+/// Four number fields and three text fields, with what each holds now.
+[Composable]
+component InputSample() {
+  int below = 10;
+  int above = 12;
+  int triage = 30;
+  int bell = 120;
+  string host = "";
+  string find = "";
+  string filter = "";
+  int keystrokes = 0;
+  int asked = 0;
+  string added = "";
+  action Keystroke() { keystrokes = keystrokes + 1; }
+  action Ask() { asked = asked + 1; }
+  action Add() {
+    added = host;
+    host = "";
+  }
+  render {
+    Stack(gap: 0, maxW: "720px", bg: Colors.Surface, borderW: 1, border: Colors.CardLine, rounded: Radius.Panel, overflow: Overflow.Hidden, label: "Capacity and search") {
+      FieldGroupHead("Capacity", first: true);
+      Box(display: Display.Grid, cols: "repeat(auto-fit, minmax(150px, 1fr))", gap: "16px", px: "20px", py: "12px") {
+        LookNumberInput("Never below", below, min: 0, max: 40, unit: "slots");
+        LookNumberInput("Never above", above, min: 1, max: 14, unit: "slots", state: FieldState.Editing);
+        LookNumberInput("Triage after", triage, min: 5, unit: "min", right: true);
+        LookNumberInput("Bell after", bell, min: 5, max: 600, step: 15, unit: "min");
+      }
+      FieldGroupHead("Find");
+      Stack(gap: "16px", px: "20px", py: "12px") {
+        LookInput("Add a host", host, placeholder: "registry.npmjs.org", onInput: Keystroke, onEnter: Add, mono: true);
+        LookInput("Search hosts", find, placeholder: "Search by name or address", search: true, onInput: Keystroke);
+        LookInput("Filter as you pause", filter, placeholder: "Asks once you stop typing", onInput: Ask, debounceMs: 300);
+      }
+      Text("Below " + below + " · above " + above + " · triage " + triage + " · bell " + bell + " · " + keystrokes + " keystrokes · asked " + asked
+           + (added != "" ? " · added " + added : "") + (find != "" ? " · finding " + find : ""),
+           px: "20px", py: "10px", fontSize: FontSize.Label, color: Colors.Ink3, bg: Colors.Wash, role: UiRole.Status);
+    }
+  }
+}
+
+/// The fields alone.
+[Route("/dev/controls/inputs")]
+[AllowAnonymous]
+[Title("Number and search fields")]
+[Render(CSR)]
+component InputsPage() {
+  render { ControlsFrame("Number and search fields") { InputSample(); } }
+}

@@ -1,0 +1,14 @@
+namespace OsyrinLookTests;
+
+using Osysharp.Look;
+
+/// The two phone table samples, one above the other (the policies table wants its 900 px at a desk).
+[Composable]
+component PhoneTableSamples() {
+  render {
+    Stack(gap: "16px", minW: "0") {
+      PhonePoliciesSample();
+      PhoneSlicesSample();
+    }
+  }
+}

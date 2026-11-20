@@ -1,0 +1,8 @@
+namespace Osysharp.Look;
+
+/// A neutral fact as a chip: 12/600 Ink 2 on Line 2, `3px 8px`, radius 6 ("Next.js web app", "2.4 · set on the arc").
+/// It is the kit's neutral `Badge`, which the base theme draws at these values.
+[Composable]
+component PlainChip(string words) {
+  render { Badge(words, tone: Tone.Default); }
+}

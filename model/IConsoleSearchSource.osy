@@ -1,0 +1,12 @@
+namespace Osysharp.Look;
+
+/// One kind of thing the console's ⌘K search finds. A package implements it for what it owns; every implementation in the
+/// app is found by `ConsoleSearch`, ordered by its `[Order(n)]`, so a page never names the package that owns the rows.
+/// `Search` reads as the caller, through the rows' own rules, with no exception.
+public interface IConsoleSearchSource {
+  /// The heading of the group ("Products", "Plan items", "Hosts").
+  string Group();
+
+  /// The rows of this group for `text`, already known to be 2 to 100 characters.
+  List<ConsoleSearchResult> Search(string text);
+}

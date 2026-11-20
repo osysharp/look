@@ -1,0 +1,67 @@
+namespace OsyrinLookTests;
+
+using Osysharp.Look;
+
+/// Whoever works the console sample: the console's search answers only somebody signed in.
+[Principal]
+entity ConsoleOperator {
+  [Required, Unique, MaxLength(200)] string Email;
+  security { allow read when IsAuthenticated where Id == user.Id; }
+}
+
+/// An organisation the console looks after: its key (`Slug`) and its name. Anybody signed in reads it.
+entity ConsoleOrganization {
+  [Required, Unique, MaxLength(40)] string Slug;
+  [Required, MaxLength(120)] string Name;
+  security { allow read when IsAuthenticated; }
+}
+
+/// The test app's search source, as an app gives the console's ⌘K what it owns: the organisations whose name or key
+/// holds the typed text, read as the caller, under the heading "Organizations". Nothing names it: `ConsoleSearch` finds
+/// every implementation in the app.
+[Order(1)]
+public class OrganizationSearch : IConsoleSearchSource {
+  public string Group() => "Organizations";
+
+  public List<ConsoleSearchResult> Search(string text) {
+    var words = text.ToLower();
+    var results = new List<ConsoleSearchResult>();
+    var found = ConsoleOrganization.Where(o => o.Name.ToLower().Contains(words) || o.Slug.ToLower().Contains(words))
+      .OrderBy(o => o.Name).Take(10).ToList();
+    foreach (var organization in found) {
+      results.Add(new ConsoleSearchResult { Kind = "Organization", Key = organization.Slug, Title = organization.Name,
+                                            To = "/dev/console-search" });
+    }
+    return results;
+  }
+}
+
+/// The console frame with its search connected the way an app connects it: the dialog shows what `ConsoleSearch` — every
+/// search source in the app, here `OrganizationSearch` — finds for the typed text.
+[Route("/dev/console-search")]
+[Title("Console search")]
+[Render(CSR)]
+component ConsoleSearchPage() {
+  string searchText = "";
+  live var found = ConsoleSearch(searchText);
+
+  ConsoleChrome Chrome() => new ConsoleChrome {
+    Product = "Osyrin",
+    Context = "Control plane",
+    Home = "/dev/console-search",
+    Address = "ops@osyrin.test",
+    Initials = "O",
+    SearchLabel = "Search the console",
+    SearchPlaceholder = "Search organizations",
+    Groups = [
+      new ConsoleNavGroup { Items = [ new ConsoleNavItem { Label = "Overview", To = "/dev/console-search", Icon = Icons.Home, Exact = true } ] },
+    ],
+  };
+
+  render {
+    ConsoleFrame(Chrome(), [ new Crumb { Label = "Control plane" }, new Crumb { Label = "Overview" } ], "Overview",
+                 searchText: searchText, searchGroups: found ?? new List<ConsoleSearchGroup>()) {
+      ConsolePanel("Search finds") { Text("Organizations, by name or key.", p: "16px"); }
+    }
+  }
+}

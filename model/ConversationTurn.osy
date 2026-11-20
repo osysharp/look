@@ -1,0 +1,49 @@
+namespace Osysharp.Look;
+
+using Osysharp.Markdown;
+
+/// One turn of a conversation (canvas2/PlannerPanel). Its head says who — a person as `PersonChip` (quiet), an agent or
+/// a model as `AgentChip` (`agent: true`) — and when (`RelativeDate`, the exact time on hover), 12 px Ink 3 between.
+/// The text is Markdown, drawn by the platform's renderer at 14/1.5. A person's turn is the board's bubble: on the wash
+/// in the soft line, radius 10, `8px 10px`, its parts 4 apart, at most 300 wide, hung on the right. An agent's or a
+/// model's turn (`agent`) stands on the panel's ground, full width, its parts 6 apart.
+/// `slot trace` sits between the head and the text (the board's "▸ 3 calls · read_item" — a `Disclosure(…, ruled:
+/// false)`); the block follows the text (a proposed change: `ChangeList`/`ChangeBlock`); `meta` is a quiet 12 px Ink 3
+/// line at the foot ("1,840 tokens · $0.04"). `pending`: the turn is being written — a "Writing…" chip in the run tone
+/// beside the time, the text so far drawn as it streams in, and the turn says so as a status.
+/// In a test it is the group named "<who>, <when>": `Assert.Visible("Find the gaps", within: "Anna Berg, 09:12")` —
+/// `when` is `RelativeWords(at, now)`.
+/// e.g. `ConversationTurn("Anna Berg", at, "Find the gaps in **BOOK-CONFIRM**")` · `ConversationTurn("Planner", at, reply, agent: true) { ChangeList(…) { … } }`
+[Composable]
+component ConversationTurn(string who, DateTime at, string text, bool agent = false, string initials = "",
+                           string meta = "", bool pending = false, DateTime? now = null) {
+  render {
+    Stack(gap: !agent ? "4px" : "6px", alignSelf: !agent ? AlignSelf.End : AlignSelf.Stretch, maxW: !agent ? "300px" : "100%", minW: "0",
+          py: !agent ? "8px" : "0", px: !agent ? "10px" : "0", bg: !agent ? Colors.Wash : Colors.Transparent, borderW: !agent ? 1 : 0,
+          border: Colors.SoftLine, rounded: Radius.Inner, role: pending ? UiRole.Status : UiRole.Group,
+          label: who + ", " + RelativeWords(at, now ?? DateTime.UtcNow)) {
+      Row(gap: "6px", align: Align.Center, wrap: Wrapping.Wrap, fontSize: FontSize.Caption, color: Colors.Ink3, lineHeight: "normal") {
+        if (agent) {
+          AgentChip(who);
+        } else {
+          PersonChip(who, initials != "" ? initials : InitialsOf(who), quiet: true);
+        }
+        Text("·", decorative: true);
+        RelativeDate(at, now: now);
+        if (pending) {
+          StatusChip("Writing…", StatusTone.Run);
+        }
+      }
+      Slot("trace");
+      if (text != "") {
+        Box(minW: "0", fontSize: FontSize.Body, lineHeight: "1.5", color: Colors.OnSurface) {
+          Markdown(text, streaming: pending);
+        }
+      }
+      Slot;
+      if (meta != "") {
+        Text(meta, fontSize: FontSize.Caption, color: Colors.Ink3, lineHeight: "normal");
+      }
+    }
+  }
+}

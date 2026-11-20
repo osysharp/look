@@ -1,0 +1,6 @@
+namespace Osysharp.Look;
+
+/// What a busy button says while it waits: `busyLabel`, or "Working…" without one.
+public string BusySaid(string busyLabel) {
+  return busyLabel != "" ? busyLabel : "Working…";
+}

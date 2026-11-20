@@ -1,0 +1,11 @@
+namespace Osysharp.Look;
+
+/// One column of a `ConsoleTable`: its head words, its track (`"minmax(0, 2fr)"`, `"120px"`, `"auto"`) and whether it
+/// is a right-aligned column (numbers, the links at the end); `Sorts`: its head is a sort button when the table is given
+/// `onSort`.
+public class ConsoleColumn {
+  public string Label = "";
+  public string Width = "minmax(0, 1fr)";
+  public bool Right = false;
+  public bool Sorts = false;
+}

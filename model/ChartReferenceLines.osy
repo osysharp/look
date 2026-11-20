@@ -1,0 +1,28 @@
+namespace Osysharp.Look;
+
+/// A chart's reference lines (HT1; shared by the bar and line charts): each a dashed rule across the plot at its value,
+/// over a plot `height` px tall whose top is the last of the `ticks`, amber or red (`ChartReferenceLine.Critical`), its
+/// label and value ("Floor 50 GB") at the plot's left, just above the rule (the latest value stands at the right). In a test they are the list
+/// "<label> reference lines", each line an item named "Floor: 50 GB".
+[Composable, Part]
+component ChartReferenceLines(List<ChartReferenceLine> lines, List<double> ticks, int height, string unit, string label) {
+  string Bottom(double value) => Math.Round((height - 1) * Math.Max(0, Math.Min(value, ticks[ticks.Count - 1])) / ticks[ticks.Count - 1]).ToString("0") + "px";
+
+  string Said(ChartReferenceLine line) => line.Label + " " + ChartValueSaid(line.Value, unit);
+
+  render {
+    Box(position: Position.Absolute, inset: 0, role: UiRole.List, label: label + " reference lines") {
+      foreach (var line in lines) {
+        Box(position: Position.Absolute, left: "0", right: "0", bottom: Bottom(line.Value), h: "0", role: UiRole.ListItem,
+            label: line.Label + ": " + ChartValueSaid(line.Value, unit)) {
+          Box(position: Position.Absolute, left: "0", right: "0", top: "0", h: "0", borderTW: 1, borderStyle: BorderStyle.Dashed,
+              border: line.Critical ? Colors.ConsoleCriticalIcon : Colors.ConsoleWarnDot, decorative: true);
+          Box(position: Position.Absolute, left: "4px", bottom: "1px", px: "4px", bg: Colors.ConsoleSurface, rounded: "2px") {
+            Text(Said(line), fontSize: FontSize.ConsoleBadge, lineHeight: "14px", whiteSpace: WhiteSpace.Nowrap, fontVariant: FontVariant.TabularNums,
+                 color: line.Critical ? Colors.ConsoleCriticalInk : Colors.ConsoleWarnInk);
+          }
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,38 @@
+namespace Osysharp.Look;
+
+/// Usage against a limit, in the console's words: the `label` (12.5/500) and the amount at the right ("312 of 500 GB",
+/// 12, text-2, tabular; `amount` replaces "value of max") over a 6 px bar on the neutral ground, radius 3, filled to
+/// `value` of `max` in the accent. `threshold` (0: none) draws a 2 px text-3 mark at its place on the bar; at or past
+/// it the fill turns the warn dot, a warn dot comes before the amount and `pastWords` after it ("over the warning
+/// line"); at or past `max` the fill is the critical red. The words are what a reader and a test read
+/// ("Storage: 312 of 500 GB"); the bar is decorative.
+[Composable]
+component ConsoleMeter(string label, int value, int max, int threshold = 0, string amount = "", string pastWords = "") {
+  render {
+    var past = threshold > 0 && value >= threshold;
+    var full = max > 0 && value >= max;
+    var words = amount != "" ? amount : value + " of " + max;
+    var said = past && pastWords != "" ? words + " · " + pastWords : words;
+    Stack(gap: "6px", minW: "0", fontFamily: Font.ConsoleSans, role: UiRole.Group, label: label + ": " + said) {
+      Row(justify: Justify.Between, align: Align.Baseline, gap: "4px 12px", wrap: Wrapping.Wrap, lineHeight: "1.4") {
+        Text(label, fontSize: FontSize.ConsoleControl, fontWeight: 500, color: Colors.ConsoleText);
+        Row(gap: "6px", align: Align.Center) {
+          if (past || full) {
+            Box(w: "6px", h: "6px", shrink: 0, rounded: Radius.Pill, bg: full ? Colors.ConsoleCriticalIcon : Colors.ConsoleWarnDot, decorative: true);
+          }
+          Text(said, fontSize: FontSize.ConsoleSmall, fontWeight: past || full ? 500 : 400, fontVariant: FontVariant.TabularNums,
+               color: full ? Colors.ConsoleCriticalInk : (past ? Colors.ConsoleWarnInk : Colors.ConsoleText2));
+        }
+      }
+      Box(position: Position.Relative, h: "6px", decorative: true) {
+        Box(h: "6px", rounded: Radius.ConsoleKbd, overflow: Overflow.Hidden, bg: Colors.ConsoleNeutralBg) {
+          Box(w: MeterWidth(value, max), h: "6px",
+              bg: full ? Colors.ConsoleCriticalIcon : (past ? Colors.ConsoleWarnDot : Colors.ConsoleAccent));
+        }
+        if (threshold > 0 && threshold < max) {
+          Box(position: Position.Absolute, top: "-2px", left: MeterWidth(threshold, max), w: "2px", h: "10px", bg: Colors.ConsoleText3);
+        }
+      }
+    }
+  }
+}

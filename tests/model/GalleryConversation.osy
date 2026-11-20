@@ -1,0 +1,150 @@
+namespace OsyrinLookTests;
+
+using Osysharp.Look;
+
+// A conversation with a model, drawn from canvas2/PlannerPanel's planner panel: turns, a proposed change as a block, the
+// composer. In the gallery and alone at /dev/parts/conversation (1440 and 390).
+
+/// The gallery's "Conversation" section.
+[Composable]
+component GalleryConversation() {
+  render {
+    Stack(gap: "16px", label: "Conversation") {
+      H2("Conversation");
+      Caption("A person's turn, a model's turn with its calls and three proposed changes, a turn being written, and the composer.");
+      // Under the tablet width the panel is a full-screen modal dialog (SidePanel), which would cover every section of the
+      // gallery and scope each test to itself; it stands alone at /dev/parts/conversation (390 too).
+      if (Layout.AtLeast(Tablet)) {
+        ConversationSample();
+      } else {
+        Caption("At 390 the planner opens full screen: see /dev/parts/conversation.");
+      }
+    }
+  }
+}
+
+/// The planner panel: two exchanges, the changes of the first, and the composer at its foot; a sent turn is added and
+/// answered by a turn being written. With `onClose` it has its close button.
+[Composable]
+component ConversationSample(Action onClose = null) {
+  string draft = "";
+  List<string> sent = [];
+  string decided = "";
+  action Ask() {
+    sent.Add(draft);
+    draft = "";
+  }
+  action Decide(string what) { decided = what; }
+  render {
+    SidePanel("Planner", sub: "Planner agent · proposes; changes nothing until you accept", onClose: onClose, mark: true, stick: true) {
+      slot actions { LookButton("Sessions", () => Decide("Sessions"), small: true); }
+      slot head {
+        Row(gap: "6px", align: Align.Center, wrap: Wrapping.Wrap, fontSize: FontSize.Caption, color: Colors.Ink2) {
+          Text("Sees");
+          PlainChip("Saga · BOOK");
+          PlainChip("Arc · BOOK-CONFIRM");
+          Text("follows your view");
+        }
+      }
+      slot foot {
+        Composer("Ask, plan or change something in BOOK-CONFIRM", draft, Ask,
+                 placeholder: "e.g. “what in this arc has no screenshot?”", hint: "@ an item · / a command · Enter sends") {
+          slot quiet { LookButton("Attach", () => Decide("Attach"), kind: ButtonKind.Quiet, small: true); }
+        }
+        Row(gap: "6px", align: Align.Center, wrap: Wrapping.Wrap) {
+          Text("This session: 4 turns · €0.21 on planner-key-1 (€40 a day)", fontSize: FontSize.Caption, color: Colors.Ink3);
+        }
+      }
+      ConversationTurn("Anna Berg", new DateTime(2026, 11, 12, 9, 12, 0), "Find the gaps in BOOK-CONFIRM", now: GalleryNow());
+      ConversationTurn("Planner", new DateTime(2026, 11, 12, 9, 12, 30),
+                       "Every slice has acceptance, but **BOOK-17** changes the confirmation mail and has no screenshot criterion — BOOK now asks for one. BOOK-14’s done check does not say what the patient sees when the 10 minutes run out on the confirm page.",
+                       agent: true, meta: "1,840 tokens · $0.04", now: GalleryNow()) {
+        slot trace {
+          Disclosure("3 calls · read_item, search_items", ruled: false) {
+            Text("read_item(\"BOOK-CONFIRM\") → arc, 5 slices, 11 docs", fontFamily: Font.KeyFace, fontSize: FontSize.Overline);
+            Text("search_items(arc: \"BOOK-CONFIRM\", missing: \"screenshot\") → BOOK-17", fontFamily: Font.KeyFace, fontSize: FontSize.Overline);
+          }
+        }
+        ChangeList("3 changes to 3 items") {
+          slot actions {
+            LookButton("Reject all", () => Decide("Rejected all"), small: true);
+            LookButton("Accept all 3 changes", () => Decide("Accepted all"), kind: ButtonKind.Primary, small: true);
+          }
+          ChangeBlock("Acceptance", ChipTone.Accent, key: "BOOK-17", keyTo: "/dev/components", what: "new criterion",
+                      note: "Suggested because BOOK requires a screenshot per screen change.") {
+            DiffLines(["+ The confirmation mail renders in the three mail clients the clinics see most.", "+ Proved by: screenshot · Approved by: Anna Berg"],
+                      label: "Acceptance on BOOK-17 diff");
+            slot actions {
+              LookButton("Reject", () => Decide("Rejected the criterion"), small: true, announce: "Reject: Acceptance on BOOK-17");
+              LookButton("Accept the criterion", () => Decide("Accepted the criterion"), kind: ButtonKind.Primary, small: true);
+            }
+          }
+          ChangeBlock("Update", ChipTone.Run, key: "BOOK-14", keyTo: "/dev/components", what: "done check", state: "Accepted",
+                      stateTone: StatusTone.Ok, note: "Makes the expired case testable.") {
+            DiffLines(["− A slot is held for 10 minutes.", "+ A slot is held for 10 minutes; when the hold ends on the confirm page, the patient is told and can pick again."],
+                      label: "Update on BOOK-14 diff");
+          }
+          ChangeBlock("Create", ChipTone.Ok, key: "BOOK-26", what: "new slice after BOOK-17") {
+            PartTree("Proposed parts of BOOK-26", [
+              new TreePart { Kind = "Slice", Key = "BOOK-26", Title = "Add to calendar from the confirmation page",
+                             Line = "140k of 160k · starts at stage 1 · waits on BOOK-14" },
+              new TreePart { Level = 1, Kind = "Criterion", KindTone = ChipTone.Accent, Title = "The page offers an .ics file for the booked slot",
+                             Line = "Proved by: test calendar_file_is_offered" },
+              new TreePart { Level = 1, Kind = "Criterion", KindTone = ChipTone.Accent, Title = "The file opens in the three mail clients",
+                             Line = "Proved by: screenshot" }]);
+            slot actions {
+              LookButton("Reject", () => Decide("Rejected BOOK-26"), small: true, announce: "Reject: Create on BOOK-26");
+              LookButton("Accept: create BOOK-26", () => Decide("Created BOOK-26"), kind: ButtonKind.Primary, small: true);
+            }
+          }
+        }
+        if (decided != "") {
+          InlineMessage(decided + ".", LookTone.Ok);
+        }
+      }
+      foreach (var turn in sent) {
+        ConversationTurn("Anna Berg", GalleryNow(), turn, now: GalleryNow());
+      }
+      if (sent.Count > 0) {
+        ConversationTurn("Planner", GalleryNow(), "Reading BOOK-17 and its", agent: true, pending: true, now: GalleryNow());
+      }
+    }
+  }
+}
+
+/// The gallery's clock: Thu 12 Nov 2026 09:30 UTC, so the turns read "18 min ago" in every run.
+public DateTime GalleryNow() { return new DateTime(2026, 11, 12, 9, 30, 0); }
+
+/// The planner panel beside a page's main column, as PlannerPanel draws it at 1440 (20 px on the ground, the column,
+/// the panel 24 beside it); on a phone the panel is a full sheet. Closed, the page offers "Open the planner".
+[Route("/dev/parts/conversation")]
+[AllowAnonymous]
+[Title("Conversation")]
+[Render(CSR)]
+component ConversationPage() {
+  bool open = true;
+  action Close() { open = false; }
+  action Open() { open = true; }
+  render {
+    Box(p: "20px", bg: Colors.Bg, color: Colors.OnSurface, fontSize: "16px", lineHeight: "normal", fontFamily: Font.Sans, minH: "100vh") {
+      Row(gap: "24px", align: Align.Start, minW: "0") {
+        PageColumn("Book and confirm", landmark: true) {
+          AreaTitle("Book and confirm");
+          Row(gap: "8px", wrap: Wrapping.Wrap) {
+            StatusChip("Running", StatusTone.Run);
+            if (!open) {
+              LookButton("Open the planner", Open, small: true);
+            }
+          }
+          CardGrid("300px") {
+            SmallCard("Hold a slot for 10 minutes while the patient confirms") { Text("1 change waiting · done check", fontSize: FontSize.Label, color: Colors.Ink3); }
+            SmallCard("Confirmation mail with a calendar file") { Text("1 change waiting · acceptance", fontSize: FontSize.Label, color: Colors.Ink3); }
+          }
+        }
+        if (open) {
+          ConversationSample(onClose: Close);
+        }
+      }
+    }
+  }
+}

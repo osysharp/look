@@ -1,0 +1,51 @@
+{
+  "platform": {
+    "version": "9999.0.0"
+  },
+  "entries": [],
+  "controls": [],
+  "fonts": [
+    {
+      "family": "IBM Plex Mono",
+      "hash": "08949f728dc52d528e69b1667d15c89a5686a4ee9a296ff90983985f99c380f7",
+      "file": "fonts/ibm-plex-mono-latin-400-normal.woff2",
+      "contentType": "font/woff2",
+      "weight": "400"
+    },
+    {
+      "family": "IBM Plex Mono",
+      "hash": "01d285447409c8a588692162439a038b8cbd7871309ee20267b0d2d91c6e8e22",
+      "file": "fonts/ibm-plex-mono-latin-500-normal.woff2",
+      "contentType": "font/woff2",
+      "weight": "500"
+    },
+    {
+      "family": "IBM Plex Mono",
+      "hash": "0d1f0b8d0722224e32e9f28261bdc86c79115be73444ae5eceb73976a1bcdf83",
+      "file": "fonts/ibm-plex-mono-latin-600-normal.woff2",
+      "contentType": "font/woff2",
+      "weight": "600"
+    },
+    {
+      "family": "JetBrains Mono",
+      "hash": "14425ba9c695763c1547f48a206b7aa60350a33ae23de09f0407877f3fcd89eb",
+      "file": "fonts/jetbrains-mono-latin-400-normal.woff2",
+      "contentType": "font/woff2",
+      "weight": "400"
+    },
+    {
+      "family": "JetBrains Mono",
+      "hash": "cb182feeed4d798ff6961d3c79f7026279448fca0676438aaecb21f3fc39553a",
+      "file": "fonts/jetbrains-mono-latin-500-normal.woff2",
+      "contentType": "font/woff2",
+      "weight": "500"
+    },
+    {
+      "family": "Inter",
+      "hash": "3100e775e8616cd2611beecfa23a4263d7037586789b43f035236a2e6fbd4c62",
+      "file": "fonts/inter-latin-variable-normal.woff2",
+      "contentType": "font/woff2",
+      "weight": "100 900"
+    }
+  ]
+}

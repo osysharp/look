@@ -1,0 +1,133 @@
+namespace Osysharp.Look;
+
+// The stat strip, as the owner's mock-up draws it (docs/designs/foundry/owner-refined-plan-mockup.png: Open items ·
+// Done · Unscheduled · Next release): the page's few numbers as ONE white strip across the content's width, its cells
+// equal in width and height and split by hairlines, instead of a row of separate tiles. `StatTile` and `StatRow` stay
+// for a page that wants tiles.
+
+/// One cell of a `StatStrip`: `Label` (13/500, Ink 2, the tone's dot before it), `Value` (20/700, tabular numbers;
+/// `Mono` in the key face at 600, for a version or a key), `Sub` one 13 Ink 2 line under it. With `To` the cell is one
+/// link, named "Label: Value, Sub".
+public class StripStat {
+  public string Label = "";
+  public string Value = "";
+  public string Sub = "";
+  public StatTone Tone = StatTone.None;
+  public string To = "";
+  public bool Mono = false;
+}
+
+/// THE STAT STRIP: `stats` side by side in one card (white, the Border hairline, radius 14), each the same width and
+/// all as tall as the tallest, a hairline between each two inset 14 px from the card's top and foot. On a phone the
+/// cells stand one under another, a hairline between them. In a test it is the region `label`, each cell the region
+/// "Label: Value, Sub" (or "Label: Value"). On a phone each cell holds its label and value on one line. The strip
+/// decides this once, from the window (`Viewport.AtLeast(Tablet)`), and hands it to its cells: a cell is narrower
+/// than a tablet on any desk, so a cell that asked its own room drew the phone's line at 1440 (LK7).
+[Composable]
+component StatStrip(string label, List<StripStat> stats) {
+  render {
+    var wide = Viewport.AtLeast(Tablet);
+    if (wide) {
+      Row(align: Align.Stretch, gap: 0, minW: "0", bg: Colors.Surface, borderW: 1, border: Colors.Border, rounded: Radius.Panel, role: UiRole.Group,
+          label: label) {
+        foreach (var index in Enumerable.Range(0, stats.Count())) {
+          if (index > 0) {
+            Box(w: "1px", minW: "1px", my: "14px", bg: Colors.Border, decorative: true);
+          }
+          StripStatCell(stats[index], true);
+        }
+      }
+    } else {
+      Stack(gap: 0, minW: "0", bg: Colors.Surface, borderW: 1, border: Colors.Border, rounded: Radius.Panel, role: UiRole.Group, label: label) {
+        foreach (var index in Enumerable.Range(0, stats.Count())) {
+          if (index > 0) {
+            Box(h: "1px", mx: "16px", bg: Colors.Border, decorative: true);
+          }
+          StripStatCell(stats[index], false);
+        }
+      }
+    }
+  }
+}
+
+/// One cell of the strip: `14px 20px`, the label line, the value and the sub line 4 apart, the whole cell the link
+/// when the stat has an address (the wash when hovered, the focus ring). `wide` is the strip's answer: the cells side
+/// by side (the label over the value) or stacked (on one line).
+[Composable, Part]
+component StripStatCell(StripStat stat, bool wide) {
+  string Name() => stat.Sub != "" ? stat.Label + ": " + stat.Value + ", " + stat.Sub : stat.Label + ": " + stat.Value;
+  render {
+    if (stat.To != "") {
+      StripStatFrame(Name(), stat.To, linked: true) { StripStatFace(stat, wide); }
+    } else {
+      StripStatFrame(Name(), "") { StripStatFace(stat, wide); }
+    }
+  }
+}
+
+/// A strip cell's box: an equal share of the strip's width, `14px 20px`; `linked` the link with the wash and the ring.
+[Composable, Part]
+component StripStatFrame(string name, string to, bool linked = false) {
+  variants {
+    base {
+      Display = Display.Flex;
+      Grow = 1;
+      Basis = "0";
+      MinW = "0";
+      Py = "14px";
+      Px = "20px";
+      Color = Colors.OnSurface;
+      TextDecoration = TextDecoration.None;
+      Rounded = Radius.Panel;
+    }
+    linked {
+      Cursor = Cursor.Pointer;
+      Hover { Bg = Colors.Wash; }
+      Focus { Shadow = Shadow.Ring; }
+    }
+  }
+  render {
+    if (linked) {
+      Link(to, label: name) { Slot; }
+    } else {
+      Box(label: name) { Slot; }
+    }
+  }
+}
+
+/// A cell's words; on a phone (`wide` false) the label and the value share a line (the value at the right, 17/700),
+/// the sub under.
+[Composable, Part]
+component StripStatFace(StripStat stat, bool wide) {
+  render {
+    if (!wide) {
+      Stack(gap: "2px", grow: 1, minW: "0") {
+        Row(gap: "12px", align: Align.Center, justify: Justify.Between, minW: "0") {
+          Row(gap: "8px", align: Align.Center, minW: "0") {
+            if (stat.Tone != StatTone.None) { StatDot(stat.Tone); }
+            Text(stat.Label, fontSize: "13px", fontWeight: FontWeight.Medium, lineHeight: "normal", color: Colors.Ink2, minW: "0");
+          }
+          Text(stat.Value, fontSize: FontSize.ItemTitle, fontWeight: stat.Mono ? FontWeight.Semibold : FontWeight.Heavy,
+               fontFamily: stat.Mono ? Font.KeyFace : Font.Sans, fontVariant: FontVariant.TabularNums, lineHeight: "1.25", textAlign: TextAlign.Right,
+               wordBreak: WordBreak.BreakWord, minW: "0");
+        }
+        if (stat.Sub != "") {
+          Text(stat.Sub, fontSize: "13px", lineHeight: "normal", color: Colors.Ink2, minW: "0");
+        }
+      }
+    } else {
+      Stack(gap: "4px", grow: 1, minW: "0") {
+        Row(gap: "8px", align: Align.Center, minW: "0") {
+          if (stat.Tone != StatTone.None) { StatDot(stat.Tone); }
+          Text(stat.Label, fontSize: "13px", fontWeight: FontWeight.Medium, lineHeight: "normal", color: Colors.Ink2, minW: "0");
+        }
+        Text(stat.Value, fontSize: "20px", fontWeight: stat.Mono ? FontWeight.Semibold : FontWeight.Heavy, fontFamily: stat.Mono ? Font.KeyFace : Font.Sans,
+             fontVariant: FontVariant.TabularNums, lineHeight: "1.25", letterSpacing: stat.Mono ? "0" : "-0.01em", wordBreak: WordBreak.BreakWord,
+             minW: "0");
+        if (stat.Sub != "") {
+          Text(stat.Sub, fontSize: "13px", lineHeight: "normal", color: Colors.Ink2, minW: "0");
+        }
+      }
+    }
+  }
+}

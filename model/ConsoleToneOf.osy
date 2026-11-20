@@ -1,0 +1,12 @@
+namespace Osysharp.Look;
+
+/// The console badge's kind for a status tone, so a page that still derives its states as `StatusTone` shows them as
+/// console badges: ok and running are ok (green); needs-a-person and bad are warn (orange, with its dot): the spec's
+/// badges are ok, warn, neutral, outline and solid, a failure is something that needs somebody, red is only the alert
+/// banner's, and solid is the "Hard boundary" badge alone; waiting and the floor are neutral. The badge's words say which
+/// (Failed, Waiting for you).
+public ConsoleTone ConsoleToneOf(StatusTone tone) {
+  if (tone == StatusTone.Ok || tone == StatusTone.Run) { return ConsoleTone.Ok; }
+  if (tone == StatusTone.You || tone == StatusTone.Bad) { return ConsoleTone.Warn; }
+  return ConsoleTone.Neutral;
+}

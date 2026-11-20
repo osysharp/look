@@ -1,0 +1,84 @@
+namespace OsyrinLookTests;
+
+using Osysharp.Look;
+
+// The look's parts that org-policy's first page missed (P2.D14b): a meter, the floor chip's lock, the legend, an area
+// card's head, the dashed note, the permission note in words. In the gallery and alone at /dev/parts/look.
+
+/// The gallery's "Meters, legends and notes" section.
+[Composable]
+component GalleryLookParts() {
+  render {
+    Stack(gap: "16px", label: "Meters, legends and notes") {
+      H2("Meters, legends and notes");
+      Caption("A share against a limit that turns past its threshold; the floor's lock; a legend for a page's chips; an area card's head with its count; the dashed note for what is not covered yet. The permission note in words is at /dev/parts/look.");
+      LookPartsSample(notes: false);
+    }
+  }
+}
+
+/// Every part with a settings page's sample content; `notes`: the two permission notes too (not in the gallery, whose
+/// §11 test scopes to its one "Permission note").
+[Composable]
+component LookPartsSample(bool notes = true) {
+  action Nothing() { }
+  render {
+    Stack(gap: "16px", maxW: "960px", minW: "0") {
+      Box(display: Display.Grid, cols: "repeat(auto-fit, minmax(min(220px, 100%), 1fr))", gap: "16px 24px", p: "16px 20px", bg: Colors.Surface, borderW: 1,
+          border: Colors.Border, rounded: Radius.Panel, label: "Meters") {
+        Meter("Disk", 312, 500, amount: "312 of 500 GB", threshold: 400);
+        Meter("Sessions", 7, 8, tone: LookTone.Run, threshold: 6, pastWords: "near the cap");
+        Meter("Tokens this week", 1900, 2000, threshold: 1800, pastTone: LookTone.Bad, amount: "1.9M of 2M", pastWords: "over 90 %");
+        Meter("Lanes in use", 2, 6, tone: LookTone.Ok);
+      }
+      Row(gap: "8px", align: Align.Center, wrap: Wrapping.Wrap, label: "Floor chips") {
+        Text("Policy floor", fontSize: "22px", fontWeight: FontWeight.Heavy, lineHeight: "normal", role: UiRole.Heading, level: 3);
+        StatusChip("v4 in force", StatusTone.Floor);
+        StatusChip("Allowed", StatusTone.Ok);
+      }
+      Legend("What the chips mean") {
+        LegendEntry("Hard boundaries cannot be loosened by exception, by anyone, including governors.", strong: true) { SolidChip("Hard boundary"); }
+        LegendEntry("A governor may grant a scoped exception.") { OutlineChip("Exception-eligible"); }
+        LegendEntry("The floor every product inherits.") { StatusChip("floor v4", StatusTone.Floor); }
+        Text("Every app may tighten either kind for itself.");
+        GoLink("How policies are defined ›", "/dev/components", small: true);
+      }
+      AreaCard("Network", count: "2 policies") {
+        AreaSampleRow("Outbound hosts", "Closed to 3 allowed hosts");
+        AreaSampleRow("Package sources", "nuget.org and the organisation feed");
+      }
+      AreaCard("Data", count: "") {
+        slot side { StatusChip("Draft v15", StatusTone.Run); }
+        AreaSampleRow("Retention", "Audit kept 7 years");
+      }
+      DashedNote("Not yet governable",
+                 "Listed so nobody assumes they are covered: production data copied into test environments · one person's data erased across every app.");
+      if (notes) {
+        Box(display: Display.Grid, cols: "repeat(auto-fit, minmax(min(280px, 100%), 1fr))", gap: "16px") {
+          PermissionNote("policy admin", "Org admins: Jonas Lindqvist") { StateLink("Who decides ›", Nothing, first: true); }
+          PermissionNote("settings.write", "Org admins: Jonas Lindqvist", mono: true);
+        }
+      }
+    }
+  }
+}
+
+/// One row of a sample area card: the name 14/600 and its value, `11px 20px` under Line 2.
+[Composable]
+component AreaSampleRow(string name, string value) {
+  render {
+    Row(gap: "14px", wrap: Wrapping.Wrap, py: "11px", px: "20px", borderTW: 1, border: Colors.Line2, fontSize: FontSize.Body, lineHeight: "1.4") {
+      Text(name, fontWeight: FontWeight.Semibold, minW: "160px");
+      Text(value, color: Colors.Ink2);
+    }
+  }
+}
+
+/// The parts alone.
+[Route("/dev/parts/look")]
+[AllowAnonymous]
+[Title("Meters, legends and notes")]
+[Render(CSR)]
+component LookPartsPage() {
+  render { ControlsFrame("Meters, legends and notes") { LookPartsSample(); } }
+}

@@ -1,0 +1,30 @@
+namespace Osysharp.Look;
+
+/// Which small card: Release's 3-up summary cards (title 17/600, `16px 18px`), its 4-up foot cards (15/600, `16px
+/// 18px`), or the Slice board's cards (16/700, `14px 16px`, a link 13/600 on the title's baseline at the right).
+public enum SmallCardKind { Summary, Foot, Side }
+
+/// A small card: white on the Line hairline, radius 14, its parts 8 apart, its title at the font's own line height.
+/// The `title` slot follows the title's words inside the heading, 8 apart (a `ProposedTag`). `linkLabel`/`linkTo`:
+/// the head's link (13/600). In a test it is the region of its title.
+[Composable]
+component SmallCard(string title, SmallCardKind kind = SmallCardKind.Summary, string linkLabel = "", string linkTo = "") {
+  render {
+    var side = kind == SmallCardKind.Side;
+    Stack(gap: "8px", py: side ? "14px" : "16px", px: side ? "16px" : "18px", bg: Colors.Surface, borderW: 1, border: Colors.Border,
+          rounded: Radius.Panel, minW: "0", label: title) {
+      Row(justify: Justify.Between, align: Align.Baseline, gap: "8px") {
+        Row(gap: "8px", align: Align.Center, wrap: Wrapping.Wrap, role: UiRole.Heading, level: kind == SmallCardKind.Foot ? 3 : 2,
+            fontSize: side ? FontSize.Subhead : (kind == SmallCardKind.Foot ? FontSize.Summary : FontSize.ItemTitle),
+            fontWeight: side ? FontWeight.Heavy : FontWeight.Semibold, color: Colors.OnSurface, lineHeight: "normal") {
+          Text(title);
+          Slot("title");
+        }
+        if (linkLabel != "") {
+          Box(shrink: 0) { GoLink(linkLabel, linkTo, small: true); }
+        }
+      }
+      Slot;
+    }
+  }
+}

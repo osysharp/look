@@ -1,0 +1,119 @@
+namespace Osysharp.Look;
+
+// The console look's tokens (direction B, docs/designs/console-B/osyrin-console-design-spec.md "Tokens", at the
+// boards' values): a dark purple rail, a white top bar and header band, the working area on paper, 1 px borders and no
+// shadows, tight corners, 13 px body text. Declared on a theme of their own, beside the v3 tokens, so the console parts
+// read them wherever they are drawn and no v3 part changes. The boards draw no dark mode: the dark values are derived
+// (LC1), the grounds and inks from the v3 theme's dark ones (paper #121110, text #ECEBE6, accent #8C82E6 with its dark
+// ink on it), the rail a deeper purple of the same hue, the tones' grounds dark and their inks light.
+theme OsyrinConsole {
+  Colors {
+    /// The page below the header band.
+    ConsolePaper = Modes.Of(light: "#F4F3F0", dark: "#121110");
+    /// The top bar, the header band and the panels.
+    ConsoleSurface = Modes.Of(light: "#FFFFFF", dark: "#1C1B19");
+    /// A table's head row, a panel's foot.
+    ConsoleSunken = Modes.Of(light: "#FAFAF8", dark: "#181715");
+    /// A panel's outline; the top bar's and the header band's foot.
+    ConsoleBorder = Modes.Of(light: "#E2E0DA", dark: "#2E2D29");
+    /// Under a panel's header and a table's head.
+    ConsoleBorderInner = Modes.Of(light: "#E9E7E1", dark: "#2A2926");
+    /// Between two stat cells.
+    ConsoleDivider = Modes.Of(light: "#EEECE7", dark: "#282724");
+    /// Between two table or list rows.
+    ConsoleRowRule = Modes.Of(light: "#F0EEE9", dark: "#262522");
+    /// A secondary button's outline.
+    ConsoleControlLine = Modes.Of(light: "#D6D3CB", dark: "#3A3934");
+    /// An outline badge's line and words.
+    ConsoleOutlineInk = Modes.Of(light: "#3D3B37", dark: "#D4D2CB");
+    ConsoleText = Modes.Of(light: "#1A1918", dark: "#ECEBE6");
+    /// Secondary words, labels, column heads.
+    ConsoleText2 = Modes.Of(light: "#5F5C57", dark: "#A9A69F");
+    /// "—", placeholders and decorative marks only.
+    ConsoleText3 = Modes.Of(light: "#8A877F", dark: "#85827B");
+    /// The breadcrumb's "/".
+    ConsoleCrumbMark = Modes.Of(light: "#A9A69F", dark: "#6A675F");
+    /// The "·" between a row's links.
+    ConsoleLinkMark = Modes.Of(light: "#C4C1BA", dark: "#4A4843");
+    ConsoleAccent = Modes.Of(light: "#3730A3", dark: "#8C82E6");
+    ConsoleAccentHover = Modes.Of(light: "#26208A", dark: "#A39BEF");
+    /// The avatar's ground, and its letters.
+    ConsoleAccentSoft = Modes.Of(light: "#E7E5F6", dark: "#2A2650");
+    ConsoleAccentSoftInk = Modes.Of(light: "#2A2390", dark: "#C9C5FF");
+    /// A row that needs somebody.
+    ConsoleAttention = Modes.Of(light: "#FFFBF6", dark: "#221C14");
+    /// The rail and the phone's top bar.
+    ConsoleRail = Modes.Of(light: "#1E1B3A", dark: "#16142B");
+    /// The context switcher, and its outline.
+    ConsoleRailRaised = Modes.Of(light: "#28244D", dark: "#201D3E");
+    ConsoleRailRaisedLine = Modes.Of(light: "#3B3670", dark: "#332F63");
+    ConsoleRailHover = Modes.Of(light: "#2B2752", dark: "#24214A");
+    ConsoleRailActive = Modes.Of(light: "#37326E", dark: "#332E68");
+    ConsoleRailText = Modes.Of(light: "#DCDAF0", dark: "#DCDAF0");
+    ConsoleRailText2 = Modes.Of(light: "#B3AFD9", dark: "#B3AFD9");
+    /// The rail's icons, headings and counts.
+    ConsoleRailMuted = Modes.Of(light: "#A9A5D6", dark: "#A9A5D6");
+    ConsoleRailIconActive = Modes.Of(light: "#C9C5FF", dark: "#C9C5FF");
+    /// A rail row's status dot: brighter than the badges' dots, to read on the dark rail.
+    ConsoleRailOk = Modes.Of(light: "#4CAF5C", dark: "#4CAF5C");
+    ConsoleRailWarn = Modes.Of(light: "#E08A3C", dark: "#E08A3C");
+    ConsoleRailNeutral = Modes.Of(light: "#8A877F", dark: "#8A877F");
+    /// ok: active, on track.
+    ConsoleOkBg = Modes.Of(light: "#E8F2E9", dark: "#17291A");
+    ConsoleOkInk = Modes.Of(light: "#1F5F2A", dark: "#8FD19A");
+    ConsoleOkDot = Modes.Of(light: "#2F7D3A", dark: "#5FB35A");
+    /// warn: needs somebody.
+    ConsoleWarnBg = Modes.Of(light: "#FBEEE2", dark: "#2E1F12");
+    ConsoleWarnInk = Modes.Of(light: "#8A3F0B", dark: "#F0B07A");
+    ConsoleWarnDot = Modes.Of(light: "#C2600F", dark: "#E08A40");
+    /// neutral: nothing there yet.
+    ConsoleNeutralBg = Modes.Of(light: "#EEEDE9", dark: "#2A2926");
+    ConsoleNeutralInk = Modes.Of(light: "#4A4843", dark: "#C9C6BF");
+    /// critical: the alert banner.
+    ConsoleCriticalBg = Modes.Of(light: "#FDF3F1", dark: "#2A1512");
+    ConsoleCriticalLine = Modes.Of(light: "#F1C9C3", dark: "#5C2A23");
+    ConsoleCriticalInk = Modes.Of(light: "#7E1A12", dark: "#F4B4AA");
+    ConsoleCriticalInk2 = Modes.Of(light: "#8F3A30", dark: "#E09A90");
+    ConsoleCriticalLink = Modes.Of(light: "#8F1D14", dark: "#F7C3BA");
+    ConsoleCriticalIcon = Modes.Of(light: "#B42318", dark: "#E0603A");
+    /// Words and icons on the rail and on the rail-active ground (a current tab or segment): white in both modes.
+    ConsoleRailInk = Modes.Of(light: "#FFFFFF", dark: "#FFFFFF");
+    /// The logo tile on the rail: paper-light in both modes.
+    ConsoleRailTile = Modes.Of(light: "#F4F3F0", dark: "#F4F3F0");
+    /// Words on the accent (a primary button, a saga badge).
+    ConsoleOnAccent = Modes.Of(light: "#FFFFFF", dark: "#141130");
+  }
+  // Desktop / phone: title 18/600 · 20/600; panel title 13.5 · 14; body 13 · 14; secondary 12; rail heading 11/600
+  // uppercase; stat 20/600; badge 11.5 · 12; table head 11.5/500.
+  FontSize {
+    ConsoleTitle = "18px";
+    ConsoleTitlePhone = "20px";
+    ConsolePanelTitle = "13.5px";
+    ConsolePanelTitlePhone = "14px";
+    ConsoleBody = "13px";
+    ConsoleBodyPhone = "14px";
+    ConsoleControl = "12.5px";
+    ConsoleSmall = "12px";
+    ConsoleBadge = "11.5px";
+    ConsoleRailHeading = "11px";
+    ConsoleStat = "20px";
+  }
+  Font {
+    /// Inter with the open digits and tabular numbers on (`ConsoleFeatures`).
+    ConsoleSans = "Inter, \"Inter Variable\", ui-sans-serif, system-ui, sans-serif";
+    /// Identifiers: keys, slugs, versions, a keyboard hint.
+    ConsoleMono = "\"JetBrains Mono\", ui-monospace, SFMono-Regular, Menlo, monospace";
+  }
+  // Corners: 6 a panel or banner · 5 a button or nav row · 4 a badge · 3 a keyboard hint. Only avatars and dots are round.
+  Radius {
+    ConsoleCorner = "6px";
+    /// A panel's corners as its content meets them: the 6 px corner less its 1 px border. A panel does not clip (PO1, so
+    /// a date field's calendar or a menu opens over its edge), so what is drawn edge to edge inside it rounds itself:
+    /// the head's top corners, and the bottom corners of a table or a list of rows, which do clip.
+    ConsolePanelTop = "5px 5px 0 0";
+    ConsolePanelFoot = "0 0 5px 5px";
+    ConsoleButtonCorner = "5px";
+    ConsoleBadgeCorner = "4px";
+    ConsoleKbd = "3px";
+  }
+}

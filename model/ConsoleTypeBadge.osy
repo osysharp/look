@@ -1,0 +1,32 @@
+namespace Osysharp.Look;
+
+/// A level's badge, the same width for every level so keys and titles line up: 48 x 20 (46 on a phone), radius 4, 11/600
+/// (a bit 11/500). Its words say the level; the style only repeats it.
+[Composable]
+component ConsoleTypeBadge(string words, ConsoleTypeKind kind) {
+  variants {
+    base {
+      Display = Display.InlineFlex;
+      W = "48px";
+      MinW = "48px";
+      H = "20px";
+      Rounded = Radius.ConsoleBadgeCorner;
+      FontFamily = Font.ConsoleSans;
+      FontSize = "11px";
+      FontWeight = 600;
+      LineHeight = "1";
+      Shrink = 0;
+    }
+    kind {
+      Saga { Bg = Colors.ConsoleAccent; Color = Colors.ConsoleOnAccent; }
+      Arc { Bg = Colors.ConsoleAccentSoft; Color = Colors.ConsoleAccentSoftInk; }
+      Slice { BorderW = 1; BorderStyle = BorderStyle.Solid; Border = Colors.ConsoleControlLine; Color = Colors.ConsoleOutlineInk; Bg = Colors.ConsoleSurface; }
+      Bit { Bg = Colors.ConsoleNeutralBg; Color = Colors.ConsoleNeutralInk; FontWeight = 500; }
+    }
+  }
+  render {
+    Box {
+      Row(align: Align.Center, justify: Justify.Center, w: "100%") { Text(words); }
+    }
+  }
+}

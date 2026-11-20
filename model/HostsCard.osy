@@ -1,0 +1,30 @@
+namespace Osysharp.Look;
+
+/// The hosts editor card (canvas4/PolicyFloorEdit "Outbound hosts"): a white card (radius 14, `18px 20px`, 12 apart)
+/// with its title 18/700 and, right, `tag` as an `OutlineChip` ("Exception-eligible"); then the block — one or two
+/// `HostChipRow`s ("Allowed", "Blocked"); when `editable`, `slot add` (a `HostAddField`) beside `slot why` (the "Why
+/// this host" field), two columns 16 apart; then `slot under` (a note, an agent's proposal, a `ToneStrip`). A chip row
+/// the scope may not edit is a `HostChipRow` without `onRemove`; a card the scope may not add to is not `editable`.
+/// In a test it is the region named by `title`: `Ui.Click("Remove nuget.org", within: "Outbound hosts")`.
+[Composable]
+component HostsCard(string title, string tag = "", bool editable = false) {
+  render {
+    Stack(gap: "12px", py: "18px", px: "20px", bg: Colors.Surface, borderW: 1, border: Colors.CardLine, rounded: Radius.Panel,
+          role: UiRole.Region, label: title, lineHeight: "normal") {
+      Row(gap: "8px", justify: Justify.Between, align: Align.Baseline, wrap: Wrapping.Wrap) {
+        Text(title, role: UiRole.Heading, level: 3, fontSize: FontSize.SectionTitle, fontWeight: FontWeight.Heavy);
+        if (tag != "") {
+          OutlineChip(tag);
+        }
+      }
+      Slot;
+      if (editable) {
+        Box(display: Display.Grid, cols: "repeat(auto-fit, minmax(min(240px, 100%), 1fr))", gap: "16px", align: Align.Start) {
+          Slot("add");
+          Slot("why");
+        }
+      }
+      Slot("under");
+    }
+  }
+}

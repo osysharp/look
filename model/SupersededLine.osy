@@ -1,0 +1,17 @@
+namespace Osysharp.Look;
+
+/// A decision that was replaced, under the one that replaced it: "Supersedes, <when>: " then `was` struck through, then
+/// " — " and `why`; 13/1.5 Ink 3, 12 px in behind a 2 px wait-tint rule, 6 px above.
+[Composable]
+component SupersededLine(string when, string was, string why = "") {
+  render {
+    Box(mt: "6px", pl: "12px", borderLW: 2, border: Colors.WaitTint, fontSize: FontSize.Label, color: Colors.Ink3, lineHeight: "1.5", minW: "0",
+        label: "Supersedes " + was) {
+      Text("Supersedes, " + when + ": ", whiteSpace: WhiteSpace.PreWrap);
+      Text(was, textDecoration: TextDecoration.LineThrough);
+      if (why != "") {
+        Text(" — " + why, whiteSpace: WhiteSpace.PreWrap);
+      }
+    }
+  }
+}

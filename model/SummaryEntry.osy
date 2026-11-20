@@ -1,0 +1,49 @@
+namespace Osysharp.Look;
+
+using Osysharp.Markdown;
+
+/// One Markdown text of a summary, shown by the platform's renderer 14/1.55, `6px 8px` reaching 8 px past its block's
+/// edges, radius 8, the wash when hovered. `suggested`: a dashed "suggested" chip after it (12/600 Ink 4), its meaning on
+/// hover ("The designer filled this in; you did not say it"). `onEdit` adds the edit affordance: a quiet "Edit" at its
+/// right, named `"Edit " + name`. While `editing`, the block (the page's `MarkdownEditor(ownerType:, ownerId:,
+/// property:)` over the stored text, which owns its bar and its saving) is drawn in place of the text, in the accent's
+/// line, and the affordance is gone. In a test it is the group `name`. Escape closes the chip's meaning; `focusable`:
+/// the chip is a keyboard stop and its meaning opens on focus too.
+[Composable]
+component SummaryEntry(string text, string name, bool suggested = false, bool editing = false, Action? onEdit = null, bool focusable = false) {
+  bool hovered = false;
+  bool hintShown = false;
+  action Enter() { hovered = true; }
+  action Leave() { hovered = false; }
+  action ShowHint() { hintShown = true; }
+  action HideHint() { hintShown = false; }
+  render {
+    if (editing) {
+      Box(minW: "0", mx: "-8px", py: "8px", px: "10px", bg: Colors.Surface, borderW: 1, border: Colors.AccentLine, rounded: Radius.Control,
+          role: UiRole.Group, label: name) {
+        Slot;
+      }
+    } else {
+      Row(gap: "8px", align: Align.Start, minW: "0", mx: "-8px", py: "6px", px: "8px", rounded: Radius.Control, bg: hovered ? Colors.Wash : Colors.Transparent,
+          role: UiRole.Group, label: name, onPointerEnter: Enter, onPointerLeave: Leave) {
+        Stack(gap: "4px", minW: "0", grow: 1, basis: "0", fontSize: FontSize.Body, lineHeight: "1.55", color: Colors.OnSurface) {
+          Markdown(text);
+          if (suggested) {
+            Box(position: Position.Relative, alignSelf: AlignSelf.Start, onPointerEnter: ShowHint, onPointerLeave: HideHint,
+                onFocus: focusable ? ShowHint : null, onBlur: focusable ? HideHint : null, onEscape: hintShown ? HideHint : null) {
+              Text("suggested", fontSize: FontSize.Caption, fontWeight: FontWeight.Semibold, color: Colors.Ink4, borderW: 1,
+                   borderStyle: BorderStyle.Dashed, border: Colors.ProposedLine, rounded: Radius.Chip, px: "6px", lineHeight: "18px",
+                   whiteSpace: WhiteSpace.Nowrap);
+              if (hintShown) {
+                HoverTitle("The designer filled this in; you did not say it", "Suggested");
+              }
+            }
+          }
+        }
+        if (onEdit != null) {
+          LookButton("Edit", onEdit!, kind: ButtonKind.Quiet, small: true, announce: "Edit " + name);
+        }
+      }
+    }
+  }
+}

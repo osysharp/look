@@ -1,0 +1,19 @@
+namespace Osysharp.Look;
+
+/// One cell of a `ConsoleStatStrip`: `Label` (12 text-2, a 6 px dot before it with `Dot`), `Value` (20/600; `Mono` 18/500
+/// in JetBrains Mono, for a version), `Sub` (12 text-2). An empty `Value` is drawn as `Empty` ("Nothing yet"), smaller and grey.
+public class ConsoleStat {
+  public string Label = "";
+  public string Value = "";
+  public string Sub = "";
+  public bool Dot = false;
+  public ConsoleDotTone DotTone = ConsoleDotTone.Ok;
+  public bool Mono = false;
+  /// What an empty `Value` says, in 13 px text-2, so an empty figure does not read as a headline number.
+  public string Empty = "Nothing yet";
+  /// With an address the whole cell is one link to it (the sunken ground on hover, the ring on focus), named
+  /// "Label: Value, Sub" (or "Label: Value").
+  public string To = "";
+  /// A mark after the label, such as "Regressed" (FOUNDRY-212): a loud chip; empty for none.
+  public string Mark = "";
+}

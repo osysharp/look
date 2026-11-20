@@ -1,0 +1,25 @@
+namespace OsyrinLookTests;
+
+using Osysharp.Look;
+
+/// Empty cards in a column as tall as a window (L1), as a page column in a shell is: the framed `EmptyPanel` and a
+/// `SectionCard` holding `EmptyPanel(…, framed: false)` with its "Add …" as the card's action — each as tall as its
+/// words and button, the column's spare height left below them. Beside them a 200 px mark a test measures against.
+[Composable]
+component EmptyCardSample() {
+  render {
+    Row(gap: "16px", align: Align.Start, minW: "0") {
+      Stack(gap: "18px", h: "720px", grow: 1, minW: "0", label: "Empty cards in a tall column") {
+        EmptyPanel("No repositories yet", "A repository is the code this product builds from: its GitHub address and the branch work starts from.") {
+          Box { LookButton("Add a repository", () => { }, kind: ButtonKind.Primary); }
+        }
+        SectionCard("Keys", sub: "Which keys the product has.", actions: true) {
+          slot actions { LookButton("Add a key", () => { }, kind: ButtonKind.Primary, small: true); }
+          EmptyPanel("No keys yet", "A key lets the product's builds reach what they need: a checkout of a repository, or a step that publishes.",
+                     framed: false);
+        }
+      }
+      Box(w: "6px", h: "200px", shrink: 0, bg: Colors.Border, label: "200 px mark");
+    }
+  }
+}

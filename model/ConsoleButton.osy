@@ -1,0 +1,113 @@
+namespace Osysharp.Look;
+
+/// A console button (spec "Components", Buttons): 30 px high, `0 12px`, radius 5, 12.5/500, the default slot (an
+/// icon) 6 px before the words. `primary`: white on the accent; else the words on white in the control line. On a
+/// phone 44 high, radius 6, 14 px; `wide` the full width there. Busy as `LookButton` is (L3): pressed while something it
+/// started still runs, or `busy`, it shows `busyLabel` ("Working…"), said once, and cannot be pressed. The spinner is the
+/// platform's own (a press waiting on the server for more than 200 ms); the button draws none of its own.
+/// `compact`: the desktop's 30 px button even in a column narrower than a tablet (a pane on a wide window); the caller
+/// passes `Viewport.AtLeast(Tablet)` so a phone keeps its 44 px.
+/// `danger`: an action that removes or ends something (Give up…, Revoke, Remove, Void): the critical ink in the critical
+/// line on white; with `primary`, white on the critical red (the confirm of a dialog that destroys). An action that only
+/// goes somewhere is a `ConsoleLinkButton`.
+/// `canPress` reflects a server policy, as `LookButton`'s does: where it says no the button is drawn refused (the dim face, as
+/// `disabled`) and `whenDenied` is the reason a screen reader and `Assert.DisabledBecause` read ("Only an owner renames it."), busy or not.
+[Composable]
+component ConsoleButton(string label, Action onPress, bool primary = false, bool wide = false, string announce = "", bool busy = false,
+                        string busyLabel = "", bool disabled = false, bool compact = false, bool danger = false, bool canPress = true,
+                        string whenDenied = "") {
+  bool pressed = false;
+  action Press() {
+    pressed = true;
+    onPress();
+  }
+  on change {
+    if (!Pending.Any) {
+      pressed = false;
+    }
+  }
+  render {
+    // A refusal wins over busy: busy is about a press, and a reader the policy refuses never could press it.
+    var waiting = canPress && (busy || pressed && Pending.Any);
+    var phone = !compact && !Layout.AtLeast(Tablet);
+    var refused = disabled || !canPress;
+    ConsoleButtonFace(waiting ? BusySaid(busyLabel) : label, Press, primary, wide && phone, phone, waiting || refused,
+                      announce != "" ? announce : label, refused && !waiting, danger && !primary, danger && primary, !canPress && !waiting ? whenDenied : "") {
+      if (!waiting) {
+        Slot;
+      }
+    }
+  }
+}
+
+/// A console button's own box.
+[Composable, Part]
+component ConsoleButtonFace(string label, Action onPress, bool primary, bool wide, bool phone, bool off, string name, bool dim = false,
+                            bool danger = false, bool solidDanger = false, string whenDenied = "") {
+  variants {
+    base {
+      Display = Display.InlineFlex;
+      AlignItems = Align.Center;
+      H = "30px";
+      Px = "12px";
+      Rounded = Radius.ConsoleButtonCorner;
+      FontFamily = Font.ConsoleSans;
+      FontSize = FontSize.ConsoleControl;
+      FontWeight = 500;
+      LineHeight = "1";
+      WhiteSpace = WhiteSpace.Nowrap;
+      Cursor = Cursor.Pointer;
+      BorderW = 1;
+      BorderStyle = BorderStyle.Solid;
+      Border = Colors.ConsoleControlLine;
+      Bg = Colors.ConsoleSurface;
+      Color = Colors.ConsoleText;
+      Hover { Bg = Colors.ConsoleSunken; }
+      Focus { Shadow = Shadow.Ring; }
+    }
+    primary {
+      BorderW = 0;
+      Bg = Colors.ConsoleAccent;
+      Color = Colors.ConsoleOnAccent;
+      Hover { Bg = Colors.ConsoleAccentHover; }
+    }
+    danger {
+      Border = Colors.ConsoleCriticalLine;
+      Color = Colors.ConsoleCriticalInk;
+      Hover { Bg = Colors.ConsoleCriticalBg; }
+    }
+    solidDanger {
+      Bg = Colors.ConsoleCriticalIcon;
+      Color = Colors.ConsoleOnAccent;
+      Hover { Bg = Colors.ConsoleCriticalInk; }
+    }
+    phone {
+      H = "44px";
+      Rounded = Radius.ConsoleCorner;
+      FontSize = FontSize.ConsoleBodyPhone;
+    }
+    wide {
+      Display = Display.Flex;
+      W = "100%";
+    }
+    off {
+      Cursor = Cursor.Default;
+    }
+    dim {
+      BorderW = 1;
+      Border = Colors.ConsoleBorder;
+      Bg = Colors.ConsoleNeutralBg;
+      Color = Colors.ConsoleText3;
+      Hover { Bg = Colors.ConsoleNeutralBg; }
+    }
+  }
+  render {
+    Pressable(onClick: onPress, disabled: off, whenDenied: whenDenied, label: name, align: Align.Center, justify: Justify.Center, gap: "6px") {
+      Slot;
+      Text(label);
+      if (off && !dim) {
+        BusyAnnounce(label);
+      }
+    }
+  }
+}

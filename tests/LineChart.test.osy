@@ -1,0 +1,40 @@
+// The console line chart (MS2c): points joined by a line, each with its sample; a thin sample hollow and labelled "n=2";
+// a gap breaks the line with a "no data" mark; a real 0 is a point on the axis. Light and dark, at 1440 and 390.
+
+using Osysharp.Look;
+using OsyrinLookTests;
+
+[Test]
+void A_line_chart_marks_thin_samples_and_breaks_at_gaps() {
+  Ui.Viewport(1440, 900);
+  Ui.Visit("/dev/line-chart");
+  Assert.Visible("100%", within: "Autonomous completion scale");
+  Assert.Visible("0%", within: "Autonomous completion scale");
+  Assert.Visible("16 Nov", within: "Autonomous completion time");
+  // Every point says its n; the thin sample is hollow, and the key says what that means.
+  Assert.Visible("50% · n=2", within: "Autonomous completion line");
+  Assert.Visible("80% · n=5", within: "Autonomous completion line");
+  Assert.Visible("80% · n=5", within: "26 Oct: 80%, n=5");
+  Assert.Visible("50% · n=2", within: "19 Oct: 50%, n=2, a thin sample");
+  Assert.Visible("Hollow: fewer than 5 in the sample", within: "Autonomous completion key");
+  // The gap: no point, a "no data" mark.
+  Assert.Visible("no data", within: "Autonomous completion line");
+  Assert.Hidden("2 Nov:", within: "Autonomous completion points");
+  // The real zero is a point on the axis with its value.
+  Assert.Visible("0% · n=7", within: "Autonomous completion line");
+  Assert.Visible("67% · n=6", within: "Autonomous completion line");
+  Assert.NoOverflow();
+  Ui.Shot("ms2c-line-chart-1440");
+  Ui.Theme("dark");
+  Ui.Visit("/dev/line-chart");
+  Assert.Visible("50% · n=2", within: "Autonomous completion line");
+  Assert.NoOverflow();
+  Ui.Shot("ms2c-line-chart-dark-1440");
+  Ui.Theme("light");
+  Ui.Viewport(390, 900);
+  Ui.Visit("/dev/line-chart");
+  Assert.Visible("50% · n=2", within: "Autonomous completion line");
+  Assert.Visible("no data", within: "Autonomous completion line");
+  Assert.NoOverflow();
+  Ui.Shot("ms2c-line-chart-390");
+}

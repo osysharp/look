@@ -1,0 +1,223 @@
+namespace Osysharp.Look;
+
+// The v3 tokens: the Components board's names (docs/designs/factory-ui-v3/canvas1/Components.dc.html §1–2) at the
+// console's values (docs/designs/console-B/osyrin-console-design-spec.md "Tokens"), so a v3 part on a console page reads
+// as the console: the console's paper, surfaces, borders and inks, its accent, its 6/5/4 corners, its 13 px body, Inter
+// and JetBrains Mono, light and dark. The console look is every Osyrin app's look, whole page; a v3 part keeps its
+// shape and takes the console's values from here. Abstract: it applies only through a theme derived from it
+// (`theme Brand : OsyrinV3`).
+//
+// It sets the Ui kit's own token names to the board's values, so the kit's Badge, Tab, Drawer, editing banner, scope
+// header and setting rows ARE the board's parts. The names the kit has no word for (Ink 2–4, Line 2, the tone dots,
+// washes and lines, the v3 type sizes) are the look's own, in `theme OsyrinLook`.
+abstract theme OsyrinV3 {
+  Colors {
+    // Ground, surfaces and lines are the console's: paper, surface, sunken, the neutral ground, the border.
+    Bg = Colors.ConsolePaper;
+    OnBg = Colors.ConsoleText;
+    Surface = Colors.ConsoleSurface;
+    OnSurface = Colors.ConsoleText;
+    Elevated = Modes.Of(light: "#FFFFFF", dark: "#252422");
+    Sunken = Colors.ConsoleSunken;
+    Muted = Colors.ConsoleNeutralBg;
+    Border = Colors.ConsoleBorder;
+    CardLine = Colors.Border;
+
+    // Secondary and muted text are Ink 2 and Ink 3.
+    TextSecondary = Colors.Ink2;
+    TextMuted = Colors.Ink3;
+
+    // The accent: links, the primary action, the current thing, selection, editing.
+    Primary = Modes.Of(light: "#3730A3", dark: "#8C82E6");
+    OnPrimary = Modes.Of(light: "#FFFFFF", dark: "#141130");
+
+    // The kit's tones at the board's values: ok → Success, run → Info, wait → Waiting, you → Warning, bad → Danger,
+    // the neutral chip → Default, the accent → Primary. The kit's mid tone is the board's dot. The four tones the kit
+    // draws in steps (an alert's ground, a danger link's words, a filled button's hover) state the dot's value, as
+    // `Primary` states the accent's: a step is made from a stated colour, not from a reference to one.
+    Success = Modes.Of(light: "#2F7D32", dark: "#5FB35A");
+    SuccessTint = Colors.OkTint;
+    SuccessInk = Colors.OkInk;
+    Info = Modes.Of(light: "#2B6CB0", dark: "#5B9BDB");
+    InfoTint = Colors.RunTint;
+    InfoInk = Colors.RunInk;
+    Waiting = Colors.WaitDot;
+    WaitingTint = Colors.WaitTint;
+    WaitingInk = Colors.WaitInk;
+    Warning = Modes.Of(light: "#C0661A", dark: "#E08A40");
+    WarningTint = Colors.YouTint;
+    WarningInk = Colors.YouInk;
+    Danger = Modes.Of(light: "#B4441F", dark: "#E0603A");
+    DangerTint = Colors.BadTint;
+    DangerInk = Colors.BadInk;
+    DefaultTint = Colors.Line2;
+    DefaultInk = Colors.Ink2;
+    PrimaryTint = Colors.AccentTint;
+    PrimaryInk = Colors.AccentInk;
+
+    // The kit's tabs, rows, controls and editing parts at the board's values.
+    TabInk = Colors.Ink2;
+    TabCurrentInk = Colors.AccentInk;
+    RowLine = Colors.Line2;
+    ControlBorder = Colors.ControlLine;
+    MetaText = Colors.Ink3;
+    DetailText = Colors.Ink2;
+    BannerBg = Colors.AccentInk;
+    OnBanner = Modes.Of(light: "#FFFFFF", dark: "#1F1E1B");
+    BannerLine = Modes.Of(light: "#A39BE6", dark: "#6E64C8");
+    PendingLine = Colors.AccentLine;
+    DrawerLine = Colors.AccentLine;
+    ScopeBg = Colors.Wash;
+    ScopeLine = Colors.SoftLine;
+    LockedValueBg = Colors.Line2;
+    Scrim = Modes.Of(light: "rgba(26,25,24,0.32)", dark: "rgba(0,0,0,0.5)");
+
+    // The kit's settings rows (SettingsCard, SettingSwitch, SettingChoice, SettingNumber, SettingAlways) as the console
+    // draws a settings panel: a white panel on the console's border, its rows under the row rule, the name in the
+    // console's ink, what it does and where its value comes from in Ink 3, the indigo accent for a switch that is on.
+    SettingsCardBg = Colors.ConsoleSurface;
+    SettingsCardLine = Colors.ConsoleBorder;
+    SettingNameInk = Colors.ConsoleText;
+    SettingHelpInk = Colors.Ink3;
+    ProvenanceInk = Colors.Ink3;
+    SettingSwitchOn = Colors.Primary;
+    SettingSwitchOff = Colors.ControlLine;
+
+    // The kit's page head (PageHead, PageTitle, SettingsPage's title) as the console's header band (ConsoleHeader):
+    // a white band on the console's surface, the console's border under it, the title in the console's ink.
+    PageTitleInk = Colors.ConsoleText;
+    PageHeadBg = Colors.ConsoleSurface;
+    PageHeadLine = Colors.ConsoleBorder;
+  }
+
+  // The kit's sizes: body 13 (Body, the console's) · a label and a control's words 12.5 (Label, the console's control) ·
+  // chip and eyebrow 12 (Caption) · table head 11 (Overline); the kit's page title is the v3 page title, 28/700.
+  FontSize {
+    Caption = "12px";
+    Label = "12.5px";
+    Body = "13px";
+    Subhead = "16px";
+    Heading = "20px";
+    Title = "28px";
+    Display = "28px";
+    Overline = "11px";
+    // A settings card's title is the console panel's (13.5, 14 on a phone); a setting's name 13 (14 on a phone); the
+    // words in a choice or a number the console control's 12.5 (14 on a phone, where a box is 44 high).
+    SettingsCardTitle = FontSize.ConsolePanelTitle;
+    SettingName = "13px";
+    SettingNameTouch = "14px";
+    SettingControlFont = "12.5px";
+    SettingControlFontTouch = "14px";
+    // A kit page's title is the console header's h1: 18 on a tablet and wider, 20 on a phone (ConsoleTitle and
+    // ConsoleTitlePhone), the window's width picking it as the control heights below do.
+    PageTitle = "max(18px, min(20px, calc(18px + (768px - 100vw) * 1000)))";
+  }
+  FontWeight {
+    Regular = "400";
+    Medium = "500";
+    Semibold = "600";
+    Bold = "600";
+    Headings = "700";
+    Badge = 600;
+    BadgeFilled = 700;
+    Emphasis = "700";
+    // The console header's h1 is 600, not the v3 headings' 700.
+    PageTitleWeight = "600";
+  }
+  Font {
+    Sans = "Inter, \"Inter Variable\", ui-sans-serif, -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, system-ui, sans-serif";
+    Mono = Font.ConsoleMono;
+    DrawerFace = Font.Mono;
+  }
+  // The kit's corners at the console's: 6 a card, a drawer, a dialog, the editing banner · 5 a control · 4 a chip and a
+  // count (the console draws no pill but an avatar and a dot).
+  Radius {
+    Sm = "4px";
+    Md = "5px";
+    Tag = "4px";
+    TagSm = "4px";
+    Lg = "6px";
+    Sheet = "6px";
+    Banner = "6px";
+    SettingsCard = "6px";
+    SettingControl = "5px";
+  }
+  // The kit's chip `3px 8px`, its count pill `1px 7px`, the tab `10px 14px`, and the editing parts' padding.
+  Space {
+    BadgeX = "8px";
+    BadgeY = "3px";
+    BadgeXSm = "7px";
+    BadgeYSm = "1px";
+    TabX = "14px";
+    TabY = "10px";
+    TabCountGap = "6px";
+    DrawerX = "20px";
+    DrawerY = "18px";
+    DrawerGap = "14px";
+    DrawerFootGap = "12px";
+    BannerX = "16px";
+    BannerY = "12px";
+    BannerButtonX = "12px";
+    BannerButtonY = "8px";
+    PendingX = "14px";
+    PendingY = "12px";
+    PendingGap = "8px 14px";
+    ScopeX = "16px";
+    ScopeY = "14px";
+    SettingX = "24px";
+    SettingY = "14px";
+    SettingGap = "6px 16px";
+    SettingValueX = "12px";
+    SettingValueY = "9px";
+    HistoryX = "24px";
+    HistoryY = "11px";
+    SectionX = "10px";
+    SectionGroupTop = "10px";
+    ImpactX = "22px";
+    ImpactY = "20px";
+    ImpactGap = "10px";
+    BulletIndent = "18px";
+    BulletGap = "0";
+    // A settings card pads as a console panel does: 16 at the sides, its title 12 above and under; a row 14 high and
+    // low with 24 between the words and the control; on a phone 16 at the sides and 14 high and low.
+    SettingsCardHeadTop = "12px";
+    SettingsCardHeadBottom = "12px";
+    SettingRowX = "16px";
+    SettingRowY = "14px";
+    SettingRowGap = "24px";
+    SettingRowXTouch = "16px";
+    SettingRowYTouch = "14px";
+    // A kit page's head pads as the console's header band: 16 at the sides, 20 above and under (16 on a phone). A
+    // kit settings page and the People page stand 16 in from the shell's sides, as the console's working area does.
+    PageHeadX = "16px";
+    PageHeadTop = "max(16px, min(20px, calc(20px - (768px - 100vw) * 1000)))";
+    PageHeadBottom = "max(16px, min(20px, calc(20px - (768px - 100vw) * 1000)))";
+    SettingsPageX = "16px";
+  }
+  // The kit's control heights at the console's: a button or a field 30 high on a tablet and wider, 44 on a phone below
+  // the Tablet breakpoint (768), as `ConsoleButton` and `ConsoleInput`; the small 26 (36 on a phone), the large 36
+  // (44). One value at every width: the window's width picks the height, so a kit control needs no phone variant.
+  Length {
+    ControlSm = "max(26px, min(36px, calc(26px + (768px - 100vw) * 1000)))";
+    ControlMd = "max(30px, min(44px, calc(30px + (768px - 100vw) * 1000)))";
+    ControlLg = "max(36px, min(44px, calc(36px + (768px - 100vw) * 1000)))";
+    BadgeH = "auto";
+    BadgeLine = "normal";
+    BadgeLineSm = "inherit";
+    TabMinH = "44px";
+    ImpactW = "524px";
+    // A setting's choice and number boxes are the console's field, 30 high (44 on a phone); a choice or a number is
+    // 220 wide in a 300 column.
+    SettingControlH = Length.ControlMd;
+    SettingControlHTouch = "44px";
+    // The rule under a kit page's head is the console band's, 1 px. The People page fills the console's working area,
+    // which runs the full width of the shell (ConsoleWork), rather than a settings page's reading column.
+    PageHeadEdge = "1px";
+    PeoplePageW = "100%";
+  }
+  // A shadow only on a dragged or selected card, a drawer and a dialog.
+  Shadow {
+    DrawerLift = "0 10px 24px rgba(31,30,27,0.14)";
+    Dialog = "0 20px 48px rgba(31,30,27,0.28)";
+  }
+}

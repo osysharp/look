@@ -1,0 +1,6 @@
+namespace Osysharp.Look;
+
+// The state a look field is drawn in, shared by the look's fields (LookField, LookSelect, LookDate, LookNumberInput).
+
+/// How a field is drawn: as it is, while it is edited, or refused with its message.
+public enum FieldState { Normal, Editing, Refused }

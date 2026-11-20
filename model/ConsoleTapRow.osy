@@ -1,0 +1,60 @@
+namespace Osysharp.Look;
+
+/// A table's row on a phone (spec "Mobile", Tables become card lists): ONE link to `to`, at least 44 high, `12px 16px`
+/// under a `row-rule` line; line 1 the `identifier` (mono) with `slot state` at the right, line 2 the `name` (500, wrapping,
+/// never cut), line 3 `slot meta` (12.5 text-2), a chevron at the end. `attention` on the needs-somebody tint. The link is read as `label`, else the name.
+/// `nameFirst` is the B-Organizations phone row: line 1 the name with `slot state` at the right, line 2 the `identifier`
+/// (mono 12) and `slot meta` after it as one line of running text ("masoli · 2 apps · 1 member"; give the meta's Texts no
+/// display of their own), `3px` under the name.
+[Composable]
+component ConsoleTapRow(string name, string to, string identifier = "", bool attention = false, string label = "", bool nameFirst = false) {
+  variants {
+    base {
+      Display = Display.Flex;
+      AlignItems = Align.Center;
+      Gap = "12px";
+      Py = "12px";
+      Px = "16px";
+      MinH = "44px";
+      BorderTW = 1;
+      BorderStyle = BorderStyle.Solid;
+      Border = Colors.ConsoleRowRule;
+      Color = Colors.ConsoleText;
+      Bg = Colors.ConsoleSurface;
+      TextDecoration = TextDecoration.None;
+      Hover { Bg = Colors.ConsoleSunken; }
+    }
+    attention {
+      Bg = Colors.ConsoleAttention;
+    }
+  }
+  render {
+    Link(to, label: label != "" ? label : name) {
+      if (nameFirst) {
+        Stack(gap: "3px", grow: 1, minW: "0") {
+          Row(justify: Justify.Between, align: Align.Center, gap: "8px", minW: "0") {
+            Text(name, fontWeight: 500, minW: "0", wordBreak: WordBreak.BreakWord);
+            Slot("state");
+          }
+          // One line of running text, so a long line wraps word by word after the slug rather than as a block under it.
+          Box(fontSize: FontSize.ConsoleControl, color: Colors.ConsoleText2, minW: "0", wordBreak: WordBreak.BreakWord) {
+            if (identifier != "") {
+              Text(identifier, fontFamily: Font.ConsoleMono, fontSize: FontSize.ConsoleSmall);
+            }
+            Slot("meta");
+          }
+        }
+      } else {
+        Stack(gap: "3px", grow: 1, minW: "0") {
+          Row(justify: Justify.Between, align: Align.Center, gap: "8px", minW: "0") {
+            Text(identifier, fontFamily: Font.ConsoleMono, fontSize: FontSize.ConsoleSmall, color: Colors.ConsoleText2, minW: "0");
+            Slot("state");
+          }
+          Text(name, fontWeight: 500, minW: "0", wordBreak: WordBreak.BreakWord);
+          Row(gap: "0", wrap: Wrapping.Wrap, fontSize: FontSize.ConsoleControl, color: Colors.ConsoleText2, minW: "0") { Slot("meta"); }
+        }
+      }
+      Box(color: Colors.ConsoleText3, display: Display.Flex, decorative: true) { Icon(Icons.ChevronRight, size: 16); }
+    }
+  }
+}

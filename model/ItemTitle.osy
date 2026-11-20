@@ -1,0 +1,15 @@
+namespace Osysharp.Look;
+
+/// An item's or a small card's title: 17/600, level 3 ("Approve Claims Desk 1.8.1 for production").
+[Composable]
+component ItemTitle(string text) {
+  variants {
+    base {
+      FontSize = FontSize.ItemTitle;
+      FontWeight = FontWeight.Semibold;
+      Color = Colors.OnSurface;
+      LineHeight = "1.35";
+    }
+  }
+  render { Text(text, role: UiRole.Heading, level: 3); }
+}

@@ -1,0 +1,81 @@
+namespace Osysharp.Look;
+
+/// A console amount input in its field: `ConsoleInput`'s box (30 px high on a desktop window, 44 on a phone — the window decides, as the console number, `0 10px`, radius 5, 13 px,
+/// the console's control line and surface) holding a decimal, bound: `value` a two-way `Binding<decimal>`, `min`/`max` its range.
+/// `prefix` sits inside the box at its left ("$"), `unit` inside at its right ("tokens"), both 13 px in text-2 — never free text
+/// beside the box. A value outside the range is refused under the field in the console's critical ink ("At least 0." / "At most
+/// 100 tokens."), the line in the critical colour; a refused save's message for the field (`Validation.MessageFor`) lands there by
+/// itself, and `error` wins over both. `help` is the 12 px text-2 line under it while nothing is refused. ↑/↓ add or take a whole
+/// unit within the range. `inRow`: a `FieldRow`/`SettingRow` draws the label, so the field draws only the box and the line under it (the
+/// input keeps `label` as its name). In a test it is filled by its label: `Ui.Fill("Tokens / day", "2500")`.
+[Composable]
+component ConsoleDecimalInput(string label, Binding<decimal> value, decimal min = -999999999m, decimal max = 999999999m, string prefix = "",
+                              string unit = "", string help = "", string error = "", string placeholder = "", string w = "100%", bool inRow = false) {
+  action Key(string name) {
+    var key = name.Replace("Arrow", "");
+    if (key == "Up") {
+      value = value + 1m > max ? max : value + 1m;
+    } else if (key == "Down") {
+      value = value - 1m < min ? min : value - 1m;
+    }
+  }
+  live var saved = Validation.MessageFor(value);
+  string Refusal() {
+    if (error != "") { return error; }
+    if (value < min) { return "At least " + min + (unit != "" ? " " + unit : "") + "."; }
+    if (value > max) { return "At most " + max + (unit != "" ? " " + unit : "") + "."; }
+    return saved;
+  }
+  render {
+    // The box draws its own help/refusal line, tied to the input as its description: a handle does not cross into `ConsoleField`.
+    if (inRow) {
+      ConsoleDecimalBox(label, value, min, max, prefix, unit, placeholder, w, Refusal(), help, Key);
+    } else {
+      ConsoleField(label) { ConsoleDecimalBox(label, value, min, max, prefix, unit, placeholder, w, Refusal(), help, Key); }
+    }
+  }
+}
+
+/// `ConsoleDecimalInput`'s box: the input, its prefix and its unit laid over its padding, and under it the refusal (12 px, the console's
+/// critical ink) or else the help (12 px, text-2) — the input's description (`Assert.Described`).
+[Composable, Part]
+component ConsoleDecimalBox(string label, Binding<decimal> value, decimal min, decimal max, string prefix, string unit, string placeholder, string w,
+                            string refusal, string help, Action<string> onKey) {
+  // The room kept clear inside the box for a prefix or a unit: about 8 px a letter at 13 px, and 10 + 6 around it.
+  string Room(string words) { return words == "" ? "10px" : (words.Length * 8 + 16) + "px"; }
+  render {
+    // A tap target is a question about the DEVICE, not the room this box has (a 160 px box is not a phone): the window decides.
+    var phone = !Viewport.AtLeast(Tablet);
+    var h = phone ? "44px" : "30px";
+    var size = phone ? FontSize.ConsoleBodyPhone : FontSize.ConsoleBody;
+    var refused = refusal != "";
+    Stack(gap: "6px", minW: "0", fontFamily: Font.ConsoleSans) {
+      Box(position: Position.Relative, w: w, maxW: "100%", minW: "0") {
+        Input(value: value, label: label, placeholder: placeholder, min: min, max: max, invalid: refused, keys: [Up, Down], onKeyDown: onKey,
+              describedBy: note,
+              w: "100%", h: h, pl: Room(prefix), pr: Room(unit), py: "0", fontSize: size, fontWeight: 400, fontFamily: Font.ConsoleSans,
+              color: Colors.ConsoleText, bg: Colors.ConsoleSurface, rounded: Radius.ConsoleButtonCorner, borderW: 1,
+              border: refused ? Colors.ConsoleCriticalIcon : Colors.ConsoleControlLine);
+        if (prefix != "") {
+          Row(position: Position.Absolute, top: "0", left: "0", h: h, align: Align.Center, pl: "10px", pointerEvents: PointerEvents.None) {
+            Text(prefix, fontSize: size, fontWeight: 400, color: Colors.ConsoleText2, whiteSpace: WhiteSpace.Nowrap, decorative: true);
+          }
+        }
+        if (unit != "") {
+          Row(position: Position.Absolute, top: "0", right: "0", h: h, align: Align.Center, pr: "10px", pointerEvents: PointerEvents.None) {
+            Text(unit, fontSize: size, fontWeight: 400, color: Colors.ConsoleText2, whiteSpace: WhiteSpace.Nowrap, decorative: true);
+          }
+        }
+      }
+      if (refused || help != "") {
+        Stack(id: note) {
+          if (refused) {
+            Text(refusal, fontSize: FontSize.ConsoleSmall, color: Colors.ConsoleCriticalInk, lineHeight: "1.4", role: UiRole.Alert);
+          } else {
+            Text(help, fontSize: FontSize.ConsoleSmall, color: Colors.ConsoleText2, lineHeight: "1.4");
+          }
+        }
+      }
+    }
+  }
+}

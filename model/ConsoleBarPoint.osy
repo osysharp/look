@@ -1,0 +1,11 @@
+namespace Osysharp.Look;
+
+/// One point of a `ConsoleBarChart` or `ConsoleLineChart` (MS2b, MS2c): its label on the time axis ("16 Nov"), the value
+/// of each series, and for a rate or an average the sample size behind each value (`Samples`, the n per point; empty
+/// when the value is a count). An empty value is a gap (nothing recorded), drawn as no bar or a break in the line with a
+/// faint "no data" mark, never as 0; a real 0 is a thin line on a bar chart and a point on the axis on a line chart.
+public sealed class ConsoleBarPoint {
+  public string Label = "";
+  public List<double?> Values = new List<double?>();
+  public List<int?> Samples = new List<int?>();
+}

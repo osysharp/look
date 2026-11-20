@@ -1,0 +1,69 @@
+namespace Osysharp.Look;
+
+// The outline pane's foot (designer.dc.html "Open questions · 2"; DECISIONS 13 Nov: the designer's unanswered questions
+// listed under the outline as well as in the chat "so we dont forget to answer").
+
+/// One unanswered question: `Id` what the page knows it by, `Text` the short question, the row it belongs to (`Level`,
+/// `RowTitle`), and `Choice` when it is a decision drawn in the template (" · a choice" after the row).
+public class OpenQuestion {
+  public string Id = "";
+  public string Text = "";
+  public PartLevel Level = PartLevel.Slice;
+  public string RowTitle = "";
+  public bool Choice = false;
+}
+
+/// The foot list: a 14/700 head "<label> · N" and each question as a pressable line — the question 14/1.4 over a 13 px
+/// Ink 3 line of its row's mark and title — the wash when hovered; pressing one calls `onOpen` with its `Id` (the page
+/// scrolls the talk to where it was asked). `16px 20px` inside, a soft hairline above. Draw it in `PaneLayout`'s
+/// `slot firstFoot`; nothing is drawn when there is no question.
+/// In a test the list is the region "<label> · N", each question pressed by its words.
+[Composable]
+component OpenQuestions(List<OpenQuestion> questions, Action<string> onOpen, string label = "Open questions") {
+  render {
+    if (questions.Count > 0) {
+      Stack(gap: "6px", pt: "16px", px: "20px", pb: "16px", borderTW: 1, border: Colors.SoftLine, minW: "0", role: UiRole.Region,
+            label: label + " · " + questions.Count) {
+        Text(label + " · " + questions.Count, role: UiRole.Heading, level: 3, fontSize: FontSize.Body, fontWeight: FontWeight.Heavy,
+             color: Colors.OnSurface, lineHeight: "normal", mb: "2px");
+        foreach (var question in questions) {
+          OpenQuestionLine(question, () => onOpen(question.Id));
+        }
+      }
+    }
+  }
+}
+
+/// One question of `OpenQuestions`.
+[Composable, Part]
+component OpenQuestionLine(OpenQuestion question, Action onPress) {
+  variants {
+    base {
+      Display = Display.Flex;
+      W = "auto";
+      Mx = "-8px";
+      Py = "6px";
+      Px = "8px";
+      Rounded = "6px";
+      Bg = Colors.Transparent;
+      BorderW = 0;
+      Color = Colors.OnSurface;
+      FontFamily = Font.Sans;
+      Cursor = Cursor.Pointer;
+      TextAlign = TextAlign.Left;
+      Hover { Bg = Colors.Wash; }
+      Focus { Shadow = Shadow.Ring; }
+    }
+  }
+  render {
+    Pressable(onClick: onPress, label: question.Text, align: Align.Start) {
+      Stack(gap: "2px", minW: "0", w: "100%") {
+        Text(question.Text, fontSize: FontSize.Body, lineHeight: "1.4");
+        Row(gap: "6px", align: Align.Center, minW: "0", fontSize: FontSize.Label, color: Colors.Ink3, lineHeight: "1.5") {
+          LevelMark(question.Level);
+          Text(question.RowTitle + (question.Choice ? " · a choice" : ""), minW: "0");
+        }
+      }
+    }
+  }
+}

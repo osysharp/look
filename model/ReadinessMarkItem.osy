@@ -1,0 +1,31 @@
+namespace Osysharp.Look;
+
+/// One mark of `ReadinessMarks`: the mark and the name, a list item read whole, the reason as its hover title (Escape
+/// closes it). `focusable`: a failed mark with a reason is a keyboard stop, and the reason opens on focus too.
+[Composable, Part]
+component ReadinessMarkItem(ReadinessMark mark, bool focusable = false) {
+  bool Titled() => mark.State == MarkState.Failed && mark.Reason != "";
+  bool hovered = false;
+  action Enter() { hovered = true; }
+  action Leave() { hovered = false; }
+  render {
+    Row(gap: "5px", align: Align.Center, position: Position.Relative, role: UiRole.ListItem, onPointerEnter: Enter, onPointerLeave: Leave,
+        onFocus: focusable && Titled() ? Enter : null, onBlur: focusable && Titled() ? Leave : null, onEscape: hovered && Titled() ? Leave : null,
+        label: mark.Name + ": " + (mark.State == MarkState.Passed ? "passed" : mark.State == MarkState.Failed
+          ? (mark.Reason != "" ? "failed — " + mark.Reason : "failed") : "not judged yet"),
+        fontSize: FontSize.Caption, fontWeight: FontWeight.Semibold, lineHeight: "normal", whiteSpace: WhiteSpace.Nowrap,
+        color: mark.State == MarkState.Failed ? Colors.BadInk : mark.State == MarkState.Passed ? Colors.Ink2 : Colors.Ink3) {
+      Row(w: "16px", h: "16px", minW: "16px", rounded: Radius.Pill, align: Align.Center, justify: Justify.Center, fontSize: "10px",
+          fontWeight: FontWeight.Heavy, decorative: true,
+          bg: mark.State == MarkState.Passed ? Colors.OkDot : mark.State == MarkState.Failed ? Colors.BadTint : Colors.Surface,
+          color: mark.State == MarkState.Passed ? Colors.Surface : Colors.BadInk,
+          borderW: mark.State == MarkState.NotJudged ? "1.5px" : 0, borderStyle: BorderStyle.Dashed, border: Colors.ProposedLine) {
+        Text(mark.State == MarkState.Passed ? "✓" : mark.State == MarkState.Failed ? "✕" : "");
+      }
+      Text(mark.Name, decorative: true);
+      if (hovered && Titled()) {
+        HoverTitle(mark.Reason, "Why " + mark.Name + " failed");
+      }
+    }
+  }
+}

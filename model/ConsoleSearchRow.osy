@@ -1,0 +1,38 @@
+namespace Osysharp.Look;
+
+/// One search result, a link: its kind, its key in mono, its title, and for a plan item its product and level badge.
+/// `marked` is the one Enter would open.
+[Composable, Part]
+component ConsoleSearchRow(ConsoleSearchResult result, bool marked, Action onNavigated) {
+  variants {
+    base {
+      Display = Display.Flex;
+      AlignItems = Align.Center;
+      Gap = "10px";
+      Py = "8px";
+      Px = "16px";
+      MinH = "40px";
+      Color = Colors.ConsoleText;
+      TextDecoration = TextDecoration.None;
+      Hover { Bg = Colors.ConsoleSunken; }
+    }
+    marked {
+      Bg = Colors.ConsoleSunken;
+    }
+  }
+  render {
+    Link(result.To, label: (result.Key != "" ? result.Key + " " : "") + result.Title, onClick: onNavigated, current: marked) {
+      Text(result.Kind, w: "68px", shrink: 0, fontSize: FontSize.ConsoleBadge, color: Colors.ConsoleText2);
+      if (result.Key != "") {
+        Text(result.Key, fontFamily: Font.ConsoleMono, fontSize: FontSize.ConsoleSmall, shrink: 0);
+      }
+      Text(result.Title, grow: 1, minW: "0", wordBreak: WordBreak.BreakWord);
+      if (result.Product != "") {
+        Text(result.Product, fontFamily: Font.ConsoleMono, fontSize: FontSize.ConsoleBadge, color: Colors.ConsoleText2, shrink: 0);
+      }
+      if (result.Badge != "") {
+        ConsoleBadge(result.Badge);
+      }
+    }
+  }
+}

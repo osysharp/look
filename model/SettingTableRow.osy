@@ -1,0 +1,103 @@
+namespace Osysharp.Look;
+
+// A settings table in a card (the settings boards' policies table; canvas4/PolicyFloorEffective "Effective policy of a
+// product"): a `CardTable` head (`spacing: TableSpacing.Settings`), group bands and rows by slots. The first two cells
+// are every such table's — the setting's name (and its key) and its value (with an optional tag line); the other cells
+// are the page's own (why, from, kind, applies to).
+
+/// One row of a settings table: a grid on `cols`, centred, under a Line 2 rule, 13 px. Its gap and paddings are its
+/// table's (`TableRhythm`): `spacing` `Settings` by default (the settings boards': 14 apart, `11px 20px`, under a
+/// `CardTable(…, spacing: TableSpacing.Settings)` head), `Tight` for PolicyFloorEffective (10 apart, `9px 20px`);
+/// `dense` the compact row. Cell 1: `name` 600, and under it the key — a `KeyLink` to `keyTo`, or, with no `keyTo`,
+/// `KeyText` (a key with no page to open is not a link). Cell 2: `slot value` (a `StatusChip`, a `SolidChip`, a value)
+/// and, when `tag` is set, under it the tag line — a small `ProposedTag(tag)` and `tagText` 12 Ink 3 ("Draft v6 · adds
+/// play.googleapis.com"). Then the block: the page's own cells, in order. `slot under`: set under the VALUE column and
+/// across the rest of the row, 6 below the cells, as PolicyFloor draws its "Where it is enforced" disclosure
+/// (`Disclosure(…, ruled: false)`).
+/// The row is a table `row`; its first two cells are cells already. The block's children are the rest of the cells, one
+/// each: give each `role: UiRole.GridCell` or wrap it in `TableCell` (see `CardTableRow`). `slot under` is not a cell.
+/// `dense` is for one-line rows (a key under the name makes a second line). In a test it is the row named by `label`,
+/// or by `name`:`Assert.Visible("Narrowed here", within: "nuget.org")`.
+/// e.g. `SettingTableRow("nuget.org", "minmax(0, 1fr) 82px minmax(0, 1.3fr) 130px") { slot value { StatusChip("Refused", StatusTone.You); } Text("Not needed by a Next.js web app"); SourceCell("Narrowed here", SourceTone.Narrowed); }`
+/// ON A PHONE (`stack`, default true; below the Phone breakpoint, the table's room under 480 px): ONE column — the name
+/// and its key, then the value and its tag line, then each of the page's own cells under its column's head (`heads`: the
+/// table's heads, all of them, the name's and the value's first; drawn as a small `Overline` over the cell), then `under`
+/// at full width. The cells stay cells (`Assert.Cell` by column name). `stack: false` keeps the columns at every width.
+[Composable]
+component SettingTableRow(string name, string cols, string key = "", string keyTo = "", string tag = "", string tagText = "",
+                          TableSpacing spacing = TableSpacing.Settings, bool dense = false, string label = "", List<string>? heads = null,
+                          bool stack = true) {
+  render {
+    if (stack && !Layout.AtLeast(Phone)) {
+      Stack(gap: "6px", py: TableRhythm.RowPy(spacing, dense), px: "20px", borderTW: 1, border: Colors.Line2, fontSize: FontSize.Label,
+            color: Colors.OnSurface, lineHeight: "normal", role: UiRole.Row, label: label != "" ? label : name) {
+        Box(display: Display.Grid, cols: "minmax(0, 1fr)", gap: heads != null ? "2px" : "6px", minW: "0") {
+          Stack(gap: "2px", minW: "0", role: UiRole.GridCell) {
+            Text(name, fontWeight: FontWeight.Semibold);
+            if (key != "") {
+              if (keyTo != "") {
+                KeyLink(key, keyTo, small: true);
+              } else {
+                KeyText(key);
+              }
+            }
+          }
+          Stack(gap: "4px", minW: "0", align: Align.Start, pt: "4px", role: UiRole.GridCell) {
+            Slot("value");
+            if (tag != "") {
+              Row(gap: "6px", align: Align.Center, wrap: Wrapping.Wrap) {
+                ProposedTag(tag, small: true);
+                if (tagText != "") {
+                  Text(tagText, fontSize: FontSize.Caption, color: Colors.Ink3);
+                }
+              }
+            }
+          }
+          if (heads != null) {
+            foreach (var head in HeadCells(heads!)) {
+              if (head.Index > 1) {
+                StackedHead(head.Words, head.Index * 2 - 1);
+              }
+            }
+          }
+          Slot;
+        }
+        Slot("under");
+      }
+    } else {
+      Box(display: Display.Grid, cols: cols, gap: "0 " + TableRhythm.Gap(spacing), align: Align.Center, py: TableRhythm.RowPy(spacing, dense), px: "20px",
+          minH: "0", borderTW: 1, border: Colors.Line2, fontSize: FontSize.Label, color: Colors.OnSurface, lineHeight: "normal", role: UiRole.Row,
+          label: label != "" ? label : name) {
+        Stack(gap: "2px", minW: "0", minH: TableRhythm.RowMinH(dense, spacing), justify: Justify.Center, role: UiRole.GridCell) {
+          Text(name, fontWeight: FontWeight.Semibold);
+          if (key != "") {
+            if (keyTo != "") {
+              KeyLink(key, keyTo, small: true);
+            } else {
+              KeyText(key);
+            }
+          }
+        }
+        Stack(gap: "4px", minW: "0", align: Align.Start, role: UiRole.GridCell) {
+          Slot("value");
+          if (tag != "") {
+            Row(gap: "6px", align: Align.Center, wrap: Wrapping.Wrap) {
+              ProposedTag(tag, small: true);
+              if (tagText != "") {
+                Text(tagText, fontSize: FontSize.Caption, color: Colors.Ink3);
+              }
+            }
+          }
+        }
+        Slot;
+        // Under the value column: an empty slot leaves the stack one empty child, so no gap and no height.
+        Box(colSpan: "2 / -1", minW: "0") {
+          Stack(gap: "6px", minW: "0") {
+            Box();
+            Slot("under");
+          }
+        }
+      }
+    }
+  }
+}

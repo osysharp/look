@@ -1,0 +1,73 @@
+namespace Osysharp.Look;
+
+// The page's header band, as the owner's mock-up draws it (docs/designs/foundry/owner-refined-plan-mockup.png): a white
+// band across the whole width beside the rail, holding the breadcrumb, the title, the key chips and owner line, the
+// page's other actions at the title's right, and then the tabs, with the page's primary action on the tabs' line at
+// the right. The page's body stands under it on the ground, on the same left and right edges.
+
+/// THE HEADER BAND every page leads with, drawn first in `LookShell`'s page (before the page's column, so it reaches
+/// the window's edge however wide the column may grow). It reaches back over the frame's inset (`PageInset`), so it
+/// meets the rail and the window's top and right edge, and keeps 18 px under it before the body (console v6).
+/// `trail` the breadcrumb (none for an area); `title` the page's h1 (28/700); `slot status` a state chip ON the title's
+/// line, 10 px after it, centred on it, as console v6 draws "Northwind Health ● Active" (a `StatusChip`, a key chip);
+/// `slot chips` the key chips and the owner line under the title; `situation` one line under them; the default slot the actions at the title's right (outlined:
+/// "Edit product"); `tabs` with `current` (the address in view) the tab bar on the band's foot, named `tabsLabel`;
+/// `slot primary` the page's one primary action, on the tabs' line at the right (on a phone, under the tabs).
+/// In a test the band is the region "<title> header", and its tabs' line the region "<title> tabs line":
+/// `Assert.Inside("Add to plan", "Test tabs line")`; `Assert.RightOf("Active", "Northwind Health")` for `slot status`.
+[Composable] [Section(SectionKey)]
+component PageBand(string title, List<Crumb> trail = null, string situation = "", List<TabItem> tabs = null, string current = "",
+                   string tabsLabel = "") {
+  /// Routes whose heads show the same tabs are one section: moving between them keeps this head mounted. A head with no
+  /// tabs is one section with the heads under the same trail — the pages of one object or area (an application's
+  /// Overview, Access, Logs): its breadcrumb and band stay, the title and the rest are patched in place.
+  string SectionKey() {
+    if (tabs != null && tabs.Count() > 0) { return string.Join("|", tabs.Select(t => t.To)); }
+    var up = trail == null ? "" : string.Join("|", trail.Where(c => c.To != "").Select(c => c.To));
+    return up == "" ? "" : "under " + up;
+  }
+  bool HasTabs() => tabs != null && tabs.Count() > 0;
+  render {
+    var wide = Layout.AtLeast(Tablet);
+    Box(mx: "-" + PageInset(), mt: "-" + PageInset(), mb: "18px", px: PageInset(), pt: wide ? "24px" : "16px",
+        pb: HasTabs() ? "0" : "20px", bg: Colors.Surface, borderBW: 1, border: Colors.Border, minW: "0", role: UiRole.Banner, label: title + " header") {
+      // Its words keep to the page column's 1120 px (`PageColumn`), so the band's content and the body share their edges.
+      Stack(gap: "14px", minW: "0", maxW: "1120px") {
+        Stack(gap: "8px", minW: "0") {
+          if (trail != null && trail.Count() > 0) {
+            Breadcrumb(trail);
+          }
+          Row(justify: Justify.Between, align: Align.Start, wrap: Wrapping.Wrap, gap: "12px", minW: "0") {
+            Stack(gap: "10px", minW: "0", grow: 1, basis: "420px") {
+              // The title and its status chip on one line; a long title wraps and the chip follows it.
+              Row(gap: "6px 10px", align: Align.Center, wrap: Wrapping.Wrap, minW: "0") {
+                AreaTitle(title, tight: true);
+                Slot("status");
+              }
+              Row(gap: "8px 10px", align: Align.Center, wrap: Wrapping.Wrap, minW: "0") { Slot("chips"); }
+              if (situation != "") {
+                Text(situation, fontSize: FontSize.Body, lineHeight: "1.5", color: Colors.Ink2);
+              }
+            }
+            Row(gap: "8px", align: Align.Center, wrap: Wrapping.Wrap) { Slot; }
+          }
+        }
+        if (HasTabs()) {
+          if (Layout.AtLeast(Tablet)) {
+            // The tab strip's own hairline lies ON the band's foot (1 px under the row), so the two are one line; the
+            // primary action stands on the same line, level with the tabs' words.
+            Row(justify: Justify.Between, align: Align.End, gap: "16px", minW: "0", label: title + " tabs line") {
+              Box(minW: "0", grow: 1, mb: "-1px") { TabBar(tabsLabel != "" ? tabsLabel : title + " tabs", tabs, current); }
+              Row(gap: "8px", align: Align.Center, shrink: 0, pb: "6px") { Slot("primary"); }
+            }
+          } else {
+            Stack(gap: "10px", minW: "0", label: title + " tabs line") {
+              Row(gap: "8px", align: Align.Center, wrap: Wrapping.Wrap) { Slot("primary"); }
+              Box(minW: "0", mb: "-1px") { TabBar(tabsLabel != "" ? tabsLabel : title + " tabs", tabs, current); }
+            }
+          }
+        }
+      }
+    }
+  }
+}

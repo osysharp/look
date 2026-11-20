@@ -1,0 +1,72 @@
+namespace OsyrinLookTests;
+
+using Osysharp.Look;
+
+// L3: every slow action shows that it is working. A button whose action waits, and a confirmation whose action waits,
+// each with nothing written by the page for its busy state but the words. Each action waits on a server call
+// (`SlowAnswer`) that a test holds. Not in the gallery; at /dev/controls/busy for its tests and shots.
+
+/// A button whose action waits on the server ("Save", "Saving…" while it runs), beside one that is quick.
+[Composable]
+component BusyButtonSample() {
+  int saved = 0;
+  action Save() { saved = SlowAnswer(saved); }
+  action Remove() { saved = SlowAnswer(saved); }
+  action Quick() { saved = saved + 0; }
+  render {
+    Stack(gap: "12px", minW: "0") {
+      Row(gap: "8px", wrap: Wrapping.Wrap, align: Align.Center) {
+        LookButton("Save", Save, kind: ButtonKind.Primary, busy: Save.Pending, busyLabel: "Saving…");
+        LookButton("Check", Quick);
+      }
+      Row(gap: "8px", wrap: Wrapping.Wrap, align: Align.Center) {
+        ConfirmDangerButton("Delete", Remove, busy: Remove.Pending, busyLabel: "Deleting…");
+      }
+      Text("Saved " + saved + " times", fontSize: FontSize.Body);
+    }
+  }
+}
+
+/// A confirmation whose action waits on the server, with a status line for the wait.
+[Composable]
+component BusyDialogSample() {
+  bool asking = false;
+  string said = "";
+  action Take() {
+    SlowAnswer(0);
+    said = "Taken";
+    asking = false;
+  }
+  action Ask() { asking = true; }
+  action Cancel() {
+    said = "Cancelled";
+    asking = false;
+  }
+  render {
+    Stack(gap: "12px", minW: "0") {
+      LookButton("Take to the plan", Ask);
+      if (said != "") {
+        Text(said, fontSize: FontSize.Body);
+      }
+      if (asking) {
+        ConfirmDialog("Take D-4 to the plan", "It makes 120 rows in the plan.", "Take", Take, Cancel, busy: Take.Pending, busyLabel: "Taking…",
+                      busySaid: "Taking 120 rows to the plan…");
+      }
+    }
+  }
+}
+
+[Route("/dev/controls/busy")]
+[AllowAnonymous]
+[Title("Busy actions")]
+[Render(CSR)]
+component BusyActionsPage() {
+  render {
+    ControlsFrame("Busy actions") {
+      Stack(gap: "24px", minW: "0") {
+        BusyButtonSample();
+        BusyDialogSample();
+      }
+    }
+  }
+}

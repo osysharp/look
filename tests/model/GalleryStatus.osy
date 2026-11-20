@@ -1,0 +1,63 @@
+namespace OsyrinLookTests;
+
+using Osysharp.Look;
+
+/// Components §4: the status chip with the board's words in their tones. The words are the board's sample; the look
+/// gives the chip and its tone, never the words.
+[Composable]
+component GalleryStatus() {
+  render {
+    BoardCard("4 · Status chips — the exact waiting words", gap: "14px") {
+      Text("A slice, a lane or a host is only ever described with one of these words. Grey means it waits on something neutral; amber means a person; red means it cannot go on.",
+           fontSize: FontSize.Body, color: Colors.Ink2);
+      Row(gap: "8px", wrap: Wrapping.Wrap, label: "Waiting words") {
+        StatusChip("Running", StatusTone.Run);
+        StatusChip("In review", StatusTone.Run);
+        StatusChip("Merging", StatusTone.Run);
+        StatusChip("Waiting for a review lane", StatusTone.Wait);
+        StatusChip("Waiting for your answer", StatusTone.You);
+        StatusChip("Waiting for Erik Sund’s answer", StatusTone.You);
+        StatusChip("Waiting for the release", StatusTone.Wait);
+        StatusChip("Blocked by TRIAGE-9", StatusTone.Bad);
+        StatusChip("Waiting for a free lane", StatusTone.Wait);
+        StatusChip("With the planner", StatusTone.Wait);
+        StatusChip("Red · handed back", StatusTone.Bad);
+        StatusChip("Passed on retry", StatusTone.Ok);
+        StatusChip("Done", StatusTone.Ok);
+        StatusChip("Stuck", StatusTone.You);
+        StatusChip("Paused", StatusTone.Wait);
+      }
+      H3("Hosts", mt: "6px");
+      Row(gap: "8px", wrap: Wrapping.Wrap, label: "Host words") {
+        StatusChip("Running", StatusTone.Run);
+        StatusChip("Stuck", StatusTone.You);
+        StatusChip("Frozen", StatusTone.Bad);
+        StatusChip("Silent", StatusTone.Bad);
+        StatusChip("Paused", StatusTone.Wait);
+        StatusChip("Idle — nothing ready", StatusTone.Wait);
+        StatusChip("Closed", StatusTone.Wait);
+      }
+      H3("Two kinds of confidence, never the same word", mt: "6px");
+      Box(display: Display.Grid, cols: "repeat(2, minmax(0, 1fr))", gap: "12px") {
+        Stack(gap: "8px", py: "12px", px: "14px", rounded: Radius.Inner, borderW: 1, border: Colors.SoftLine, label: "Delivery confidence") {
+          Text("Delivery confidence (a release)", fontSize: FontSize.Label, fontWeight: FontWeight.Heavy);
+          Row(gap: "8px", wrap: Wrapping.Wrap) {
+            StatusChip("On track", StatusTone.Ok);
+            StatusChip("At risk · likely Thu 12 Nov", StatusTone.You);
+            StatusChip("Late", StatusTone.Bad);
+            StatusChip("Not enough history yet", StatusTone.Wait);
+          }
+        }
+        Stack(gap: "8px", py: "12px", px: "14px", rounded: Radius.Inner, borderW: 1, border: Colors.SoftLine, label: "Usage pace") {
+          Text("Usage pace (an account)", fontSize: FontSize.Label, fontWeight: FontWeight.Heavy);
+          Row(gap: "8px", wrap: Wrapping.Wrap) {
+            StatusChip("On pace", StatusTone.Ok);
+            StatusChip("Running hot", StatusTone.You);
+            StatusChip("Held until Fri 02:00", StatusTone.Wait);
+            StatusChip("Out until reset", StatusTone.Bad);
+          }
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,151 @@
+namespace Osysharp.Look;
+
+/// THE SIGNED-OUT FRAME: one wide card on a pale page, the artwork on its left (the brand, the headline and the lede),
+/// and on its right the screen's `heading`, its `sub` line and, in the default slot, the screen's form. On a phone the
+/// artwork is a short band above the form.
+/// `brand` is the wordmark beside the tile ("Osyrin Foundry"); `logoUrl` a logo that takes the tile's place.
+/// `headline` is set large in white, one line per "\n" ("Build software.\nSee every step."); `lede` is a sentence
+/// under it, and empty draws none. `artwork` is the picture the panel is cut from: the look carries one,
+/// `textures/signed_out_hero.jpg`, which an app names as `Textures.SignedOutHero`.
+/// `slot below` is an optional box under the form, in the form's column (a "Run it yourself" note).
+/// e.g. `LookSignedOutFrame("Sign in", "Build software.\nSee every step.", Textures.SignedOutHero, "Osyrin Foundry") { SignInForm(); }`
+[Composable]
+component LookSignedOutFrame(string heading, string headline, Textures artwork, string brand, string lede = "", string sub = "",
+                             string logoUrl = "") {
+  render {
+    bool wide = Viewport.AtLeast(Tablet);
+
+    Row(
+      align: Align.Center,
+      justify: Justify.Center,
+      minH: Length.Screen,
+      px: wide ? 8 : 0,
+      py: wide ? 10 : 0,
+      bg: Colors.SignedOutPage
+    ) {
+      Box(
+        display: Display.Grid,
+        cols: wide ? "58fr 42fr" : "1fr",
+        rows: wide ? "auto" : "auto 1fr",
+        w: "100%",
+        maxW: Length.SignedOutCardW,
+        minH: wide ? "30rem" : Length.Screen,
+        rounded: wide ? Radius.SignedOutCard : "0",
+        shadow: wide ? Shadow.SignedOutLift : "none",
+        overflow: Overflow.Hidden
+      ) {
+        LookSignedOutHero(brand, logoUrl, headline, lede, artwork, wide);
+        Stack(
+          // Top-aligned, with the artwork's own top padding, so the heading stands level with the brand row.
+          justify: Justify.Start,
+          px: wide ? 16 : 6,
+          py: wide ? 12 : 8,
+          bg: Colors.SignedOutForm,
+          color: Colors.OnSurface
+        ) {
+          Stack(gap: 6, w: "100%", maxW: Length.SignedOutFormW) {
+            Stack(gap: 2) {
+              Text(
+                heading,
+                fontSize: wide ? FontSize.SignedOutHeading : FontSize.SignedOutHeadingPhone,
+                fontWeight: FontWeight.Heavy,
+                lineHeight: "1.1",
+                letterSpacing: "-0.02em"
+              );
+              if (sub != "") {
+                Text(sub, color: Colors.TextMuted);
+              }
+            }
+            Slot;
+            Slot("below");
+          }
+        }
+      }
+    }
+  }
+}
+
+/// The left half of the signed-out card: the artwork filling the panel, cropped from the left and top so its lit
+/// right-hand side stays in view, and over it the brand, the headline and the lede in white. On a phone (`wide`
+/// false) it is a short band.
+[Composable]
+component LookSignedOutHero(string brand, string logoUrl, string headline, string lede, Textures artwork, bool wide) {
+  string phoneShade = "linear-gradient(90deg, "
+    + "color-mix(in srgb, var(--colors-signedoutherodeep) 75%, transparent) 0%, "
+    + "color-mix(in srgb, var(--colors-signedoutherodeep) 40%, transparent) 55%, "
+    + "transparent 85%)";
+
+  List<string> HeadlineLines() => headline.Split('\n').ToList();
+
+  render {
+    Box(
+      position: Position.Relative,
+      overflow: Overflow.Hidden,
+      minH: wide ? "30rem" : "13rem",
+      bg: Colors.SignedOutHeroDeep,
+      color: Colors.OnSignedOutHero
+    ) {
+      Image(
+        texture: artwork,
+        alt: "",
+        decorative: true,
+        position: Position.Absolute,
+        inset: 0,
+        w: "100%",
+        h: "100%",
+        objectFit: ObjectFit.Cover,
+        objectPosition: "right bottom",
+        display: Display.Block
+      );
+      // In the short band the headline runs over the lit part of the artwork, so its left side is darkened enough for
+      // white text to hold its contrast. On the wide panel the headline sits on the artwork's own dark and needs none.
+      if (!wide) {
+        Box(position: Position.Absolute, inset: 0, bgImage: phoneShade);
+      }
+      Stack(
+        position: Position.Relative,
+        gap: wide ? 8 : 4,
+        px: wide ? 12 : 6,
+        pt: wide ? 12 : 6,
+        pb: 6
+      ) {
+        Row(gap: 3, align: Align.Center) {
+          // A logo keeps its own colours, so it takes the tile's place rather than sitting on it.
+          if (logoUrl != "") {
+            Image(logoUrl, alt: brand, h: Length.SignedOutMark, w: "auto");
+          }
+          if (logoUrl == "") {
+            Box(
+              w: Length.SignedOutMark,
+              h: Length.SignedOutMark,
+              rounded: Radius.Control,
+              bg: Colors.OnSignedOutHero,
+              color: Colors.SignedOutHeroDeep,
+              display: Display.Flex,
+              align: Align.Center,
+              justify: Justify.Center,
+              shrink: 0
+            ) {
+              Text("O#", fontSize: FontSize.Subhead, fontWeight: FontWeight.Heavy, letterSpacing: "-0.02em");
+            }
+          }
+          Text(brand, fontSize: "1.375rem", fontWeight: FontWeight.Semibold, letterSpacing: "-0.01em");
+        }
+        Stack {
+          foreach (var line in HeadlineLines()) {
+            Text(
+              line,
+              fontSize: wide ? "3.25rem" : "2rem",
+              fontWeight: FontWeight.Heavy,
+              lineHeight: "1.08",
+              letterSpacing: "-0.025em"
+            );
+          }
+        }
+        if (lede != "") {
+          Text(lede, fontSize: wide ? "1.125rem" : "0.9375rem", lineHeight: "1.5", maxW: "28rem");
+        }
+      }
+    }
+  }
+}

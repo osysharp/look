@@ -1,0 +1,14 @@
+namespace Osysharp.Look;
+
+/// Whether one criterion is met, at the head of its row (Slice "Acceptance"): an 18 px circle — met, a white ✓ 11/700
+/// on the ok dot; not yet, a "·" in Ink 2 inside a 1.5 px wait-dot ring. Decorative: the row's words say it.
+[Composable]
+component CheckMark(bool met) {
+  render {
+    Row(w: "18px", h: "18px", minW: "18px", rounded: Radius.Pill, align: Align.Center, justify: Justify.Center, fontSize: FontSize.Overline,
+        fontWeight: met ? FontWeight.Heavy : FontWeight.Regular, bg: met ? Colors.OkDot : Colors.Transparent, color: met ? Colors.Surface : Colors.Ink2,
+        borderW: met ? 0 : "1.5px", border: Colors.WaitDot, lineHeight: "normal", decorative: true) {
+      Text(met ? "✓" : "·");
+    }
+  }
+}

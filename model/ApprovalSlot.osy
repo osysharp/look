@@ -1,0 +1,27 @@
+namespace Osysharp.Look;
+
+/// One approval (orgsettings/Bundle "Signatures"): 13 px, radius 8, `6px 10px`. Given (`who` set, `given` true): the ok
+/// tint and ink, "✓ <who>" strong and the `detail` after it ("approved 3be1…7d4a · 09:41"); `agent` puts "agent · "
+/// before the detail. Still needed: a 1 px dashed outline (the Proposed line), Ink 2, `who` naming who is asked
+/// ("Second approver").
+/// In a test it is read by its words: `Assert.Visible("Elif Demir", within: "Approvals")`.
+/// e.g. `ApprovalSlot("Elif Demir", detail: "approved 3be1…7d4a · 09:41", given: true)` · `ApprovalSlot("Second approver")`
+[Composable]
+component ApprovalSlot(string who, string detail = "", bool given = false, bool agent = false) {
+  render {
+    if (given) {
+      Row(gap: "8px", align: Align.Center, py: "6px", px: "10px", rounded: Radius.Control, bg: Colors.OkTint, color: Colors.OkInk, fontSize: FontSize.Label,
+          lineHeight: "normal", role: UiRole.ListItem) {
+        Text("✓ " + who, fontWeight: FontWeight.Heavy);
+        if (detail != "" || agent) {
+          Text((agent ? "agent · " : "") + detail);
+        }
+      }
+    } else {
+      Row(gap: "8px", align: Align.Center, py: "5px", px: "9px", rounded: Radius.Control, borderW: 1, borderStyle: BorderStyle.Dashed, border: Colors.ProposedLine,
+          color: Colors.Ink2, fontSize: FontSize.Label, lineHeight: "normal", role: UiRole.ListItem) {
+        Text(who);
+      }
+    }
+  }
+}

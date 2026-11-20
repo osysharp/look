@@ -1,0 +1,58 @@
+// The page replicas at the boards' 1440 px frame: each is drawn, read by its words, and photographed for
+// scripts/design/pixel-budget.sh, which diffs it part by part against ProductPlan, Release and Slice.
+
+using Osysharp.Look;
+using OsyrinLookTests;
+
+[Test]
+void The_page_replicas_draw_the_ProductPlan_Release_and_Slice_boards() {
+  Ui.Viewport(1440);
+  Ui.Visit("/dev/page-parts/plan");
+  Assert.Visible("At risk · headroom smaller than the uncertainty", within: "Patient Portal 2.4 · Thu 12 Nov");
+  Assert.Visible("2 merged · 1 running · 1 waiting", within: "BOOK-SLOTS Show free slots");
+  Assert.Visible("BOOK-14 merges after BOOK-12 because it holds the slot that BOOK-12’s picker shows.", within: "BOOK-CONFIRM Book and confirm");
+  Ui.Click("Details and predicted token use", within: "BOOK-REMIND Reminders");
+  Assert.Visible("Predicted token use 300k + 1 not estimated (≈120k).");
+  Ui.Click("Details and predicted token use", within: "BOOK-REMIND Reminders");
+  Ui.Shot("page-plan");
+  Ui.Visit("/dev/page-parts/release");
+  Assert.Visible("Review approval", within: "Approve Claims Desk 1.8.1 for production");
+  Assert.Visible("v1.8.0..9c41e7a", within: "Release facts");
+  Assert.Visible("Rounding fix (INC-15)", within: "Contents · 4 slices");
+  Assert.Visible("In UPKEEP-41’s", within: "UPKEEP-42");
+  Assert.Visible("No other open question touches these slices.", within: "Decisions it waits on");
+  Ui.Shot("page-release");
+  Ui.Visit("/dev/page-parts/slice");
+  Assert.Visible("In Patient Portal 2.4", within: "Slot picker shows the next 14 days");
+  Assert.Visible("Moves on when", within: "Right now");
+  Assert.Visible("Blocked by BOOK-19", within: "Waits on · Unlocks");
+  Assert.Visible("Security test · runs in its landing’s gate", within: "A patient never sees another clinic’s free times.");
+  Ui.Shot("page-slice");
+}
+
+[Test]
+void The_page_replica_draws_the_PolicyFloorEffective_board() {
+  Ui.Viewport(1440);
+  Ui.Visit("/dev/page-parts/effective");
+  Assert.Visible("Narrowed here", within: "nuget.org");
+  Assert.Visible("Exception waiting", within: "hooks.example-analytics.com");
+  Assert.Visible("Set here", within: "Performance review");
+  Assert.Visible("Refused", within: "Check a value against the floor");
+  Assert.Visible("hooks.example-analytics.com is not on the floor’s outbound hosts.", within: "Check a value against the floor");
+  Assert.Current("Effective policy");
+  Ui.Shot("page-effective");
+}
+
+[Test]
+void The_release_cards_draw_ProductReleases_next_then_and_released() {
+  Ui.Viewport(1440);
+  Ui.Visit("/dev/page-parts/releases");
+  Assert.Visible("Next · planned", within: "Patient Portal 2.4");
+  Assert.Visible("Proposed", within: "Patient Portal 2.4");
+  Assert.Visible("Release plan", within: "Patient Portal 2.4");
+  Assert.Visible("Not enough history yet", within: "Patient Portal 2.5");
+  Assert.Visible("Published", within: "Patient Portal 2.3");
+  Assert.Visible("published Fri 30 Oct 16:05", within: "Released · last 14 days");
+  Assert.NoOverflow();
+  Ui.Shot("page-releases-cards");
+}

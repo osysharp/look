@@ -1,0 +1,13 @@
+namespace Osysharp.Look;
+
+/// A dense row's line: 14/400.
+[Composable]
+component DenseText(string text) {
+  variants {
+    base {
+      FontSize = FontSize.Body;
+      Color = Colors.OnSurface;
+    }
+  }
+  render { Text(text); }
+}

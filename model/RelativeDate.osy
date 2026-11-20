@@ -1,0 +1,25 @@
+namespace Osysharp.Look;
+
+/// A moment said relative to now in the look's one wording (`RelativeWords`: "just now", "3 min ago", "3 h ago",
+/// "yesterday", "12 Nov", "12 Nov 2025"), with the exact time (`ExactWhen`, "Thu 12 Nov 2026, 09:05 UTC") as its hover
+/// title, a `tooltip` named "Exact time". `now` defaults to the clock (UTC) when drawn; a sample or a test passes it.
+/// It inherits size and colour from where it stands; `role` makes it a table cell; `end` hangs the title from its right
+/// edge (a right-aligned column). Escape closes an open title. `focusable`: the date is a keyboard stop and the exact
+/// time opens on focus too, closing on Escape and when focus leaves — for a date standing on its own; leave it off in a
+/// pressed row or a turn, whose own stops are the keyboard's way in. `LookDate` is the date INPUT; this
+/// is the date shown.
+[Composable]
+component RelativeDate(DateTime at, DateTime? now = null, UiRole? role = null, bool end = false, bool focusable = false) {
+  bool hovered = false;
+  action Enter() { hovered = true; }
+  action Leave() { hovered = false; }
+  render {
+    Box(position: Position.Relative, display: Display.InlineFlex, minW: "0", role: role, onPointerEnter: Enter, onPointerLeave: Leave,
+        onFocus: focusable ? Enter : null, onBlur: focusable ? Leave : null, onEscape: hovered ? Leave : null) {
+      Text(RelativeWords(at, now ?? DateTime.UtcNow), whiteSpace: WhiteSpace.Nowrap);
+      if (hovered) {
+        HoverTitle(ExactWhen(at), "Exact time", end: end);
+      }
+    }
+  }
+}

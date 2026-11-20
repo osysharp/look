@@ -1,0 +1,183 @@
+namespace Osysharp.Look;
+
+/// Points over time joined by a line, with their scale (MS2c, the owner: lines for rates and averages). It shares
+/// `ConsoleBarChart`'s scale (`ChartTicks`, `ChartScaleColumn` in the `unit`, 0–100% for "%"), gridlines, time axis and
+/// series colours (`ChartSeriesNumber`). Each point is a dot in its series' colour where its value is, the value above it when there is
+/// room (and above the latest point always). Each point carries its sample size n (`ConsoleBarPoint.Samples`), said
+/// beside its value when there is room ("80% · n=5"): a sample below `thin` (default 5) is a thin sample, drawn as a
+/// hollow point in faint words, labelled "n=2" on a desk even when the others' words are left out, and a key under the
+/// chart says what a hollow point means. A point with no value is a gap: the line breaks there, and a faint dashed column says "no
+/// data" when there is room; a real 0 is a point on the axis. In a test the plot is the group "<label> line" (each point
+/// a list item "16 Nov: 50%, n=2"), the axis "<label> scale" and the time labels "<label> time". With `references` (HT1)
+/// thresholds are drawn across the plot as dashed rules with their names (`ChartReferenceLines`, the list
+/// "<label> reference lines"), and the scale reaches the highest of them.
+[Composable]
+component ConsoleLineChart(List<ConsoleBarPoint> points, string unit = "", string last = "", int height = 96, string label = "Chart", int thin = 5,
+                           List<ChartReferenceLine> references = null) {
+  bool Percent() => unit == "%";
+
+  bool Whole() => unit != "%" && unit != "$" && unit != "h" && unit != "tokens";
+
+  int Series() => points.Count == 0 ? 0 : points.Max(p => p.Values.Count);
+
+  double? ValueOf(int index, int series) => series < points[index].Values.Count ? points[index].Values[series] : null;
+
+  int? SampleOf(int index, int series) => points[index].Samples != null && series < points[index].Samples.Count ? points[index].Samples[series] : null;
+
+  bool Thin(int index, int series) => SampleOf(index, series) != null && SampleOf(index, series)!.Value < thin;
+
+  bool AnyThin() => Enumerable.Range(0, points.Count).Any(i => Enumerable.Range(0, Series()).Any(s => ValueOf(i, s) != null && Thin(i, s)));
+
+  Color Fill(int series) {
+    var number = ChartSeriesNumber(series);
+    return number == 1 ? Colors.Series1 : number == 2 ? Colors.Series2 : number == 3 ? Colors.Series3 : number == 4 ? Colors.Series4
+      : number == 5 ? Colors.Series5 : number == 6 ? Colors.Series6 : Colors.Series7;
+  }
+
+  bool Gap(int index) => points[index].Values.All(v => v == null);
+
+  List<ChartReferenceLine> Lines() => references ?? new List<ChartReferenceLine>();
+
+  double Most() {
+    var most = Lines().Count == 0 ? 0.0 : Math.Max(0.0, Lines().Max(r => r.Value));
+    foreach (var point in points) {
+      foreach (var value in point.Values) {
+        if (value != null && value!.Value > most) {
+          most = value!.Value;
+        }
+      }
+    }
+    return most;
+  }
+
+  List<double> Ticks() => ChartTicks(Most(), Percent(), Whole());
+
+  double Ceiling() => Ticks()[Ticks().Count - 1];
+
+  double Share(double value) => Math.Max(0, Math.Min(value, Ceiling())) / Ceiling();
+
+  string Px(double value) => Math.Round(value).ToString("0") + "px";
+
+  string Across(int index) => ((index + 0.5) * 100.0 / points.Count).ToString("0.###") + "%";
+
+  string Up(double value) => (Share(value) * 100).ToString("0.###") + "%";
+
+  // The stretches of consecutive points with a value: the line is drawn through each, and breaks between them.
+  List<List<int>> Runs(int series) {
+    var runs = new List<List<int>>();
+    var run = new List<int>();
+    for (var index = 0; index < points.Count; index++) {
+      if (ValueOf(index, series) != null) {
+        run.Add(index);
+      } else if (run.Count > 0) {
+        runs.Add(run);
+        run = new List<int>();
+      }
+    }
+    if (run.Count > 0) {
+      runs.Add(run);
+    }
+    return runs;
+  }
+
+  // A stretch in the path's own space, 1000 wide and `height` tall, stretched to the plot.
+  double[] LineOf(List<int> run, int series) {
+    var xy = new List<double>();
+    foreach (var index in run) {
+      xy.Add((index + 0.5) * 1000.0 / points.Count);
+      xy.Add(height - Share(ValueOf(index, series)!.Value) * height);
+    }
+    return xy.ToArray();
+  }
+
+  // Every point's value when they are few enough for their words (`wide`: a tablet or wider), else only the latest.
+  bool Roomy(bool wide) => points.Count * Math.Max(1, Series()) <= (wide ? 16 : 6);
+
+  int Latest(int series) {
+    for (var index = points.Count - 1; index >= 0; index--) {
+      if (ValueOf(index, series) != null) {
+        return index;
+      }
+    }
+    return -1;
+  }
+
+  string Sample(int index, int series) => SampleOf(index, series) == null ? "" : "n=" + SampleOf(index, series)!.Value;
+
+  // Above the point: its value when there is room (the latest always), and its n when there is room (a thin one's on a
+  // desk whatever the room).
+  string Words(int index, int series, bool wide) {
+    var value = Roomy(wide) || index == Latest(series) ? ChartValueSaid(ValueOf(index, series)!.Value, unit) : "";
+    var n = Roomy(wide) || (Thin(index, series) && wide) ? Sample(index, series) : "";
+    return value != "" && n != "" ? value + " · " + n : value + n;
+  }
+
+  string PointSaid(int index, int series) => points[index].Label + ": " + ChartValueSaid(ValueOf(index, series)!.Value, unit)
+    + (SampleOf(index, series) == null ? "" : ", " + Sample(index, series)) + (Thin(index, series) ? ", a thin sample" : "");
+
+  render {
+    var wide = Layout.AtLeast(Tablet);
+    Stack(gap: "0", minW: "0") {
+      Row(gap: "8px", align: Align.Start, pt: "18px", minW: "0") {
+        ChartScaleColumn(Ticks(), unit, height, label);
+        Stack(gap: 0, grow: 1, basis: "0", minW: "0") {
+          Box(h: Px(height), position: Position.Relative, minW: "0", role: UiRole.Group, label: label + " line") {
+            ChartGridLines(Ticks(), height);
+            Row(position: Position.Absolute, inset: 0, gap: "0", align: Align.End, minW: "0") {
+              foreach (var index in Enumerable.Range(0, points.Count).ToList()) {
+                if (Gap(index)) {
+                  Stack(grow: 1, basis: "0", minW: "0", h: Px(height), justify: Justify.End, align: Align.Center, mx: points.Count > 20 ? "1px" : "3px",
+                        borderW: 1, borderStyle: BorderStyle.Dashed, border: Colors.ConsoleBorderInner, rounded: "2px 2px 0 0") {
+                    if (Roomy(wide)) {
+                      Text("no data", fontSize: FontSize.ConsoleBadge, color: Colors.ConsoleText3, whiteSpace: WhiteSpace.Nowrap, pb: "4px");
+                    }
+                  }
+                } else {
+                  Box(grow: 1, basis: "0", minW: "0", h: Px(height), decorative: true);
+                }
+              }
+            }
+            foreach (var series in Enumerable.Range(0, Series()).ToList()) {
+              foreach (var run in Runs(series).Where(r => r.Count > 1).ToList()) {
+                Path(points: LineOf(run, series), stroke: Fill(series), width: 2, w: 1000, h: height,
+                     position: Position.Absolute, inset: 0, stretch: true);
+              }
+            }
+            if (Lines().Count > 0) {
+              ChartReferenceLines(Lines(), Ticks(), height, unit, label);
+            }
+            Box(position: Position.Absolute, inset: 0, role: UiRole.List, label: label + " points") {
+              foreach (var series in Enumerable.Range(0, Series()).ToList()) {
+                foreach (var index in Enumerable.Range(0, points.Count).Where(i => ValueOf(i, series) != null).ToList()) {
+                  Box(position: Position.Absolute, left: Across(index), bottom: Up(ValueOf(index, series)!.Value), w: "0", h: "0",
+                      role: UiRole.ListItem, label: PointSaid(index, series)) {
+                    Box(position: Position.Absolute, left: "-4px", top: "-4px", w: "8px", h: "8px", rounded: "50%", decorative: true,
+                        bg: Thin(index, series) ? Colors.ConsoleSurface : Fill(series), borderW: Thin(index, series) ? 2 : 1,
+                        border: Thin(index, series) ? Fill(series) : Colors.ConsoleSurface);
+                    if (Words(index, series, wide) != "") {
+                      // Centred over its point; the first and last held inside the plot.
+                      Row(position: Position.Absolute, bottom: "6px", w: "88px",
+                          left: index == 0 && points.Count > 1 ? "-6px" : index == points.Count - 1 && points.Count > 1 ? "-82px" : "-44px",
+                          justify: index == 0 && points.Count > 1 ? Justify.Start : index == points.Count - 1 && points.Count > 1 ? Justify.End : Justify.Center) {
+                        Text(Words(index, series, wide), fontSize: FontSize.ConsoleBadge, whiteSpace: WhiteSpace.Nowrap, textAlign: TextAlign.Center,
+                             lineHeight: "14px", fontVariant: FontVariant.TabularNums,
+                             color: Thin(index, series) ? Colors.ConsoleText3 : Colors.ConsoleText);
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+          ChartTimeAxis(points.Select(p => p.Label).ToList(), last, wide, "0", label);
+        }
+      }
+      if (AnyThin()) {
+        Row(gap: "6px", align: Align.Center, pt: "6px", role: UiRole.Group, label: label + " key") {
+          Box(w: "8px", h: "8px", rounded: "50%", shrink: 0, bg: Colors.ConsoleSurface, borderW: 2, border: Fill(0), decorative: true);
+          Text("Hollow: fewer than " + thin + " in the sample", fontSize: FontSize.ConsoleBadge, color: Colors.ConsoleText2);
+        }
+      }
+    }
+  }
+}

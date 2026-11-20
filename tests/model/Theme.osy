@@ -1,0 +1,6 @@
+namespace OsyrinLookTests;
+
+using Osysharp.Look;
+
+// The tests app wears the look itself, so its photographs are the look's and not the kit's default.
+theme LookTests : OsyrinV3 { }

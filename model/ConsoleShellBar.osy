@@ -1,0 +1,100 @@
+namespace Osysharp.Look;
+
+/// `ConsoleShell`'s bar from the app's chrome. On a tablet and wider, the top bar's right cluster, 10 apart: the Search
+/// button when the page gives a search (`searchText`, `searchGroups`), the chrome's badge, the avatar. On a phone, after
+/// the menu button: the switcher (tile, the product 14/600 over the section or context), the search icon, the avatar
+/// in a 44 px target, the icons white. It keeps the shells' leave guard for the avatar's menu and the phone's switcher:
+/// while the page holds unsaved edits they ask before leaving (`LeavePrompt`), as the rail's rows do (`ConsoleShellRail`).
+[Composable, Part]
+component ConsoleShellBar(ConsoleChrome chrome, Binding<string> searchText = null, List<ConsoleSearchGroup> searchGroups = null) {
+  // The leave guard's held question: the edited route being left, and where the reader asked to go.
+  string leaving = "";
+  string target = "";
+  bool canSaveLeaving = false;
+  string leaveError = "";
+
+  action AskBeforeLeave(string to) {
+    if (!Navigation.IsDirty || to == Navigation.CurrentPath) {
+      Navigation.Go(to);
+    } else {
+      leaveError = "";
+      canSaveLeaving = Navigation.CanSave(Navigation.CurrentPath);
+      leaving = Navigation.CurrentPath;
+      target = to;
+    }
+  }
+
+  action KeepEditing() {
+    leaving = "";
+    target = "";
+    leaveError = "";
+  }
+
+  action DiscardAndLeave() {
+    Navigation.Close(leaving, true);
+    Navigation.Go(target);
+    leaving = "";
+    target = "";
+  }
+
+  action SaveAndLeave() {
+    leaveError = "";
+    try {
+      Navigation.Save(leaving);
+      Navigation.Go(target);
+      leaving = "";
+      target = "";
+    }
+    catch (ValidationException ex) {
+      leaveError = ex.Message;
+    }
+  }
+
+  render {
+    if (leaving != "") {
+      LeavePrompt(canSaveLeaving, leaveError, SaveAndLeave, DiscardAndLeave, KeepEditing);
+    }
+    if (Viewport.AtLeast(Tablet)) {
+      Row(gap: "10px", align: Align.Center) {
+        if (searchText != null) {
+          ConsoleSearchButton(searchText, searchGroups, chrome.SearchLabel, chrome.SearchPlaceholder);
+        }
+        if (chrome.Badge != "") {
+          ConsoleBadge(chrome.Badge, chrome.BadgeTone, dot: true);
+        }
+        ConsoleAvatar(chrome, AskBeforeLeave);
+      }
+    } else {
+      Row(gap: "4px", align: Align.Center, grow: 1, minW: "0") {
+        if (Navigation.IsDirty) {
+          Pressable(onClick: () => AskBeforeLeave(chrome.Home), label: chrome.Product + ", " + chrome.Context, bg: Colors.Transparent, minW: "0") {
+            ConsolePhoneSwitcherFace(chrome);
+          }
+        } else {
+          Link(chrome.Home, label: chrome.Product + ", " + chrome.Context) { ConsolePhoneSwitcherFace(chrome); }
+        }
+        Box(grow: 1);
+        if (searchText != null) {
+          ConsoleSearchIcon(searchText, searchGroups, chrome.SearchLabel, chrome.SearchPlaceholder);
+        }
+        Box(w: "44px", h: "44px", display: Display.Flex, alignItems: Align.Center, justify: Justify.Center) { ConsoleAvatar(chrome, AskBeforeLeave); }
+      }
+    }
+  }
+}
+
+/// The phone bar's switcher: the tile, the product 14/600 over the section or context.
+[Composable, Part]
+component ConsolePhoneSwitcherFace(ConsoleChrome chrome) {
+  render {
+    Row(gap: "10px", align: Align.Center, h: "44px", px: "4px", minW: "0", color: Colors.ConsoleRailInk) {
+      ConsoleMarkTile(chrome);
+      Stack(gap: 0, lineHeight: "1.2", minW: "0") {
+        Text(chrome.Product, fontWeight: 600, fontSize: FontSize.ConsoleBodyPhone);
+        if (chrome.Section != "" || chrome.Context != "") {
+          Text(chrome.Section != "" ? chrome.Section : chrome.Context, fontSize: FontSize.ConsoleBadge, color: Colors.ConsoleRailText2);
+        }
+      }
+    }
+  }
+}

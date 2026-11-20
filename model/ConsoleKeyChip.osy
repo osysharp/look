@@ -1,0 +1,35 @@
+namespace Osysharp.Look;
+
+/// A plan item's key as a chip in its level's colours, `ConsoleTypeBadge`'s: a saga's white on the accent, an arc's on
+/// the soft accent, a slice's outlined, a bit's on the neutral ground. 20 high, mono 12/600, 6 px either side, one line,
+/// as wide as the key (at least 48, so short keys still line up). It is read as "Saga FOUNDRY-1": the colour is never the
+/// only sign of the level.
+[Composable]
+component ConsoleKeyChip(string key, ConsoleTypeKind kind, string level) {
+  variants {
+    base {
+      Display = Display.InlineFlex;
+      MinW = "48px";
+      H = "20px";
+      Px = "6px";
+      Rounded = Radius.ConsoleBadgeCorner;
+      FontFamily = Font.ConsoleMono;
+      FontSize = FontSize.ConsoleSmall;
+      FontWeight = 600;
+      LineHeight = "16px";
+      WhiteSpace = WhiteSpace.Nowrap;
+      Shrink = 0;
+    }
+    kind {
+      Saga { Bg = Colors.ConsoleAccent; Color = Colors.ConsoleOnAccent; }
+      Arc { Bg = Colors.ConsoleAccentSoft; Color = Colors.ConsoleAccentSoftInk; }
+      Slice { BorderW = 1; BorderStyle = BorderStyle.Solid; Border = Colors.ConsoleControlLine; Color = Colors.ConsoleOutlineInk; Bg = Colors.ConsoleSurface; }
+      Bit { Bg = Colors.ConsoleNeutralBg; Color = Colors.ConsoleNeutralInk; FontWeight = 500; }
+    }
+  }
+  render {
+    Box(label: level + " " + key) {
+      Row(align: Align.Center, justify: Justify.Center, w: "100%") { Text(key); }
+    }
+  }
+}
