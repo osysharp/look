@@ -4,8 +4,8 @@
 // product's package on top of it. How a consumer proposes a change: README.md, "Who owns it".
 // The floor is the first release after v0.19.15: the parts use [Section] (33ae66d8ae), which v0.19.15 lacks.
 package Osysharp.Look {
-  version "0.11.0";
-  minPlatform "0.23.1";
+  version "0.12.0";
+  minPlatform "0.24.0";
   summary "The Osyrin v3 look: base theme, type scale, chips, headers, cards, tables and states, over the Ui kit.";
   layout "Osysharp.Look";
   model "model/**/*.osy";
