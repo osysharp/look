@@ -67,7 +67,9 @@ used on a console page). Sample and tests: `/dev/console-detail-rows`, `tests/Co
 the top bar shows the Search button and its dialog. The groups come from `ConsoleSearch(searchText)` (`live var found =
 ConsoleSearch(searchText);`), which asks every `IConsoleSearchSource` in the app — a package implements it for the rows
 it owns (`Group()` the heading, `Search(text)` the rows, read as the caller), ordered by `[Order(n)]`; nothing names a
-source. The search is for somebody signed in. Sample and test: `/dev/console-search` (`OrganizationSearch` in
+source. The dialog is a modal (`UiRole.ModalDialog`): opening it, by the button or ⌘K, puts the keyboard in its field, Tab stays
+inside, and Escape closes it and gives the keyboard back to what opened it — the platform does this for every modal dialog.
+The search is for somebody signed in. Sample and test: `/dev/console-search` (`OrganizationSearch` in
 `tests/model/ConsoleSearchPage.osy`), `tests/ConsoleSearch.test.osy`.
 
 **A dashed placeholder strip.** `ConsoleDashedStrip(sentence, label: "", action: false) { … }` is the console's dashed
@@ -197,7 +199,7 @@ person sees, so `Assert.Visible("1 healthy")` finds it (the driver's `plainText`
 | `FormCard` | `title, subtitle`; `slot actions` (its close); block = field, rows | ReleasePlan's "Add items" card (Line hairline, `14px 18px`, gap 8, title 15/600 sans h3, nothing under the rows) | `FormCard("Add items", subtitle: "to 2.4") { slot actions { LookButton("Done", close, kind: ButtonKind.Inline); } LookInput(…); … }` |
 | `EditingCard` | `title`; block = editor, then buttons | ReleaseEditing's "Release" card being edited (2 px accent line, `18px 20px`, gap 12) | `EditingCard("Notes") { MarkdownEditor(…); LookButton("Done writing", …); }` |
 | `FieldRow` · `FieldGroupHead` | `label, help, note, changed, was, controlW`; block = the control · `text, first` | SagaArcEdit's field rows (label 14/600 over help 13 Ink 3 left, control right at most `controlW` = 300 px, `12px 20px` under Line 2; `changed` = accent tint 2 + "● Changed · was …"; stacks under 640) and its group heads ("WHAT IT IS", 13/600 uppercase Ink 4) | `FieldRow("Title", help: "Shown everywhere BOOK is named.") { LookInput("Title", title, inRow: true); }` |
-| `LookInput` · `LookSelect` · `LookTextArea` · `LookField` | `label, value (Binding<string>), w, state (Normal · Editing · Refused), message` (+ `LookSelect`: `options`, `words`, `placeholder`, `help`, `inRow`, `disabled`, `small` (36 px), `onChanged`, `console` (below); `LookTextArea`: `h`; `LookInput` and `LookTextArea`: `placeholder`; `LookInput`: `mono`, `inRow` = no label of its own, its `FieldRow` draws it, `onInput` each keystroke, `debounceMs` = only after that pause, `onEnter`, `search` = leading glass + a "Clear <label>" × while filled, Escape clears) | §3 inputs: 44 high (`LookSelect` is §22's dropdown, as `LookEnumSelect` below, over strings — never the browser's select), `10px 12px`, radius 8, 2 px accent while edited, bad line + 12 px message | `LookInput("Release name", name, w: "220px")` |
+| `LookInput` · `LookSelect` · `LookTextArea` · `LookField` | `label, value (Binding<string>), w, state (Normal · Editing · Refused), message` (+ `LookSelect`: `options`, `words`, `placeholder`, `help`, `inRow`, `disabled`, `small` (36 px), `onChanged`, `console` (below); `LookTextArea`: `h`; `LookInput` and `LookTextArea`: `placeholder`; `LookInput`: `mono`, `inRow` = no label of its own, its `FieldRow` draws it, `onInput` each keystroke, `debounceMs` = only after that pause, `onEnter`, `search` = leading glass + a "Clear <label>" × while filled, Escape clears, `type` = the browser's kind of text, "email" for an address) | §3 inputs: 44 high (`LookSelect` is §22's dropdown, as `LookEnumSelect` below, over strings — never the browser's select), `10px 12px`, radius 8, 2 px accent while edited, bad line + 12 px message | `LookInput("Release name", name, w: "220px")` |
 | `LookCheckbox` · `LookCheckboxBound` | `label, checked, onToggle, help, disabled` · `label, Binding<bool> value, onToggle, help, disabled` | §22 checkbox: 18 px box radius 4 in the proposed line, the accent with a white tick when ticked, 14 px words 8 after, a 13 px Ink 3 help line, at least 32 high, the focus ring; controlled for a derived state, bound for a field (the press writes it, `onToggle` commits) | `LookCheckbox("Run docs checks", docs, FlipDocs)` |
 | `LookSwitch` | `label, on, onToggle, onWord = "On", offWord = "Off", help, inRow, disabled` | §22 switch, for a setting that takes effect at once: 34 × 20 track (accent on, control line off), 16 px knob, its word after; the label 13/600 above (`inRow`: the `FieldRow` draws it); controlled | `FieldRow("Live updates", help: "…") { LookSwitch("Live updates", live, Apply, inRow: true); }` |
 | `LookEnumSelect<T>` | `label, Binding<T> value, T[] options = T.Members, w, help, inRow, disabled, onChanged, console` | §22 dropdown over an enum (words from `[Label]`): closed the field frame (44, `0 12px`, radius 8, control line, ▾), open the 2 px accent line and the list under it — as wide as the field, 4 below, radius 8, the menu's lift, rows `8px` radius 6, the chosen one ✓ in the accent ink, the lit one Line 2. ↓/↑ open and move, Enter picks, Escape closes (focus stays), a press outside closes. §22 draws radius 8, not `MoreMenu`'s 10, so it follows §22 | `LookEnumSelect("Runs when", check.Cadence, help: "Which slices the check runs on.")` |
@@ -279,13 +281,22 @@ card (75rem, radius 20, the lifted shadow) on a pale lavender page, the artwork 
 warm paper on its right. The panel holds the brand row (a 36 px "O#" tile, or the `logoUrl` image in its place, and
 `brand` 22/600), the `headline` 52/700 white, one line per `\n`, and `lede` under it (18 px; empty draws none). The
 form column (27rem) holds `heading` 32/700, `sub` muted, the default slot (the form) and `slot below`, an optional box
-under the form. Below 768 px the panel is a 13rem band above the form, its left side shaded for the white words.
+under the form. The artwork is shaded under the words as the osyrin.com front page shades it: across the left on the
+wide panel, fading out over its lit right side. Below 768 px the panel is a 13rem band above the form, shaded from the top.
 `artwork` is the look's own picture, `textures/signed_out_hero.jpg`. A package's textures reach the app that uses it
 as its icons do (`textures "textures/*.jpg";` in `package.osy`): `Textures.SignedOutHero` is there without the app
 carrying the file, an app's own texture of the same name wins, and two packages shipping one name is an error. Its tokens are
 the look's: `Colors.SignedOut*`, `Radius.SignedOutCard`, `Length.SignedOut*`, `Shadow.SignedOutLift`,
 `FontSize.SignedOutHeading*`. Foundry's `SignedOutFrame` passes its own brand and headline. Sample: `/dev/signed-out`
 (`tests/SignedOut.test.osy`).
+
+A page reached from the front page's hero (osyrin.com: Admin's `/apply`) says what the hero says, the way it says it,
+with four more arguments, each empty by default and then drawing nothing: `eyebrow`, an 11/600 uppercase line over the
+headline; `headlineAccent`, more headline lines after `headline`'s (one per `\n`) in the artwork's second ink,
+`Colors.OnSignedOutHeroAccent` (the front page's lavender); `tagline`, a 24/600 closing line under the lede (20 on a
+phone) and `taglineAccent`, its last words in that ink. e.g. `LookSignedOutFrame("Apply for the beta", "Every team can
+build with AI.", Textures.SignedOutHero, "Osyrin", eyebrow: "Private beta", headlineAccent: "Every app follows your
+rules.", lede: "…", tagline: "Software you own.", taglineAccent: "Run for you.") { … }`. Sample: `/dev/signed-out/hero`.
 
 ## Chart series
 

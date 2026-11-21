@@ -29,3 +29,33 @@ void The_search_shows_what_the_apps_search_source_finds_under_its_group() {
   Ui.Fill("Search the console", "nowhere");
   Assert.Visible("Nothing found for “nowhere”.", within: "Search");
 }
+
+[Test(ConsoleOrganizations)]
+void Opening_the_search_by_the_shortcut_puts_the_keyboard_in_its_field() {
+  Ui.SignInAs(Ops);
+  Ui.Viewport(1440);
+  Ui.Visit("/dev/console-search");
+  Ui.Press("Mod+K");
+  Assert.Focused("Search the console");
+}
+
+[Test(ConsoleOrganizations)]
+void Opening_the_search_by_its_button_puts_the_keyboard_in_its_field() {
+  Ui.SignInAs(Ops);
+  Ui.Viewport(1440);
+  Ui.Visit("/dev/console-search");
+  Ui.Click("Search");
+  Assert.Focused("Search the console");
+}
+
+[Test(ConsoleOrganizations)]
+void Escape_closes_the_search_and_gives_the_keyboard_back_to_its_button() {
+  Ui.SignInAs(Ops);
+  Ui.Viewport(1440);
+  Ui.Visit("/dev/console-search");
+  Ui.Click("Search");
+  Assert.Focused("Search the console");
+  Ui.Press("Escape");
+  Assert.Hidden("Search the console");
+  Assert.Focused("Search");
+}

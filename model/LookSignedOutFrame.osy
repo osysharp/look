@@ -8,10 +8,16 @@ namespace Osysharp.Look;
 /// under it, and empty draws none. `artwork` is the picture the panel is cut from: the look carries one,
 /// `textures/signed_out_hero.jpg`, which an app names as `Textures.SignedOutHero`.
 /// `slot below` is an optional box under the form, in the form's column (a "Run it yourself" note).
+/// The front page's hero says more, and a page that is reached from it (Admin's `/apply`) says it the same way:
+/// `eyebrow` a small uppercase line over the headline; `headlineAccent` more headline lines after `headline`'s, one per
+/// "\n", in the artwork's second ink ("Every team can build with AI." then "Every app follows your rules."); `tagline`
+/// a closing line under the lede, `taglineAccent` its last words in the second ink ("Software you own." "Run for you.").
+/// Each is empty by default and then draws nothing.
 /// e.g. `LookSignedOutFrame("Sign in", "Build software.\nSee every step.", Textures.SignedOutHero, "Osyrin Foundry") { SignInForm(); }`
 [Composable]
 component LookSignedOutFrame(string heading, string headline, Textures artwork, string brand, string lede = "", string sub = "",
-                             string logoUrl = "") {
+                             string logoUrl = "", string eyebrow = "", string headlineAccent = "", string tagline = "",
+                             string taglineAccent = "") {
   render {
     bool wide = Viewport.AtLeast(Tablet);
 
@@ -34,7 +40,8 @@ component LookSignedOutFrame(string heading, string headline, Textures artwork, 
         shadow: wide ? Shadow.SignedOutLift : "none",
         overflow: Overflow.Hidden
       ) {
-        LookSignedOutHero(brand, logoUrl, headline, lede, artwork, wide);
+        LookSignedOutHero(brand, logoUrl, headline, lede, artwork, wide, eyebrow: eyebrow, headlineAccent: headlineAccent,
+                          tagline: tagline, taglineAccent: taglineAccent);
         Stack(
           // Top-aligned, with the artwork's own top padding, so the heading stands level with the brand row.
           justify: Justify.Start,
@@ -67,15 +74,25 @@ component LookSignedOutFrame(string heading, string headline, Textures artwork, 
 
 /// The left half of the signed-out card: the artwork filling the panel, cropped from the left and top so its lit
 /// right-hand side stays in view, and over it the brand, the headline and the lede in white. On a phone (`wide`
-/// false) it is a short band.
+/// false) it is a short band. `eyebrow`, `headlineAccent`, `tagline` and `taglineAccent` are the frame's.
 [Composable]
-component LookSignedOutHero(string brand, string logoUrl, string headline, string lede, Textures artwork, bool wide) {
-  string phoneShade = "linear-gradient(90deg, "
-    + "color-mix(in srgb, var(--colors-signedoutherodeep) 75%, transparent) 0%, "
-    + "color-mix(in srgb, var(--colors-signedoutherodeep) 40%, transparent) 55%, "
-    + "transparent 85%)";
+component LookSignedOutHero(string brand, string logoUrl, string headline, string lede, Textures artwork, bool wide,
+                            string eyebrow = "", string headlineAccent = "", string tagline = "", string taglineAccent = "") {
+  // The front page's own shades (osyrin.com's hero, the frame opened up into a page): on the wide panel the artwork's
+  // dark deepened across the left, where the words are, and fading out over its lit right side; in the phone's band a
+  // shade from the top, as the words run the whole width.
+  string wideShade = "linear-gradient(100deg, "
+    + "color-mix(in srgb, var(--colors-signedoutherodeep) 95%, transparent) 0%, "
+    + "color-mix(in srgb, var(--colors-signedoutherodeep) 86%, transparent) 48%, "
+    + "color-mix(in srgb, var(--colors-signedoutherodeep) 35%, transparent) 82%, "
+    + "color-mix(in srgb, var(--colors-signedoutherodeep) 5%, transparent) 100%)";
+  string phoneShade = "linear-gradient(180deg, "
+    + "color-mix(in srgb, var(--colors-signedoutherodeep) 92%, transparent) 0%, "
+    + "color-mix(in srgb, var(--colors-signedoutherodeep) 82%, transparent) 70%, "
+    + "color-mix(in srgb, var(--colors-signedoutherodeep) 55%, transparent) 100%)";
 
   List<string> HeadlineLines() => headline.Split('\n').ToList();
+  List<string> AccentLines() => headlineAccent == "" ? new List<string>() : headlineAccent.Split('\n').ToList();
 
   render {
     Box(
@@ -97,11 +114,9 @@ component LookSignedOutHero(string brand, string logoUrl, string headline, strin
         objectPosition: "right bottom",
         display: Display.Block
       );
-      // In the short band the headline runs over the lit part of the artwork, so its left side is darkened enough for
-      // white text to hold its contrast. On the wide panel the headline sits on the artwork's own dark and needs none.
-      if (!wide) {
-        Box(position: Position.Absolute, inset: 0, bgImage: phoneShade);
-      }
+      // The words run over the lit part of the artwork, so it is shaded under them enough for white text to hold its
+      // contrast (measured on /dev/signed-out/hero, where a long headline reaches the lit steps).
+      Box(position: Position.Absolute, inset: 0, bgImage: wide ? wideShade : phoneShade);
       Stack(
         position: Position.Relative,
         gap: wide ? 8 : 4,
@@ -131,19 +146,54 @@ component LookSignedOutHero(string brand, string logoUrl, string headline, strin
           }
           Text(brand, fontSize: "1.375rem", fontWeight: FontWeight.Semibold, letterSpacing: "-0.01em");
         }
-        Stack {
-          foreach (var line in HeadlineLines()) {
+        Stack(gap: 3) {
+          if (eyebrow != "") {
             Text(
-              line,
-              fontSize: wide ? "3.25rem" : "2rem",
-              fontWeight: FontWeight.Heavy,
-              lineHeight: "1.08",
-              letterSpacing: "-0.025em"
+              eyebrow,
+              fontSize: FontSize.Overline,
+              fontWeight: FontWeight.Semibold,
+              letterSpacing: "0.08em",
+              textTransform: TextTransform.Uppercase,
+              color: Colors.OnSignedOutHeroAccent
             );
           }
+          Stack {
+            foreach (var line in HeadlineLines()) {
+              Text(
+                line,
+                fontSize: wide ? "3.25rem" : "2rem",
+                fontWeight: FontWeight.Heavy,
+                lineHeight: "1.08",
+                letterSpacing: "-0.025em"
+              );
+            }
+            foreach (var line in AccentLines()) {
+              Text(
+                line,
+                fontSize: wide ? "3.25rem" : "2rem",
+                fontWeight: FontWeight.Heavy,
+                lineHeight: "1.08",
+                letterSpacing: "-0.025em",
+                color: Colors.OnSignedOutHeroAccent
+              );
+            }
+          }
         }
-        if (lede != "") {
-          Text(lede, fontSize: wide ? "1.125rem" : "0.9375rem", lineHeight: "1.5", maxW: "28rem");
+        if (lede != "" || tagline != "") {
+          Stack(gap: 4) {
+            if (lede != "") {
+              Text(lede, fontSize: wide ? "1.125rem" : "0.9375rem", lineHeight: "1.5", maxW: "28rem");
+            }
+            if (tagline != "") {
+              Row(gap: "0 0.3em", wrap: Wrapping.Wrap, fontSize: wide ? "1.5rem" : "1.25rem", fontWeight: FontWeight.Semibold,
+                  lineHeight: "1.3", letterSpacing: "-0.01em") {
+                Text(tagline);
+                if (taglineAccent != "") {
+                  Text(taglineAccent, color: Colors.OnSignedOutHeroAccent);
+                }
+              }
+            }
+          }
         }
       }
     }

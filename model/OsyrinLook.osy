@@ -90,6 +90,9 @@ theme OsyrinLook {
     SignedOutPage = Modes.Of(light: "#E6DFEC", dark: "#121110");
     SignedOutHeroDeep = "#10062B";
     OnSignedOutHero = "#FFFFFF";
+    /// The artwork's second ink: a headline's or a tagline's accented words and the eyebrow over the headline (the front
+    /// page's lavender, its rail icon).
+    OnSignedOutHeroAccent = "#C9C5FF";
     SignedOutForm = Modes.Of(light: "#F8F4EF", dark: "#1D1C1A");
     SignedOutField = Modes.Of(light: "#FDFBFA", dark: "#252422");
     SignedOutOutline = Modes.Of(light: "#A79DC8", dark: "#55516A");

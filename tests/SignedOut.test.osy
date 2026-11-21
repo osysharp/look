@@ -29,3 +29,33 @@ void The_signed_out_frame_draws_the_headline_the_lede_the_form_and_the_box_below
   Assert.NoOverflow();
   Ui.Shot("signed-out-frame-390");
 }
+
+// The front page's hero in the frame (/dev/signed-out/hero): the eyebrow over the headline, the headline's accented
+// line under its first, the lede, and the tagline with its accented words — at 1440 and on a phone.
+[Test]
+void The_signed_out_frame_says_the_front_pages_hero_with_an_eyebrow_an_accent_line_and_a_tagline() {
+  Ui.Viewport(1440);
+  Ui.Visit("/dev/signed-out/hero");
+  Assert.Visible("Private beta");
+  Assert.Visible("Every team can build with AI.");
+  Assert.Visible("Every app follows your rules.");
+  Assert.Visible("We're letting teams in a few at a time.");
+  Assert.Visible("Software you own.");
+  Assert.Visible("Run for you.");
+  Assert.Above("Private beta", "Every team can build with AI.");
+  Assert.Above("Every team can build with AI.", "Every app follows your rules.");
+  Assert.Above("Every app follows your rules.", "We're letting teams in a few at a time.");
+  Assert.Above("We're letting teams in a few at a time.", "Software you own.");
+  Assert.NoOverflow();
+  Ui.Shot("signed-out-hero-1440");
+  Ui.Fill("Email", "ada@example.com");
+  Ui.Click("Join the beta");
+  Assert.Visible("A code is on its way to ada@example.com");
+
+  Ui.Viewport(390);
+  Ui.Visit("/dev/signed-out/hero");
+  Assert.Visible("Every app follows your rules.");
+  Assert.Visible("Run for you.");
+  Assert.NoOverflow();
+  Ui.Shot("signed-out-hero-390");
+}

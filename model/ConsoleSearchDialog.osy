@@ -2,7 +2,7 @@ namespace Osysharp.Look;
 
 /// The console's search dialog over a dimmed page: one input, and under it the `groups` the page found for the typed
 /// `text`, each under its heading. Results show after two characters. ↓ and ↑ move through all of them, Enter opens the
-/// one marked, Escape or a press outside closes it. The page reads its results from `text`; this part reads nothing.
+/// one marked, Escape or a press outside closes it. It is a modal dialog, so the field takes the keyboard on open and Escape hands it back to what opened it. The page reads its results from `text`; this part reads nothing.
 /// `label` names the field (Foundry: "Search Foundry"), `placeholder` is its hint (Foundry: "Search products, plan items
 /// and hosts"); the app gives them in `ConsoleChrome.SearchLabel` and `SearchPlaceholder`.
 [Composable]
@@ -53,7 +53,7 @@ component ConsoleSearchDialog(Binding<string> text, List<ConsoleSearchGroup> gro
       Stack(gap: 0, position: Position.Fixed, top: wide ? "12vh" : "8px", left: wide ? "calc(50% - 280px)" : "8px", right: wide ? "auto" : "8px",
             w: wide ? "560px" : "auto", maxH: "76vh", z: ZIndex.Modal, bg: Colors.ConsoleSurface, borderW: 1, border: Colors.ConsoleBorder,
             rounded: Radius.ConsoleCorner, overflow: Overflow.Hidden, color: Colors.ConsoleText, fontFamily: Font.ConsoleSans,
-            role: UiRole.Dialog, label: "Search", onEscape: onClose, keys: [Up, Down, Enter], onKeyDown: Key) {
+            role: UiRole.ModalDialog, label: "Search", onEscape: onClose, keys: [Up, Down, Enter], onKeyDown: Key) {
         Input(value: text, label: label, placeholder: placeholder, w: "100%", minH: "48px", px: "16px",
               fontSize: FontSize.ConsoleBody, bg: Colors.ConsoleSurface, borderBW: 1, border: Colors.ConsoleBorderInner);
         Stack(gap: 0, overflowY: Overflow.Auto, minW: "0", label: "Search results") {

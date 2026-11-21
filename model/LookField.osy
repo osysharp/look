@@ -41,11 +41,13 @@ component LookField(string label, FieldState state = FieldState.Normal, string m
 /// (after a pause of `debounceMs` when set: one question to the server per pause, not per letter); `onEnter` on Return.
 /// `search`: a leading magnifier (Ink 3, 14 px, 12 in) and, while it holds text, a × at its right that clears it
 /// ("Clear <label>"); Escape clears it too. On no board as such: §3's input with the kit's search glass.
+/// `type` is the browser's kind of text ("email": a phone offers its address keyboard and the browser its saved
+/// addresses).
 /// In a test it is filled by its label: `Ui.Fill("Release name", "Patient Portal 2.5")`.
 [Composable]
 component LookInput(string label, Binding<string> value, string w = "100%", FieldState state = FieldState.Normal, string message = "",
                     bool mono = false, string placeholder = "", bool inRow = false, Action onInput = null, int debounceMs = 0,
-                    Action onEnter = null, bool search = false) {
+                    Action onEnter = null, bool search = false, string type = "text") {
   int typed = 0;
   // Each keystroke: at once, or — with `debounceMs` — only when no keystroke has come for that long (the platform's
   // `debounce:` takes a written number, so the pause is kept here).
@@ -84,7 +86,7 @@ component LookInput(string label, Binding<string> value, string w = "100%", Fiel
           }
         }
       } else {
-        Input(value: value, label: label, placeholder: placeholder, w: w, minH: "44px", py: state == FieldState.Editing ? "9px" : "10px", px: state == FieldState.Editing ? "11px" : "12px",
+        Input(value: value, label: label, type: type, placeholder: placeholder, w: w, minH: "44px", py: state == FieldState.Editing ? "9px" : "10px", px: state == FieldState.Editing ? "11px" : "12px",
               fontSize: mono ? FontSize.Label : FontSize.Body, fontWeight: FontWeight.Regular, fontFamily: mono ? Font.KeyFace : Font.Sans,
               color: Colors.OnSurface, bg: Colors.Surface, rounded: Radius.Control, borderW: state == FieldState.Editing ? 2 : 1,
               border: state == FieldState.Editing ? Colors.Primary : (state == FieldState.Refused ? Colors.BadDot : Colors.ControlLine),

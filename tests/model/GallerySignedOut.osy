@@ -43,3 +43,37 @@ component SignedOutGalleryPage() {
     }
   }
 }
+
+/// The signed-out frame saying what the front page's hero says: an eyebrow, a headline whose second line is in the
+/// artwork's second ink, a lede and a tagline — as Admin's `/apply` draws it.
+[Route("/dev/signed-out/hero")]
+[AllowAnonymous]
+[Title("Apply for the beta")]
+[Render(CSR)]
+component SignedOutHeroGalleryPage() {
+  string address = "";
+  string building = "";
+  string said = "";
+  action Apply() { said = "A code is on its way to " + address; }
+  render {
+    LookSignedOutFrame(
+      "Apply for the beta",
+      "Every team can build with AI.",
+      Textures.SignedOutHero,
+      "Osyrin",
+      eyebrow: "Private beta",
+      headlineAccent: "Every app follows your rules.",
+      lede: "We're letting teams in a few at a time.",
+      tagline: "Software you own.",
+      taglineAccent: "Run for you.",
+      sub: "An address and a sentence about what you build."
+    ) {
+      Stack(gap: 4) {
+        LookInput("Email", address, type: "email", placeholder: "you@company.com");
+        LookTextArea("What you want to build", building, h: "112px");
+        LookButton("Join the beta", Apply, kind: ButtonKind.Primary, wide: true);
+        if (said != "") { Text(said); }
+      }
+    }
+  }
+}
