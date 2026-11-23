@@ -63,6 +63,11 @@ nothing to open says `details: true` and no `detail`. Outside a table — a phon
 `ConsoleDisclosure("How a limit holds an application") { … }` is the console's "› Details" (the v3 `Disclosure` is not
 used on a console page). Sample and tests: `/dev/console-detail-rows`, `tests/ConsoleDetailRows.test.osy`.
 
+**A rail group about one thing.** A `ConsoleNavGroup` may carry a `Subject` (`ConsoleRailSubject{Name,Key,State,Tone}`): its
+name (12.5/600 rail ink), key (11.5 mono) and state badge are drawn over the group's rows (`ConsoleRailSubjectBlock`), in the rail and in
+the phone drawer; a long name or key ends in "…" and shows whole on hover. Admin gives its application rail the application, so the rows
+read as about it. (The v3 boards draw no such header; it follows the org switcher's type and spacing.)
+
 **The console's ⌘K search.** A page gives `ConsoleFrame` (or `ConsoleShellBar`) `searchText` and `searchGroups`, and
 the top bar shows the Search button and its dialog. The groups come from `ConsoleSearch(searchText)` (`live var found =
 ConsoleSearch(searchText);`), which asks every `IConsoleSearchSource` in the app — a package implements it for the rows

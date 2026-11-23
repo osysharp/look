@@ -3,5 +3,7 @@ namespace Osysharp.Look;
 /// A group of rail rows under an uppercase heading (`Label`; none for the first group, under the switcher).
 public class ConsoleNavGroup {
   public string Label = "";
+  /// What the rows below are about, drawn over them (`ConsoleRailSubjectBlock`); none: the group is just rows.
+  public ConsoleRailSubject? Subject = null;
   public List<ConsoleNavItem> Items = new List<ConsoleNavItem>();
 }

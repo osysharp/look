@@ -20,10 +20,35 @@ component ConsoleRailBody(ConsoleChrome chrome, string path, Action onNavigated,
           Text(group.Label, pt: "18px", px: "10px", pb: "6px", fontSize: FontSize.ConsoleRailHeading,
                fontWeight: 600, letterSpacing: "0.06em", textTransform: TextTransform.Uppercase, color: Colors.ConsoleRailMuted, lineHeight: "1.5");
         }
-        Stack(gap: "1px", mt: group.Label == "" ? "14px" : "0", role: UiRole.Navigation, label: group.Label != "" ? group.Label : "Main") {
+        if (group.Subject != null) {
+          ConsoleRailSubjectBlock(group.Subject);
+        }
+        Stack(gap: "1px", mt: group.Subject != null ? "8px" : group.Label == "" ? "14px" : "0", role: UiRole.Navigation, label: group.Label != "" ? group.Label : "Main") {
           foreach (var item in group.Items) {
             ConsoleNavRow(item, lit != "" && lit == ConsoleRowKey(item), onNavigated, phone, onAsk);
           }
+        }
+      }
+    }
+  }
+}
+
+/// What the rail's rows are about, under the row that leads out of it: `14px 10px 0`, the name 12.5/600 in rail ink (the
+/// switcher's product line), the key 11.5 mono in rail-text-2 beside the state's badge. A long name or key ends in "…" and its
+/// whole shows on hover (`ClampText`); the same in the phone's drawer.
+[Composable, Part]
+component ConsoleRailSubjectBlock(ConsoleRailSubject subject) {
+  render {
+    Stack(gap: "3px", pt: "14px", px: "10px", minW: "0", role: UiRole.Group, label: subject.Name) {
+      Stack(gap: 0, minW: "0", fontWeight: 600, fontSize: FontSize.ConsoleControl, color: Colors.ConsoleRailInk) {
+        ClampText(subject.Name, lineHeight: "1.25");
+      }
+      Box(display: Display.Flex, alignItems: Align.Center, gap: "8px", minW: "0") {
+        Stack(gap: 0, minW: "0", fontFamily: Font.ConsoleMono, fontSize: FontSize.ConsoleBadge, color: Colors.ConsoleRailText2) {
+          ClampText(subject.Key, lineHeight: "1.25");
+        }
+        if (subject.State != "") {
+          ConsoleBadge(subject.State, subject.Tone, dot: subject.Tone == ConsoleTone.Warn);
         }
       }
     }

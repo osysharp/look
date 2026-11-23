@@ -1,0 +1,9 @@
+namespace Osysharp.Look;
+
+/// The thing a rail's rows are about (an application, in Admin): its name, its key (a slug) and its state, if it has one.
+public class ConsoleRailSubject {
+  public string Name = "";
+  public string Key = "";
+  public string State = "";
+  public ConsoleTone Tone = ConsoleTone.Neutral;
+}
