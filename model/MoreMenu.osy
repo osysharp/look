@@ -4,7 +4,11 @@ namespace Osysharp.Look;
 // page holds whether it is open, so choosing an item can close it.
 
 /// The button (`LookButton`, outlined) and, while `open`, its menu 50 px below, its right edge on the button's: 240
-/// wide, white on the Line hairline, radius 10, the drawer's lift, `6px` round its items (`MenuAction`); Escape closes it.
+/// wide, white on the Line hairline, radius 10, the drawer's lift, `6px` round its items (`MenuAction`). It closes as every
+/// menu does, through `onToggle` (so the page's `open` follows): a press anywhere outside it (the kit's `Backdrop`),
+/// Escape, which returns the keyboard to the button, and choosing an item, whose own action the page ends with `open = false`.
+/// `console: true`: the trigger is the console's own `ConsoleButton` (30 px, the control line, its focus ring), for a header
+/// whose neighbours are `ConsoleButton`s; `wide` is `ConsoleButton`'s (full width on a phone). Everything else is as above.
 /// In a test: `Ui.Click("More ▾")`, then the item by its words.
 /// IN A TABLE ROW (a row's own actions): `announce` names each row's button apart, its words first ("More for
 /// GH_TOKEN"; a test clicks it by that name); `small` the band's 36 px button, its menu 42 below. The menu opens over the
@@ -13,12 +17,17 @@ namespace Osysharp.Look;
 /// `MenuSheet` at its own level, as `ChipMenu` does.
 [Composable]
 component MoreMenu(string label, bool open, Action onToggle, string menuLabel = "More actions", string announce = "", bool small = false,
-                   bool popover = true) {
+                   bool popover = true, bool console = false, bool wide = false) {
   render {
     Box(position: Position.Relative) {
-      LookButton(label, onToggle, small: small, announce: announce);
+      if (console) {
+        ConsoleButton(label, onToggle, wide: wide, announce: announce);
+      } else {
+        LookButton(label, onToggle, small: small, announce: announce);
+      }
       if (open && popover) {
-        Stack(gap: 0, position: Position.Absolute, top: small ? "42px" : "50px", right: "0", z: ZIndex.Popover, w: "240px", p: "6px",
+        Backdrop(onToggle);
+        Stack(gap: 0, position: Position.Absolute, top: console ? "38px" : small ? "42px" : "50px", right: "0", z: ZIndex.Popover, w: "240px", p: "6px",
               bg: Colors.Surface, borderW: 1, border: Colors.Border, rounded: Radius.Banner, shadow: Shadow.DrawerLift, role: UiRole.Menu,
               label: menuLabel, onEscape: onToggle) {
           Slot;

@@ -1,0 +1,72 @@
+// PLATFORM-678: the MoreMenu trigger is an outlined LookButton in size, and its whole face opens the menu.
+
+using Osysharp.Look;
+using OsyrinLookTests;
+
+[Test]
+void The_More_trigger_is_as_tall_as_the_outlined_button_beside_it() {
+  Ui.Viewport(1440);
+  Ui.Visit("/dev/controls/more-menu");
+  Assert.SameHeight("Add items", "More ▾");
+  Ui.Shot("more-menu-header", within: "Header buttons");
+}
+
+[Test]
+void A_tap_outside_an_open_More_menu_closes_it_and_the_page_state_follows() {
+  Ui.Visit("/dev/controls/more-menu");
+  Ui.Click("More ▾");
+  Assert.Visible("The menu is open.");
+  Assert.Visible("Export evidence");
+  Ui.Dismiss();
+  Assert.Hidden("Export evidence");
+  Assert.Hidden("The menu is open.");
+}
+
+[Test]
+void Escape_closes_an_open_More_menu_and_the_keyboard_returns_to_its_trigger() {
+  Ui.Visit("/dev/controls/more-menu");
+  Ui.Click("More ▾");
+  Assert.Visible("Export evidence");
+  Ui.Press("Escape");
+  Assert.Hidden("Export evidence");
+  Assert.Hidden("The menu is open.");
+  Assert.Focused("More ▾");
+}
+
+[Test]
+void Choosing_an_item_closes_an_open_More_menu() {
+  Ui.Visit("/dev/controls/more-menu");
+  Ui.Click("More ▾");
+  Ui.Click("Export evidence");
+  Assert.Hidden("Export evidence");
+  Assert.Hidden("The menu is open.");
+}
+
+[Test]
+void The_More_trigger_keeps_the_outlined_buttons_height_while_open_and_focused() {
+  Ui.Viewport(1440);
+  Ui.Visit("/dev/controls/more-menu");
+  Ui.Click("More ▾");
+  Assert.SameHeight("Add items", "More ▾");
+}
+
+// PLATFORM-680: with `console: true` the trigger is a ConsoleButton, level with its console neighbours.
+
+[Test]
+void The_console_More_trigger_is_as_tall_as_the_console_buttons_beside_it() {
+  Ui.Viewport(1440);
+  Ui.Visit("/dev/controls/more-menu-console");
+  Assert.SameHeight("Add items", "More ▾");
+  Assert.SameHeight("Mark released", "More ▾");
+  Ui.Shot("more-menu-console-header", within: "Console header buttons");
+}
+
+[Test]
+void A_tap_outside_an_open_console_More_menu_closes_it() {
+  Ui.Visit("/dev/controls/more-menu-console");
+  Ui.Click("More ▾");
+  Assert.Visible("Export evidence");
+  Ui.Dismiss();
+  Assert.Hidden("Export evidence");
+  Assert.Hidden("The menu is open.");
+}

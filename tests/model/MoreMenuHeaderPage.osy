@@ -1,0 +1,51 @@
+namespace OsyrinLookTests;
+
+using Osysharp.Look;
+
+/// The release header's three buttons, the menu closed: a primary, an outlined and a `MoreMenu` trigger side by side.
+[Route("/dev/controls/more-menu")]
+[AllowAnonymous]
+[Title("More menu trigger")]
+[Render(CSR)]
+component MoreMenuHeaderPage() {
+  bool open = false;
+  action Toggle() { open = !open; }
+  action Close() { open = false; }
+  action Nothing() { }
+  render {
+    ControlsFrame("More menu trigger") {
+      Row(gap: "8px", label: "Header buttons") {
+        LookButton("Mark released", Nothing, kind: ButtonKind.Primary);
+        LookButton("Add items", Nothing);
+        MoreMenu("More ▾", open, Toggle, menuLabel: "More release actions") {
+          MenuAction("Export evidence", Close);
+        }
+      }
+      if (open) { Text("The menu is open."); }
+    }
+  }
+}
+
+/// The console header: two `ConsoleButton`s and the console `MoreMenu`.
+[Route("/dev/controls/more-menu-console")]
+[AllowAnonymous]
+[Title("Console More menu trigger")]
+[Render(CSR)]
+component MoreMenuConsoleHeaderPage() {
+  bool open = false;
+  action Toggle() { open = !open; }
+  action Close() { open = false; }
+  action Nothing() { }
+  render {
+    ControlsFrame("Console More menu trigger") {
+      Row(gap: "8px", label: "Console header buttons") {
+        ConsoleButton("Mark released", Nothing, primary: true);
+        ConsoleButton("Add items", Nothing);
+        MoreMenu("More ▾", open, Toggle, menuLabel: "More release actions", console: true) {
+          MenuAction("Export evidence", Close);
+        }
+      }
+      if (open) { Text("The menu is open."); }
+    }
+  }
+}
