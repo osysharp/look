@@ -1,0 +1,46 @@
+namespace OsyrinLookTests;
+
+using Osysharp.Look;
+
+// The console bar chart with its readout (PLATFORM-709) alone at /dev/bar-chart: a week of CPU time given in
+// milliseconds (the axis in hours), a week of egress given in bytes (the axis in KiB), one day with no data, and two
+// series stacked; read at 1440 and 390, light and dark.
+
+/// Three usage charts in console chart cards, as Admin's Usage → Resources draws them.
+[Route("/dev/bar-chart")]
+[AllowAnonymous]
+[Title("Bar chart")]
+[Render(CSR)]
+component BarChartPage() {
+  ConsoleBarPoint Day(string label, double? value) => new ConsoleBarPoint { Label = label, Values = new List<double?> { value } };
+
+  // 19.5 h on the busiest day: the axis is 0–20 h, not 0–80M ms.
+  List<ConsoleBarPoint> Cpu() => new List<ConsoleBarPoint> {
+    Day("18 Nov", 3600000 * 2.5), Day("19 Nov", 3600000 * 19.5), Day("20 Nov", null), Day("21 Nov", 3600000 * 8),
+    Day("22 Nov", 3600000 * 11.2), Day("23 Nov", 45000), Day("24 Nov", 3600000 * 3.2),
+  };
+
+  // 900 KiB on the busiest day: the axis is in KiB.
+  List<ConsoleBarPoint> Egress() => new List<ConsoleBarPoint> {
+    Day("18 Nov", 1024 * 120), Day("19 Nov", 1024 * 900), Day("20 Nov", 1024 * 240), Day("21 Nov", 512),
+    Day("22 Nov", 1024 * 300), Day("23 Nov", 0), Day("24 Nov", 1024 * 640),
+  };
+
+  List<ConsoleBarPoint> Requests() => new List<ConsoleBarPoint> {
+    new ConsoleBarPoint { Label = "22 Nov", Values = new List<double?> { 1180, 2 } },
+    new ConsoleBarPoint { Label = "23 Nov", Values = new List<double?> { 1234, 3 } },
+    new ConsoleBarPoint { Label = "24 Nov", Values = new List<double?> { 960, 0 } },
+  };
+
+  render {
+    Box(p: "24px", bg: Colors.Bg, color: Colors.OnSurface, fontSize: "16px", lineHeight: "normal", fontFamily: Font.Sans, minH: "100vh") {
+      Stack(maxW: "640px", gap: "16px") {
+        ConsoleChartCard("CPU", count: "CPU time a day", points: Cpu(), unit: "ms", names: new List<string> { "CPU" }, per: "day") { }
+        ConsoleChartCard("Egress", count: "Sent to the internet a day", points: Egress(), unit: "bytes", names: new List<string> { "Egress" },
+                         per: "day") { }
+        ConsoleChartCard("Requests", count: "What it served", legend: new List<string> { "Requests", "Server errors" }, points: Requests(),
+                         stacked: true, names: new List<string> { "Requests", "Server errors" }) { }
+      }
+    }
+  }
+}

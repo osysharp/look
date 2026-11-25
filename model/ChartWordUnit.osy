@@ -1,0 +1,5 @@
+namespace Osysharp.Look;
+
+/// Whether a chart's `unit` is a word said after a count ("builds", "accounts"), rather than a sign the chart says
+/// itself ("%", "$", "h", "GB") or a scaled unit ("ms", "bytes"; `ChartScaledUnit`).
+internal bool ChartWordUnit(string unit) => unit != "" && unit != "%" && unit != "$" && unit != "h" && unit != "GB" && !ChartScaledUnit(unit);

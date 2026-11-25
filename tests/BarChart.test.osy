@@ -1,0 +1,74 @@
+// The console bar chart's scale and readout (PLATFORM-709, the owner on Admin's Usage charts: "the charts here have no
+// scale, and hovering over a bar doesn't say what date and what the value is"). A duration given in ms is scaled in
+// hours, an amount of data given in bytes in KiB; the keyboard, a tap and the pointer each show one point's readout.
+// The readout card itself is shown and hidden by CSS (`:hover`), which only the pixel tier paints, so these assert its
+// words through the live region ("<title> readout") and each bar's name, and the shots show the card.
+
+using Osysharp.Look;
+using OsyrinLookTests;
+
+[Test]
+void A_bar_chart_scales_ms_in_hours_and_bytes_in_KiB() {
+  Ui.Viewport(1440, 900);
+  Ui.Visit("/dev/bar-chart");
+  // 19.5 h at most: round hours, not 0 to 80M.
+  Assert.Visible("20 h", within: "CPU scale");
+  Assert.Visible("10 h", within: "CPU scale");
+  Assert.Visible("0 h", within: "CPU scale");
+  Assert.Hidden("80M", within: "CPU scale");
+  // 900 KiB at most.
+  Assert.Visible("1000 KiB", within: "Egress scale");
+  Assert.Visible("500 KiB", within: "Egress scale");
+  Assert.Visible("0 KiB", within: "Egress scale");
+  Assert.NoOverflow();
+}
+
+[Test]
+void The_keyboard_moves_a_bar_charts_readout_point_by_point() {
+  Ui.Viewport(1440, 900);
+  Ui.Visit("/dev/bar-chart");
+  Ui.Focus("CPU by day");
+  Assert.Visible("18 Nov, CPU 2.5 h", within: "CPU readout");
+  Ui.Press("ArrowRight");
+  Assert.Visible("19 Nov, CPU 19.5 h", within: "CPU readout");
+  Ui.Press("ArrowRight");
+  Assert.Visible("20 Nov, not measured", within: "CPU readout");
+  Ui.Press("End");
+  Assert.Visible("24 Nov, CPU 3.2 h", within: "CPU readout");
+  Ui.Shot("bar-chart-readout-1440");
+  Ui.Press("Escape");
+  Assert.Hidden("24 Nov, CPU 3.2 h", within: "CPU readout");
+  Ui.Press("Home");
+  Assert.Visible("18 Nov, CPU 2.5 h", within: "CPU readout");
+  // Each value in its own display unit and in full: bytes, and a count with its thousands.
+  Ui.Focus("Egress by day");
+  Ui.Press("ArrowRight");
+  Assert.Visible("19 Nov, Egress 900 KiB", within: "Egress readout");
+  Ui.Press("ArrowRight");
+  Ui.Press("ArrowRight");
+  Assert.Visible("21 Nov, Egress 512 B", within: "Egress readout");
+  Ui.Theme("dark");
+  Ui.Visit("/dev/bar-chart");
+  Ui.Focus("Requests values");
+  Ui.Press("ArrowRight");
+  Assert.Visible("23 Nov, Requests 1,234, Server errors 3", within: "Requests readout");
+  Ui.Shot("bar-chart-readout-dark-1440");
+  Ui.Theme("light");
+}
+
+[Test]
+void A_tap_on_a_bar_shows_that_bars_readout_not_the_first() {
+  Ui.Viewport(390, 900);
+  Ui.Visit("/dev/bar-chart");
+  Ui.Click("21 Nov, CPU 8 h");
+  Assert.Visible("21 Nov, CPU 8 h", within: "CPU readout");
+  Assert.Hidden("18 Nov, CPU 2.5 h", within: "CPU readout");
+  Ui.Click("23 Nov, CPU 45 s");
+  Assert.Visible("23 Nov, CPU 45 s", within: "CPU readout");
+  Assert.NoOverflow();
+  Ui.Shot("bar-chart-tap-390");
+  Ui.Viewport(1440, 900);
+  Ui.Visit("/dev/bar-chart");
+  Ui.Hover("19 Nov, CPU 19.5 h");
+  Ui.Shot("bar-chart-hover-1440");
+}

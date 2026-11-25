@@ -11,13 +11,14 @@ namespace Osysharp.Look;
 /// said `last` when given ("today") and marked. The scale, gridlines and time axis are the parts `ConsoleLineChart`
 /// shares (`ChartScaleColumn`, `ChartGridLines`, `ChartTimeAxis`, MS2c). With `references` (HT1) thresholds are drawn
 /// across the plot as dashed rules with their names (`ChartReferenceLines`), and the scale reaches the highest of them.
-/// In a test the axis is the group "<label> scale", the time labels "<label> time".
+/// Pointing at a bar (or tapping it, or the arrows once the plot has the keyboard) shows its readout: the point's label
+/// and each series' value after its name from `names` ("24 Nov, CPU 3.2 h"; `ChartReadoutBand`, PLATFORM-709). "ms" and
+/// "bytes" are said in the display unit they reach ("20 h", "500 KiB"; `ChartAxisTicks`).
+/// In a test the axis is the group "<label> scale", the time labels "<label> time", the keyboard stop "<label> by <per>"
+/// and each bar a list item of "<Per>s in the <label> chart" named by its readout's words (`ChartValuesName`).
 [Composable]
 component ConsoleBarChart(List<ConsoleBarPoint> points, string unit = "", bool stacked = false, string last = "", int height = 96, string label = "Chart",
-                           List<ChartReferenceLine> references = null) {
-  bool Percent() => unit == "%";
-
-  bool Whole() => unit != "%" && unit != "$" && unit != "h" && unit != "tokens";
+                           List<ChartReferenceLine> references = null, List<string> names = null, string per = "") {
 
   double Top(ConsoleBarPoint point) {
     var known = point.Values.Where(v => v != null).Select(v => v!.Value).ToList();
@@ -30,7 +31,7 @@ component ConsoleBarChart(List<ConsoleBarPoint> points, string unit = "", bool s
 
   double Most() => Math.Max(points.Count == 0 ? 0 : points.Max(p => Top(p)), Lines().Count == 0 ? 0 : Lines().Max(r => r.Value));
 
-  List<double> Ticks() => ChartTicks(Most(), Percent(), Whole());
+  List<double> Ticks() => ChartAxisTicks(Most(), unit);
 
   double Ceiling() => Ticks()[Ticks().Count - 1];
 
@@ -114,6 +115,7 @@ component ConsoleBarChart(List<ConsoleBarPoint> points, string unit = "", bool s
           if (Lines().Count > 0) {
             ChartReferenceLines(Lines(), Ticks(), height, unit, label);
           }
+          ChartReadoutBand(points, unit, names ?? new List<string>(), Gaps(), label, listed: true, per: per);
         }
         ChartTimeAxis(points.Select(p => p.Label).ToList(), last, wide, Gaps(), label);
       }

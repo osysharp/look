@@ -1,0 +1,13 @@
+namespace Osysharp.Look;
+
+/// A chart's value axis for its `unit` (MS2b; PLATFORM-709 for "ms" and "bytes"), shared by `ConsoleBarChart` and
+/// `ConsoleLineChart`: 0–100 in quarters for "%"; for "ms" and "bytes", round steps in the display unit `most` reaches
+/// (`ChartUnitStep`: 19.5 h of milliseconds gives 0, 5, 10, 15 and 20 h, not 0 to 80M ms); otherwise round steps of
+/// the unit itself, at least 1 for a count. The ticks are in the values' own unit.
+internal List<double> ChartAxisTicks(double most, string unit) {
+  if (ChartScaledUnit(unit)) {
+    var step = ChartUnitStep(most, unit);
+    return ChartTicks(most / step, false, step == 1).Select(t => t * step).ToList();
+  }
+  return ChartTicks(most, unit == "%", unit != "%" && unit != "$" && unit != "h" && unit != "tokens");
+}

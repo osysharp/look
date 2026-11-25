@@ -1,0 +1,182 @@
+namespace Osysharp.Look;
+
+// ── the hover readout of the console charts (PLATFORM-709) ─────────────────────────────────────────────────────────────
+//
+// The owner, on Admin's Usage charts: "hovering over a bar doesn't say what date and what the value is". The design is
+// the Charts kit's (`kits/chart/Hover.osy`): an invisible band of one full-height cell per point laid over the plot.
+// Pointing at a cell shows a crosshair through it and a readout of the point's label and every series' value there,
+// through an ancestor-conditioned `:hover` rule, so a pointer needs no script and no coordinates.
+//
+// The band is also the chart's one keyboard stop: arriving shows the first point, the arrows move point by point, Home
+// and End jump to the ends, Escape hides the readout and focus leaving hides it; a live region says the same words.
+// A tap on a cell shows THAT point (`onClick`), not the first one focus alone would open at.
+//
+// ⚑ ONE READOUT AT A TIME. The keyboard's (and a tap's) readout is a second mark in its cell that hides while the
+// pointer is anywhere over the band, so a pointer and a remembered point never show two readouts side by side.
+
+/// The words of one series' value in a readout: the series' `name`, then the value in the chart's `unit` said in full
+/// ("CPU 3.2 h", "Requests 1,234", "Egress 240 KiB"); with no name, the value and the unit's word ("6 builds").
+internal string ChartReadoutValue(double value, string unit, string name) => name != ""
+  ? name + " " + ChartValueSaid(value, unit, exact: true)
+  : ChartValueSaid(value, unit, exact: true) + (ChartWordUnit(unit) ? " " + unit : "");
+
+/// What a readout says of each series at one point, in series order: a value's words (`ChartReadoutValue`), and none
+/// for a series with no value there.
+internal List<string> ChartReadoutLines(ConsoleBarPoint point, string unit, List<string> names) {
+  var lines = new List<string>();
+  for (var series = 0; series < point.Values.Count; series++) {
+    if (point.Values[series] != null) {
+      lines.Add(ChartReadoutValue(point.Values[series]!.Value, unit, names != null && series < names.Count ? names[series] : ""));
+    }
+  }
+  return lines;
+}
+
+/// A point as one sentence, the readout's words for a reader who cannot see it (commas, which a screen reader reads as
+/// pauses): "24 Nov, CPU 3.2 h", "24 Nov, Requests 1,234, Server errors 3", or "24 Nov, not measured" for a gap. A
+/// point with no label ("Size over time" names only its first and last build) is said by its values alone.
+internal string ChartReadoutWords(ConsoleBarPoint point, string unit, List<string> names) {
+  var lines = ChartReadoutLines(point, unit, names);
+  var said = lines.Count == 0 ? "not measured" : string.Join(", ", lines);
+  return point.Label == "" ? said : point.Label + ", " + said;
+}
+
+/// The keyboard stop's name: "<label> by <per>" ("CPU by day") when the chart says what one point covers, else
+/// "<label> values".
+internal string ChartValuesName(string label, string per) => per != "" ? label + " by " + per : label + " values";
+
+/// The bar list's name: "Days in the <label> chart" when the chart says what one point covers (`per`), else
+/// "<label> points".
+internal string ChartPointsName(string label, string per) => per != ""
+  ? per.Substring(0, 1).ToUpper() + per.Substring(1) + "s in the " + label + " chart" : label + " points";
+
+/// The hover band over a console chart's plot, and the chart's one keyboard stop (see the head of this file). `gaps` is
+/// the plot's gap between columns, so each cell lies over its point. `per` is what one point covers ("day", "hour",
+/// "week"). In a test it is the group "<label> by <per>" (`ChartValuesName`; "<label> values" with no `per`), its live
+/// region "<label> readout", and with `listed` (a bar chart, whose bars say nothing themselves) each cell is a list item
+/// of "Days in the <label> chart" (`ChartPointsName`) named by its words.
+[Composable, Part]
+component ChartReadoutBand(List<ConsoleBarPoint> points, string unit, List<string> names, string gaps, string label, bool listed = false,
+                           string per = "") {
+  int at = 0;
+  bool reading = false;
+
+  // Arriving starts at the first point; a tap has already said which point it is, and its click comes after the focus.
+  action Arrive() { at = 0; reading = true; }
+  action Leave() { reading = false; }
+  action Dismiss() { reading = false; }
+  action Pick(int index) { at = index; reading = true; }
+  action Step(string key) {
+    if (key == "Right" || key == "Down") { at = Math.Min(at + 1, points.Count - 1); }
+    if (key == "Left" || key == "Up") { at = Math.Max(at - 1, 0); }
+    if (key == "Home") { at = 0; }
+    if (key == "End") { at = points.Count - 1; }
+    reading = true;
+  }
+
+  render {
+    var shownAt = reading ? at : -1;
+    Box(position: Position.Absolute, inset: 0, role: UiRole.Group, label: ChartValuesName(label, per),
+        keys: [Left, Right, Up, Down, Home, End], onKeyDown: Step, onFocus: Arrive, onBlurWithin: Leave, onEscape: reading ? Dismiss : null) {
+      // The press is bound here, on the cell's own box, where the band's `Pick` is in reach; the cell inside is what the
+      // readout's `:hover` rule names.
+      if (listed) {
+        Row(position: Position.Absolute, inset: 0, gap: gaps, role: UiRole.List, label: ChartPointsName(label, per)) {
+          foreach (var index in Enumerable.Range(0, points.Count).ToList()) {
+            Box(grow: 1, basis: "0", minW: "0", h: "100%", onClick: () => Pick(index), role: UiRole.ListItem,
+                label: ChartReadoutWords(points[index], unit, names)) {
+              ChartReadoutCell(points[index], unit, names, index * 2 < points.Count, index == shownAt);
+            }
+          }
+        }
+      } else {
+        Row(position: Position.Absolute, inset: 0, gap: gaps) {
+          foreach (var index in Enumerable.Range(0, points.Count).ToList()) {
+            Box(grow: 1, basis: "0", minW: "0", h: "100%", onClick: () => Pick(index)) {
+              ChartReadoutCell(points[index], unit, names, index * 2 < points.Count, index == shownAt);
+            }
+          }
+        }
+      }
+      // Present from the start (a region that appears with its words is not announced), one pixel and clipped: the
+      // readout already shows the words.
+      Box(position: Position.Absolute, w: "1px", h: "1px", overflow: Overflow.Hidden, role: UiRole.Status, label: label + " readout") {
+        if (reading && at < points.Count) {
+          Text(ChartReadoutWords(points[at], unit, names));
+        }
+      }
+    }
+  }
+}
+
+/// One point's cell of the band: its own root is what the readout's `:hover` rule names. `rightward`: the readout
+/// opens to the right of the cell (the left half of the plot) rather than to its left, so it stays inside the plot.
+[Composable, Part]
+component ChartReadoutCell(ConsoleBarPoint point, string unit, List<string> names, bool rightward, bool shown) {
+  variants { base { Position = Position.Relative; } }
+  render {
+    Box(w: "100%", h: "100%") {
+      ChartHoverMark(point, unit, names, rightward);
+      if (shown) {
+        ChartKeyMark(point, unit, names, rightward);
+      }
+    }
+  }
+}
+
+/// The pointer's crosshair and readout over a cell: hidden until its cell is pointed at.
+[Composable, Part]
+component ChartHoverMark(ConsoleBarPoint point, string unit, List<string> names, bool rightward) {
+  variants {
+    base { Display = Display.None; Position = Position.Absolute; Top = 0; Bottom = 0; Left = 0; Right = 0; PointerEvents = PointerEvents.None;
+           inside ChartReadoutCell.Hover { Display = Display.Block; } }
+  }
+  render { ChartReadoutFace(point, unit, names, rightward); }
+}
+
+/// The keyboard's (or a tap's) crosshair and readout over its cell: shown until the pointer comes over the band, so
+/// the pointer's own readout is the only one.
+[Composable, Part]
+component ChartKeyMark(ConsoleBarPoint point, string unit, List<string> names, bool rightward) {
+  variants {
+    base { Display = Display.Block; Position = Position.Absolute; Top = 0; Bottom = 0; Left = 0; Right = 0; PointerEvents = PointerEvents.None;
+           inside ChartReadoutBand.Hover { Display = Display.None; } }
+  }
+  render { ChartReadoutFace(point, unit, names, rightward); }
+}
+
+/// What a readout looks like: a 1 px crosshair down the middle of the cell, and at the plot's top a card with the
+/// point's label (semibold) over a line per series, each after its series' swatch ("CPU 3.2 h"), or "not measured".
+[Composable, Part]
+component ChartReadoutFace(ConsoleBarPoint point, string unit, List<string> names, bool rightward) {
+  Color Fill(int series) {
+    var number = ChartSeriesNumber(series);
+    return number == 1 ? Colors.Series1 : number == 2 ? Colors.Series2 : number == 3 ? Colors.Series3 : number == 4 ? Colors.Series4
+      : number == 5 ? Colors.Series5 : number == 6 ? Colors.Series6 : Colors.Series7;
+  }
+
+  render {
+    Box(position: Position.Absolute, inset: 0) {
+      Box(position: Position.Absolute, top: "0", bottom: "0", left: "50%", w: "1px", bg: Colors.ConsoleText3, decorative: true);
+      Stack(position: Position.Absolute, top: "-6px", left: rightward ? "50%" : "auto", right: rightward ? "auto" : "50%", w: "max-content",
+            gap: "2px", px: "8px", py: "6px", bg: Colors.ConsoleSurface, borderW: 1, border: Colors.ConsoleBorder, rounded: "6px",
+            shadow: Shadow.DrawerLift, z: ZIndex.Popover) {
+        if (point.Label != "") {
+          Text(point.Label, fontSize: FontSize.ConsoleBadge, fontWeight: FontWeight.Semibold, color: Colors.ConsoleText, whiteSpace: WhiteSpace.Nowrap,
+               lineHeight: "14px");
+        }
+        if (point.Values.All(v => v == null)) {
+          Text("not measured", fontSize: FontSize.ConsoleBadge, color: Colors.ConsoleText3, whiteSpace: WhiteSpace.Nowrap, lineHeight: "14px");
+        }
+        foreach (var series in Enumerable.Range(0, point.Values.Count).Where(s => point.Values[s] != null).ToList()) {
+          Row(gap: "6px", align: Align.Center) {
+            Box(w: "8px", h: "8px", shrink: 0, rounded: "2px", bg: Fill(series), decorative: true);
+            Text(ChartReadoutValue(point.Values[series]!.Value, unit, names != null && series < names.Count ? names[series] : ""),
+                 fontSize: FontSize.ConsoleBadge, color: Colors.ConsoleText, whiteSpace: WhiteSpace.Nowrap, lineHeight: "14px",
+                 fontVariant: FontVariant.TabularNums);
+          }
+        }
+      }
+    }
+  }
+}

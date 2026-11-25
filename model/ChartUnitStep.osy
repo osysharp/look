@@ -1,0 +1,15 @@
+namespace Osysharp.Look;
+
+/// What one of a chart's display units is worth in the unit the values are given in (PLATFORM-709): a duration given
+/// in "ms" is said in ms, s, min or h, and an amount of data given in "bytes" in B, KiB, MiB, GiB or TiB, so an axis
+/// reads "0, 5, 10, 15, 20 h" rather than "0, 20M". The display unit is the largest one `most` reaches at least once;
+/// any other `unit` is said as it is given, and is worth 1. `ChartUnitWord` names it.
+internal double ChartUnitStep(double most, string unit) {
+  if (unit == "ms") {
+    return most >= 3600000 ? 3600000 : most >= 60000 ? 60000 : most >= 1000 ? 1000 : 1;
+  }
+  if (unit == "bytes") {
+    return most >= 1099511627776.0 ? 1099511627776.0 : most >= 1073741824 ? 1073741824 : most >= 1048576 ? 1048576 : most >= 1024 ? 1024 : 1;
+  }
+  return 1;
+}

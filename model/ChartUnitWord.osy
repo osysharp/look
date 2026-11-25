@@ -1,0 +1,13 @@
+namespace Osysharp.Look;
+
+/// The name of the display unit `ChartUnitStep` chose for `unit` (PLATFORM-709): "ms", "s", "min" or "h"; "B", "KiB",
+/// "MiB", "GiB" or "TiB"; "" for any other unit.
+internal string ChartUnitWord(double step, string unit) {
+  if (unit == "ms") {
+    return step >= 3600000 ? "h" : step >= 60000 ? "min" : step >= 1000 ? "s" : "ms";
+  }
+  if (unit == "bytes") {
+    return step >= 1099511627776.0 ? "TiB" : step >= 1073741824 ? "GiB" : step >= 1048576 ? "MiB" : step >= 1024 ? "KiB" : "B";
+  }
+  return "";
+}

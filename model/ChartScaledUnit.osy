@@ -1,0 +1,4 @@
+namespace Osysharp.Look;
+
+/// Whether a chart's `unit` is said in a display unit of its own size (`ChartUnitStep`, PLATFORM-709): "ms" and "bytes".
+internal bool ChartScaledUnit(string unit) => unit == "ms" || unit == "bytes";

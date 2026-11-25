@@ -9,7 +9,7 @@ component ChartScaleColumn(List<double> ticks, string unit, int height, string l
     Stack(h: Math.Round((double)(height + 14)).ToString("0") + "px", mt: "-7px", justify: Justify.Between, align: Align.End, shrink: 0,
           role: UiRole.Group, label: label + " scale") {
       foreach (var index in Enumerable.Range(0, ticks.Count).Reverse().ToList()) {
-        Text(ChartTickSaid(ticks[index], unit, index == ticks.Count - 1), fontSize: FontSize.ConsoleBadge, color: Colors.ConsoleText2, lineHeight: "14px",
+        Text(ChartTickSaid(ticks[index], unit, index == ticks.Count - 1, ticks[ticks.Count - 1]), fontSize: FontSize.ConsoleBadge, color: Colors.ConsoleText2, lineHeight: "14px",
              whiteSpace: WhiteSpace.Nowrap, fontVariant: FontVariant.TabularNums, textAlign: TextAlign.Right);
       }
     }

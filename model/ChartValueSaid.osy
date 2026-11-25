@@ -2,8 +2,19 @@ namespace Osysharp.Look;
 
 /// A value on a chart in its unit, short (MS2b): "80%", "$2.50" ("$2" and "$0.50" on the axis, `tick`), "2.5 h", "150k" and "1.2M"
 /// for "tokens", "35 GB" and "120.5 GB" for "GB" (HT1), and a plain number for a count ("builds", "acts", or no unit). The unit word itself is said once, on
-/// the axis's top tick ("6 builds"), by the chart.
-internal string ChartValueSaid(double value, string unit, bool tick = false) {
+/// the axis's top tick ("6 builds"), by the chart. A duration given in "ms" is said in the largest unit it reaches ("450 ms",
+/// "12.5 s", "4 min", "3.2 h"), and an amount given in "bytes" in binary units ("512 B", "240 KiB", "1.5 GiB"), as Admin's
+/// stat tiles say them (PLATFORM-709). With `exact` (a hover readout) a count is said in full: "1,234", not "1.2k".
+internal string ChartValueSaid(double value, string unit, bool tick = false, bool exact = false) {
+  if (unit == "ms") {
+    var step = ChartUnitStep(value, unit);
+    return (step == 1 ? Math.Round(value).ToString("0") : Math.Round(value / step, 1).ToString("0.#")) + " " + ChartUnitWord(step, unit);
+  }
+  if (unit == "bytes") {
+    var step = ChartUnitStep(value, unit);
+    var amount = value / step;
+    return (step == 1 || amount >= 10 ? Math.Round(amount).ToString("0") : amount.ToString("0.0")) + " " + ChartUnitWord(step, unit);
+  }
   if (unit == "%") {
     return Math.Round(value).ToString("0") + "%";
   }
@@ -15,6 +26,9 @@ internal string ChartValueSaid(double value, string unit, bool tick = false) {
   }
   if (unit == "GB") {
     return (value >= 100 || tick ? Math.Round(value).ToString("0") : value.ToString("0.#")) + " GB";
+  }
+  if (exact) {
+    return value.ToString(value == Math.Round(value) ? "N0" : "N1");
   }
   if (value >= 1000000) {
     return (value / 1000000).ToString("0.#") + "M";

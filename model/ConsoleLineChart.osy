@@ -10,13 +10,11 @@ namespace Osysharp.Look;
 /// data" when there is room; a real 0 is a point on the axis. In a test the plot is the group "<label> line" (each point
 /// a list item "16 Nov: 50%, n=2"), the axis "<label> scale" and the time labels "<label> time". With `references` (HT1)
 /// thresholds are drawn across the plot as dashed rules with their names (`ChartReferenceLines`, the list
-/// "<label> reference lines"), and the scale reaches the highest of them.
+/// "<label> reference lines"), and the scale reaches the highest of them. Pointing at a point (or tapping it, or the
+/// arrows once the plot has the keyboard, "<label> values") shows its readout, as `ConsoleBarChart`'s (PLATFORM-709).
 [Composable]
 component ConsoleLineChart(List<ConsoleBarPoint> points, string unit = "", string last = "", int height = 96, string label = "Chart", int thin = 5,
-                           List<ChartReferenceLine> references = null) {
-  bool Percent() => unit == "%";
-
-  bool Whole() => unit != "%" && unit != "$" && unit != "h" && unit != "tokens";
+                           List<ChartReferenceLine> references = null, List<string> names = null, string per = "") {
 
   int Series() => points.Count == 0 ? 0 : points.Max(p => p.Values.Count);
 
@@ -50,7 +48,7 @@ component ConsoleLineChart(List<ConsoleBarPoint> points, string unit = "", strin
     return most;
   }
 
-  List<double> Ticks() => ChartTicks(Most(), Percent(), Whole());
+  List<double> Ticks() => ChartAxisTicks(Most(), unit);
 
   double Ceiling() => Ticks()[Ticks().Count - 1];
 
@@ -168,6 +166,7 @@ component ConsoleLineChart(List<ConsoleBarPoint> points, string unit = "", strin
                 }
               }
             }
+            ChartReadoutBand(points, unit, names ?? new List<string>(), "0", label, per: per);
           }
           ChartTimeAxis(points.Select(p => p.Label).ToList(), last, wide, "0", label);
         }
