@@ -2,7 +2,8 @@ namespace Osysharp.Look;
 
 /// The time axis under a chart (MS2b; shared by the bar and line charts, MS2c): each point's label under its column on a
 /// sparse subset that does not collide (at most 8 at tablet width and up, `wide`, 4 on a phone, where 5 of "13:00" or "Wed 12:00" collided; HT1), counted back from the
-/// last so the last is always labelled; the last said `last` when given ("today") and semibold. `gaps` is the plot's gap
+/// last so the last is always labelled; the last said `last` when given ("today") and semibold. The first ends flush with
+/// the plot's left edge, the last with its right, and the rest are centred under their columns. `gaps` is the plot's gap
 /// between columns, so a label sits under its column. In a test it is the group "<label> time".
 [Composable, Part]
 component ChartTimeAxis(List<string> labels, string last, bool wide, string gaps, string label) {
@@ -16,20 +17,20 @@ component ChartTimeAxis(List<string> labels, string last, bool wide, string gaps
         Box(grow: 1, basis: "0", minW: "0", h: "16px", position: Position.Relative) {
           if (Labelled(index)) {
             if (index == labels.Count - 1 && Every() > 1) {
-              Box(position: Position.Absolute, top: "0", right: "0", w: "72px") {
+              Row(position: Position.Absolute, top: "0", right: "0", w: "72px", justify: Justify.End) {
                 Text(last != "" ? last : labels[index], fontSize: FontSize.ConsoleBadge, color: Colors.ConsoleText, fontWeight: FontWeight.Semibold,
-                     whiteSpace: WhiteSpace.Nowrap, textAlign: TextAlign.Right, lineHeight: "16px");
+                     whiteSpace: WhiteSpace.Nowrap, lineHeight: "16px");
               }
             } else if (index == 0 && Every() > 1) {
-              Box(position: Position.Absolute, top: "0", left: "0", w: "72px") {
+              Row(position: Position.Absolute, top: "0", left: "0", w: "72px", justify: Justify.Start) {
                 Text(labels[index], fontSize: FontSize.ConsoleBadge, color: Colors.ConsoleText2, whiteSpace: WhiteSpace.Nowrap, lineHeight: "16px");
               }
             } else {
-              Box(position: Position.Absolute, top: "0", left: "50%", w: "72px", ml: "-36px") {
+              Row(position: Position.Absolute, top: "0", left: "50%", w: "72px", ml: "-36px", justify: Justify.Center) {
                 Text(index == labels.Count - 1 && last != "" ? last : labels[index], fontSize: FontSize.ConsoleBadge,
                      color: index == labels.Count - 1 ? Colors.ConsoleText : Colors.ConsoleText2,
                      fontWeight: index == labels.Count - 1 ? FontWeight.Semibold : FontWeight.Regular,
-                     whiteSpace: WhiteSpace.Nowrap, textAlign: TextAlign.Center, lineHeight: "16px");
+                     whiteSpace: WhiteSpace.Nowrap, lineHeight: "16px");
               }
             }
           }

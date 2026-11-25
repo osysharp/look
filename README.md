@@ -305,8 +305,8 @@ rules.", lede: "…", tagline: "Software you own.", taglineAccent: "Run for you.
 
 ## Chart series
 
-`Colors.Series1` … `Series7`, in the order a chart takes them: `Series1` is the accent (`Colors.Primary`), `Series2`
-and `Series3` two lighter shades of it, `Series4`–`Series7` four greys from deep to light. Each stands at 3:1 or more on
+`Colors.LookSeries1` … `LookSeries7`, in the order a chart takes them: `LookSeries1` is the accent (`Colors.Primary`), `LookSeries2`
+and `LookSeries3` two lighter shades of it, `LookSeries4`–`LookSeries7` four greys from deep to light. Each stands at 3:1 or more on
 the ground and on a panel, light and dark. The status tones are not series: a chart uses them only where a series IS a
 state. Tests in `tests/Series.test.osy`.
 

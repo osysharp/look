@@ -2,7 +2,7 @@ namespace Osysharp.Look;
 
 /// A chart in a console panel (Costs, Analysis, an app's Usage, Builds' "Size over time"): a `ConsolePanel` with the
 /// `title` and its muted `count` (what the chart covers: "newest 20 builds"), the `legend` at the head's right (each
-/// name after an 8 px swatch of its series, `Series1`… in order, 12 text-2; a group named "Legend"), and in the body
+/// name after an 8 px swatch of its series, `LookSeries1`… in order, 12 text-2; a group named "Legend"), and in the body
 /// (`12px 16px 14px`) the default slot over a numberless `TrendAxis` from `from` to `to` (`middle` between) when `from`
 /// is given; a chart with a scale and a hover readout is drawn with `points` instead. With `emptyTitle` the body
 /// is a `ConsoleEmpty` instead ("No builds yet", `emptyBody`) and the chart is not drawn.
@@ -58,7 +58,7 @@ component ConsoleSeriesSwatch(int series) {
   render {
     var number = (series - 1) % 7 + 1;
     Box(w: "8px", h: "8px", shrink: 0, rounded: "2px", decorative: true,
-        bg: number == 1 ? Colors.Series1 : (number == 2 ? Colors.Series2 : (number == 3 ? Colors.Series3 : (number == 4 ? Colors.Series4
-          : (number == 5 ? Colors.Series5 : (number == 6 ? Colors.Series6 : Colors.Series7))))));
+        bg: number == 1 ? Colors.LookSeries1 : (number == 2 ? Colors.LookSeries2 : (number == 3 ? Colors.LookSeries3 : (number == 4 ? Colors.LookSeries4
+          : (number == 5 ? Colors.LookSeries5 : (number == 6 ? Colors.LookSeries6 : Colors.LookSeries7))))));
   }
 }

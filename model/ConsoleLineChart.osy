@@ -28,8 +28,8 @@ component ConsoleLineChart(List<ConsoleBarPoint> points, string unit = "", strin
 
   Color Fill(int series) {
     var number = ChartSeriesNumber(series);
-    return number == 1 ? Colors.Series1 : number == 2 ? Colors.Series2 : number == 3 ? Colors.Series3 : number == 4 ? Colors.Series4
-      : number == 5 ? Colors.Series5 : number == 6 ? Colors.Series6 : Colors.Series7;
+    return number == 1 ? Colors.LookSeries1 : number == 2 ? Colors.LookSeries2 : number == 3 ? Colors.LookSeries3 : number == 4 ? Colors.LookSeries4
+      : number == 5 ? Colors.LookSeries5 : number == 6 ? Colors.LookSeries6 : Colors.LookSeries7;
   }
 
   bool Gap(int index) => points[index].Values.All(v => v == null);
@@ -110,14 +110,14 @@ component ConsoleLineChart(List<ConsoleBarPoint> points, string unit = "", strin
     return value != "" && n != "" ? value + " · " + n : value + n;
   }
 
-  string PointSaid(int index, int series) => points[index].Label + ": " + ChartValueSaid(ValueOf(index, series)!.Value, unit)
+  string PointSaid(int index, int series) => (points[index].Said != "" ? points[index].Said : points[index].Label) + ": " + ChartValueSaid(ValueOf(index, series)!.Value, unit)
     + (SampleOf(index, series) == null ? "" : ", " + Sample(index, series)) + (Thin(index, series) ? ", a thin sample" : "");
 
   render {
     var wide = Layout.AtLeast(Tablet);
     Stack(gap: "0", minW: "0") {
       Row(gap: "8px", align: Align.Start, pt: "18px", minW: "0") {
-        ChartScaleColumn(Ticks(), unit, height, label);
+        ChartScaleColumn(Ticks(), unit, height, label, most: Most());
         Stack(gap: 0, grow: 1, basis: "0", minW: "0") {
           Box(h: Px(height), position: Position.Relative, minW: "0", role: UiRole.Group, label: label + " line") {
             ChartGridLines(Ticks(), height);

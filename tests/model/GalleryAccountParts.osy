@@ -62,7 +62,7 @@ component OrganisationGalleryPage() {
             Stack(gap: "0", px: "20px", pb: "16px", pt: "8px", minW: "0") {
               Row(h: "56px", gap: "3px", align: Align.End, minW: "0", decorative: true) {
                 foreach (var h in [22, 24, 23, 27, 30, 29, 31, 30, 34, 36, 35, 38, 37, 40, 42, 41, 44, 47, 46, 50]) {
-                  Box(grow: 1, basis: "0", h: h + "px", bg: Colors.Series1, rounded: "2px 2px 0 0");
+                  Box(grow: 1, basis: "0", h: h + "px", bg: Colors.LookSeries1, rounded: "2px 2px 0 0");
                 }
               }
               TrendAxis("20 builds ago", "newest");

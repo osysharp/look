@@ -2,8 +2,9 @@ namespace Osysharp.Look;
 
 /// A tick on a chart's value axis (MS2b, shared by the bar and line charts in MS2c): the value in its unit, the top tick
 /// (`top`) with the unit's word when the unit is a word ("6 builds", "150k tokens"). A duration ("ms") or an amount of
-/// data ("bytes") is said on every tick in the one display unit the axis's `ceiling` (its top tick) chose, so the
-/// axis reads "0 h, 10 h, 20 h" and "0 KiB, 500 KiB, 1000 KiB" (PLATFORM-709).
+/// data ("bytes") is said on every tick in the one display unit `ceiling` reaches (the largest value the chart draws,
+/// whose unit `ChartAxisTicks` rounded the ticks in), so the axis reads "0 h, 10 h, 20 h", "0 KiB, 500 KiB, 1000 KiB"
+/// and, for 59 min, "0, 20, 40, 60 min" (PLATFORM-709).
 internal string ChartTickSaid(double tick, string unit, bool top, double ceiling = 0) {
   if (ChartScaledUnit(unit)) {
     var step = ChartUnitStep(ceiling > 0 ? ceiling : tick, unit);

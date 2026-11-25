@@ -72,17 +72,17 @@ theme OsyrinLook {
     // status tones are not series: a chart uses them only where a series IS a state (done, running, failed), so a
     // colour never says "failed" about a series that is merely the fifth.
     /// The first series: the accent.
-    Series1 = Colors.Primary;
+    LookSeries1 = Colors.Primary;
     /// The second series: a lighter shade of the accent.
-    Series2 = Modes.Of(light: "#6B5FCE", dark: "#ABA3F0");
+    LookSeries2 = Modes.Of(light: "#6B5FCE", dark: "#ABA3F0");
     /// The third series: the lightest shade of the accent.
-    Series3 = Modes.Of(light: "#8A80D8", dark: "#CAC4F8");
+    LookSeries3 = Modes.Of(light: "#8A80D8", dark: "#CAC4F8");
     /// The fourth series: the deepest grey.
-    Series4 = Modes.Of(light: "#2F2D29", dark: "#E4E1DA");
-    Series5 = Modes.Of(light: "#57544D", dark: "#C2BEB5");
-    Series6 = Modes.Of(light: "#77736A", dark: "#9C988F");
+    LookSeries4 = Modes.Of(light: "#2F2D29", dark: "#E4E1DA");
+    LookSeries5 = Modes.Of(light: "#57544D", dark: "#C2BEB5");
+    LookSeries6 = Modes.Of(light: "#77736A", dark: "#9C988F");
     /// The seventh series: the lightest grey.
-    Series7 = Modes.Of(light: "#8F8B81", dark: "#7A766D");
+    LookSeries7 = Modes.Of(light: "#8F8B81", dark: "#7A766D");
 
     // The signed-out frame (`LookSignedOutFrame`): a pale lavender page, the artwork, and a warm paper form. The
     // artwork's dark is its own top-left tone: its ground while the picture loads, and the ink of the brand tile. It

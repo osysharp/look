@@ -20,6 +20,10 @@ void A_bar_chart_scales_ms_in_hours_and_bytes_in_KiB() {
   Assert.Visible("1000 KiB", within: "Egress scale");
   Assert.Visible("500 KiB", within: "Egress scale");
   Assert.Visible("0 KiB", within: "Egress scale");
+  // 59 min at most rounds the axis up to 60 min, and every tick stays in minutes: never "0.33 h".
+  Assert.Visible("60 min", within: "Build time scale");
+  Assert.Visible("20 min", within: "Build time scale");
+  Assert.Hidden("0.33 h", within: "Build time scale");
   Assert.NoOverflow();
 }
 
@@ -71,4 +75,39 @@ void A_tap_on_a_bar_shows_that_bars_readout_not_the_first() {
   Ui.Visit("/dev/bar-chart");
   Ui.Hover("19 Nov, CPU 19.5 h");
   Ui.Shot("bar-chart-hover-1440");
+}
+
+// The latest bar's value stands clear of the bars and inside its card. In a month of days every bar is narrower than its
+// value; drawn in its bar's width, the words ran past the plot's right edge, and in Admin past the card's; drawn from
+// the bar's edge inward at the bar's height, they lay over the taller bars beside it (PLATFORM-709, Usage at 30 days).
+// Three claims, because each passes alone on one of those screens: the words fit their own box (`FitsOn`; a box the
+// width of the bar holds them only on paper), that box is wholly above the plot, the group "<title> by day" (so it
+// covers no bar), and it lies inside the card. The value is decorative (the readout says it), so it is named
+// "<title> latest value" for a test. Only `osy test --pixels` measures boxes.
+[Test]
+void The_latest_bars_value_stands_clear_of_the_bars_and_inside_its_card_on_a_month_of_days() {
+  Ui.Viewport(1440, 900);
+  Ui.Visit("/dev/bar-chart");
+  Assert.FitsOn("Month latest value");
+  Assert.Above("Month latest value", "Month by day");
+  Assert.Inside("Month latest value", "Month");
+  Ui.Viewport(390, 900);
+  Ui.Visit("/dev/bar-chart");
+  Assert.FitsOn("Month latest value");
+  Assert.Above("Month latest value", "Month by day");
+  Assert.Inside("Month latest value", "Month");
+  Ui.Shot("bar-chart-month-390");
+}
+
+// One card at a time: a pressed bar's card gives way to the bar the pointer is over (the pressed card hides while the
+// pointer is over the band). Only `osy test --pixels` judges it; plain `osy test` reports the last two NOT CHECKED.
+[Test]
+void A_pressed_bar_gives_way_to_the_bar_the_pointer_is_over() {
+  Ui.Viewport(1440, 900);
+  Ui.Visit("/dev/bar-chart");
+  Ui.Click("21 Nov, CPU 8 h");
+  Assert.Visible("CPU 8 h", within: "21 Nov, CPU 8 h");
+  Ui.Hover("19 Nov, CPU 19.5 h");
+  Assert.Visible("CPU 19.5 h", within: "19 Nov, CPU 19.5 h");
+  Assert.Hidden("CPU 8 h", within: "21 Nov, CPU 8 h");
 }

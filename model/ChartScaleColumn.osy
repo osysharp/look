@@ -2,14 +2,16 @@ namespace Osysharp.Look;
 
 /// The value axis at a chart's left (MS2b; shared by `ConsoleBarChart` and `ConsoleLineChart`, MS2c): the `ticks` from
 /// the top down, each said in the `unit` (`ChartTickSaid`), spaced over the plot's `height`. In a test it is the group
-/// "<label> scale".
+/// "<label> scale". `most` is the largest value the chart draws: a duration or an amount of data is said on every tick in
+/// the display unit IT reaches, the one `ChartAxisTicks` rounded the ticks in, so 59 min of data reads "0, 20, 40,
+/// 60 min" rather than "0, 0.33, 0.67, 1 h" (PLATFORM-709). Without it, the top tick chooses.
 [Composable, Part]
-component ChartScaleColumn(List<double> ticks, string unit, int height, string label) {
+component ChartScaleColumn(List<double> ticks, string unit, int height, string label, double most = 0) {
   render {
     Stack(h: Math.Round((double)(height + 14)).ToString("0") + "px", mt: "-7px", justify: Justify.Between, align: Align.End, shrink: 0,
           role: UiRole.Group, label: label + " scale") {
       foreach (var index in Enumerable.Range(0, ticks.Count).Reverse().ToList()) {
-        Text(ChartTickSaid(ticks[index], unit, index == ticks.Count - 1, ticks[ticks.Count - 1]), fontSize: FontSize.ConsoleBadge, color: Colors.ConsoleText2, lineHeight: "14px",
+        Text(ChartTickSaid(ticks[index], unit, index == ticks.Count - 1, most > 0 ? most : ticks[ticks.Count - 1]), fontSize: FontSize.ConsoleBadge, color: Colors.ConsoleText2, lineHeight: "14px",
              whiteSpace: WhiteSpace.Nowrap, fontVariant: FontVariant.TabularNums, textAlign: TextAlign.Right);
       }
     }

@@ -38,7 +38,8 @@ internal List<string> ChartReadoutLines(ConsoleBarPoint point, string unit, List
 internal string ChartReadoutWords(ConsoleBarPoint point, string unit, List<string> names) {
   var lines = ChartReadoutLines(point, unit, names);
   var said = lines.Count == 0 ? "not measured" : string.Join(", ", lines);
-  return point.Label == "" ? said : point.Label + ", " + said;
+  var name = point.Said != "" ? point.Said : point.Label;
+  return name == "" ? said : name + ", " + said;
 }
 
 /// The keyboard stop's name: "<label> by <per>" ("CPU by day") when the chart says what one point covers, else
@@ -58,6 +59,10 @@ internal string ChartPointsName(string label, string per) => per != ""
 [Composable, Part]
 component ChartReadoutBand(List<ConsoleBarPoint> points, string unit, List<string> names, string gaps, string label, bool listed = false,
                            string per = "") {
+  // The band's own root is what `ChartKeyMark`'s `inside ChartReadoutBand.Hover` names, and on the platforms this kit's
+  // floor admits a root wears that class only when its component declares a `variants` block — without one the keyboard's
+  // card never gave way to the pointer's. So the band's placement lives here.
+  variants { base { Position = Position.Absolute; Top = 0; Bottom = 0; Left = 0; Right = 0; } }
   int at = 0;
   bool reading = false;
 
@@ -151,8 +156,8 @@ component ChartKeyMark(ConsoleBarPoint point, string unit, List<string> names, b
 component ChartReadoutFace(ConsoleBarPoint point, string unit, List<string> names, bool rightward) {
   Color Fill(int series) {
     var number = ChartSeriesNumber(series);
-    return number == 1 ? Colors.Series1 : number == 2 ? Colors.Series2 : number == 3 ? Colors.Series3 : number == 4 ? Colors.Series4
-      : number == 5 ? Colors.Series5 : number == 6 ? Colors.Series6 : Colors.Series7;
+    return number == 1 ? Colors.LookSeries1 : number == 2 ? Colors.LookSeries2 : number == 3 ? Colors.LookSeries3 : number == 4 ? Colors.LookSeries4
+      : number == 5 ? Colors.LookSeries5 : number == 6 ? Colors.LookSeries6 : Colors.LookSeries7;
   }
 
   render {
@@ -161,8 +166,8 @@ component ChartReadoutFace(ConsoleBarPoint point, string unit, List<string> name
       Stack(position: Position.Absolute, top: "-6px", left: rightward ? "50%" : "auto", right: rightward ? "auto" : "50%", w: "max-content",
             gap: "2px", px: "8px", py: "6px", bg: Colors.ConsoleSurface, borderW: 1, border: Colors.ConsoleBorder, rounded: "6px",
             shadow: Shadow.DrawerLift, z: ZIndex.Popover) {
-        if (point.Label != "") {
-          Text(point.Label, fontSize: FontSize.ConsoleBadge, fontWeight: FontWeight.Semibold, color: Colors.ConsoleText, whiteSpace: WhiteSpace.Nowrap,
+        if (point.Said != "" || point.Label != "") {
+          Text(point.Said != "" ? point.Said : point.Label, fontSize: FontSize.ConsoleBadge, fontWeight: FontWeight.Semibold, color: Colors.ConsoleText, whiteSpace: WhiteSpace.Nowrap,
                lineHeight: "14px");
         }
         if (point.Values.All(v => v == null)) {

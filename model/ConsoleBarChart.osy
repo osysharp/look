@@ -5,7 +5,8 @@ namespace Osysharp.Look;
 /// "$2", "2 h", "150k"), the top one with the unit's word when it is a word ("6 builds", "200k tokens"), over light
 /// gridlines and a firmer base line. A bar per point and series, side by side, or one on another (`stacked`), in the
 /// series colours `ChartSeriesNumber` gives (as `ConsoleChartCard`'s legend). The value stands above each bar when
-/// there is room for every one, and above the latest bar with a value always. A point with no value is a gap: a faint
+/// there is room for every one; else the latest bar's alone, in the band above the plot from its bar's edge nearer the
+/// middle inward, so it covers no bar and stays inside the plot's width (in a test, "<label> latest value"). A point with no value is a gap: a faint
 /// dashed column, the gridlines showing through, with "no data" when there is room, never a bar of 0; a real 0 is a
 /// thin line on the base. Under the plot the points' labels on a sparse subset that does not collide, the last always,
 /// said `last` when given ("today") and marked. The scale, gridlines and time axis are the parts `ConsoleLineChart`
@@ -46,8 +47,8 @@ component ConsoleBarChart(List<ConsoleBarPoint> points, string unit = "", bool s
 
   Color Fill(int series) {
     var number = ChartSeriesNumber(series);
-    return number == 1 ? Colors.Series1 : number == 2 ? Colors.Series2 : number == 3 ? Colors.Series3 : number == 4 ? Colors.Series4
-      : number == 5 ? Colors.Series5 : number == 6 ? Colors.Series6 : Colors.Series7;
+    return number == 1 ? Colors.LookSeries1 : number == 2 ? Colors.LookSeries2 : number == 3 ? Colors.LookSeries3 : number == 4 ? Colors.LookSeries4
+      : number == 5 ? Colors.LookSeries5 : number == 6 ? Colors.LookSeries6 : Colors.LookSeries7;
   }
 
   int Latest() {
@@ -59,14 +60,23 @@ component ConsoleBarChart(List<ConsoleBarPoint> points, string unit = "", bool s
     return -1;
   }
 
-  bool Said(int index, bool wide) => Roomy(wide) || index == Latest();
+  // The latest bar's value when the bars are too narrow for every value (a month of days, a day of hours): its words are
+  // wider than its bar, so they stand in the band above the plot (the chart's top padding), from its bar's edge nearer
+  // the middle of the plot inward, where they cover no bar and never pass the plot's edge.
+  bool Lifted(int index, bool wide) => !Roomy(wide) && index == Latest();
+
+  bool Rightward(int index) => index * 2 >= points.Count - 1;
+
+  // Every series' value of a point, for the one lifted label: the total when stacked, else each one ("1,234 · 3").
+  string ValuesSaid(ConsoleBarPoint point) => stacked ? ChartValueSaid(Top(point), unit)
+    : string.Join(" · ", point.Values.Where(v => v != null).Select(v => ChartValueSaid(v!.Value, unit)).ToList());
 
   string Gaps() => points.Count > 20 ? "2px" : "6px";
 
   render {
     var wide = Layout.AtLeast(Tablet);
     Row(gap: "8px", align: Align.Start, pt: "18px", minW: "0") {
-      ChartScaleColumn(Ticks(), unit, height, label);
+      ChartScaleColumn(Ticks(), unit, height, label, most: Most());
       Stack(gap: 0, grow: 1, basis: "0", minW: "0") {
         Box(h: Px(height), position: Position.Relative, minW: "0") {
           ChartGridLines(Ticks(), height);
@@ -80,8 +90,10 @@ component ConsoleBarChart(List<ConsoleBarPoint> points, string unit = "", bool s
                   }
                 }
               } else if (stacked) {
-                Stack(grow: 1, basis: "0", gap: 0, justify: Justify.End, align: Align.Stretch, h: Px(height), minW: "0") {
-                  if (Said(index, wide)) {
+                Stack(grow: 1, basis: "0", gap: 0, justify: Justify.End, align: Align.Stretch, h: Px(height), minW: "0", position: Position.Relative) {
+                  if (Lifted(index, wide)) {
+                    ChartLatestValue(ValuesSaid(points[index]), Rightward(index), label);
+                  } else if (Roomy(wide)) {
                     Text(ChartValueSaid(Top(points[index]), unit), fontSize: FontSize.ConsoleBadge, color: Colors.ConsoleText, whiteSpace: WhiteSpace.Nowrap,
                          textAlign: TextAlign.Center, lineHeight: "14px", fontVariant: FontVariant.TabularNums);
                   }
@@ -95,11 +107,14 @@ component ConsoleBarChart(List<ConsoleBarPoint> points, string unit = "", bool s
                   }
                 }
               } else {
-                Row(grow: 1, basis: "0", gap: "1px", align: Align.End, h: Px(height), minW: "0") {
+                Row(grow: 1, basis: "0", gap: "1px", align: Align.End, h: Px(height), minW: "0", position: Position.Relative) {
+                  if (Lifted(index, wide)) {
+                    ChartLatestValue(ValuesSaid(points[index]), Rightward(index), label);
+                  }
                   foreach (var series in Enumerable.Range(0, points[index].Values.Count).ToList()) {
                     Stack(grow: 1, basis: "0", gap: 0, justify: Justify.End, align: Align.Stretch, h: Px(height), minW: "0") {
                       if (points[index].Values[series] != null) {
-                        if (Said(index, wide)) {
+                        if (Roomy(wide)) {
                           Text(ChartValueSaid(points[index].Values[series]!.Value, unit), fontSize: FontSize.ConsoleBadge, color: Colors.ConsoleText,
                                whiteSpace: WhiteSpace.Nowrap, textAlign: TextAlign.Center, lineHeight: "14px", fontVariant: FontVariant.TabularNums);
                         }
@@ -120,5 +135,17 @@ component ConsoleBarChart(List<ConsoleBarPoint> points, string unit = "", bool s
         ChartTimeAxis(points.Select(p => p.Label).ToList(), last, wide, Gaps(), label);
       }
     }
+  }
+}
+
+/// The latest bar's value, lifted above the plot (`ConsoleBarChart`): placed against its bar's right edge when the bar is
+/// in the right half of the plot (`rightward`), else its left, and growing inward. Decorative, as every value over a bar
+/// is (the readout says it); named "<label> latest value" for a test.
+[Composable]
+internal component ChartLatestValue(string words, bool rightward, string label) {
+  render {
+    Text(words, position: Position.Absolute, top: "-16px", left: rightward ? "auto" : "0", right: rightward ? "0" : "auto",
+         fontSize: FontSize.ConsoleBadge, color: Colors.ConsoleText, whiteSpace: WhiteSpace.Nowrap, lineHeight: "14px",
+         fontVariant: FontVariant.TabularNums, label: label + " latest value");
   }
 }
