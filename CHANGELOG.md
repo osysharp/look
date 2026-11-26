@@ -1,5 +1,18 @@
 # Osysharp.Look changelog
 
+## 0.27.0
+- `ConsoleSearchRow` (the ⌘K dialog's result row) is two lines below Tablet: the title on a line of its own, the row's
+  full width, wrapping between words; under it the kind, the key, the product and the badge, a line that wraps itself.
+  On one phone line those four (all `shrink: 0`) left the title about 15 px and it was drawn one letter to a line
+  (Foundry FXLOOK §2, PLATFORM-204). A tablet and wider is unchanged. It switches on `Viewport.AtLeast(Tablet)`, as its
+  dialog does.
+- `MoreMenu` and `ChipMenu` hang their menu from the trigger's own bottom plus a gap token, not a fixed distance: a
+  console button is 44 high on a phone, and the fixed 38 put the menu over its last 6 px. New tokens on
+  `OsyrinLook`: `Space.MenuGap` (6, the look's buttons and chips) and `Space.ConsoleMenuGap` (8, the console's). Every
+  menu sits where it did on a tablet and wider.
+- Tests: `tests/ConsoleSearch.test.osy` (`Assert.WrapsByWords` at 390 and 1440, page `/dev/console-search`, which now
+  also finds conversations), `tests/MoreMenuTrigger.test.osy` (`Assert.Below` at 390 and 1440).
+
 ## 0.15.0
 - `ConsoleBarChart` / `ConsoleLineChart` (and `ConsoleChartCard(points:)`) show a readout of each point (PLATFORM-709):
   pointing at a bar or point shows a crosshair and a card with its label and each series' value after its name

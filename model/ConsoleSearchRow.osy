@@ -1,7 +1,10 @@
 namespace Osysharp.Look;
 
 /// One search result, a link: its kind, its key in mono, its title, and for a plan item its product and level badge.
-/// `marked` is the one Enter would open.
+/// `marked` is the one Enter would open. On a tablet and wider all of it sits on one line, the title taking what the
+/// others leave. Below Tablet (`Viewport.AtLeast(Tablet)`, the switch its dialog makes) it is two lines: the title on
+/// its own, the row's full width, wrapping between words; under it the kind, the key, the product and the badge, a
+/// line that wraps itself. On one phone line the fixed parts left the title about 15 px, one letter to a line.
 [Composable, Part]
 component ConsoleSearchRow(ConsoleSearchResult result, bool marked, Action onNavigated) {
   variants {
@@ -21,17 +24,37 @@ component ConsoleSearchRow(ConsoleSearchResult result, bool marked, Action onNav
     }
   }
   render {
+    var wide = Viewport.AtLeast(Tablet);
     Link(result.To, label: (result.Key != "" ? result.Key + " " : "") + result.Title, onClick: onNavigated, current: marked) {
-      Text(result.Kind, w: "68px", shrink: 0, fontSize: FontSize.ConsoleBadge, color: Colors.ConsoleText2);
-      if (result.Key != "") {
-        Text(result.Key, fontFamily: Font.ConsoleMono, fontSize: FontSize.ConsoleSmall, shrink: 0);
-      }
-      Text(result.Title, grow: 1, minW: "0", wordBreak: WordBreak.BreakWord);
-      if (result.Product != "") {
-        Text(result.Product, fontFamily: Font.ConsoleMono, fontSize: FontSize.ConsoleBadge, color: Colors.ConsoleText2, shrink: 0);
-      }
-      if (result.Badge != "") {
-        ConsoleBadge(result.Badge);
+      if (wide) {
+        Text(result.Kind, w: "68px", shrink: 0, fontSize: FontSize.ConsoleBadge, color: Colors.ConsoleText2);
+        if (result.Key != "") {
+          Text(result.Key, fontFamily: Font.ConsoleMono, fontSize: FontSize.ConsoleSmall, shrink: 0);
+        }
+        Text(result.Title, grow: 1, minW: "0", wordBreak: WordBreak.BreakWord);
+        if (result.Product != "") {
+          Text(result.Product, fontFamily: Font.ConsoleMono, fontSize: FontSize.ConsoleBadge, color: Colors.ConsoleText2, shrink: 0);
+        }
+        if (result.Badge != "") {
+          ConsoleBadge(result.Badge);
+        }
+      } else {
+        Stack(gap: "4px", grow: 1, minW: "0") {
+          Text(result.Title, minW: "0", wordBreak: WordBreak.BreakWord);
+          Row(gap: "4px 10px", wrap: Wrapping.Wrap, align: Align.Center, minW: "0") {
+            Text(result.Kind, fontSize: FontSize.ConsoleBadge, color: Colors.ConsoleText2);
+            if (result.Key != "") {
+              Text(result.Key, fontFamily: Font.ConsoleMono, fontSize: FontSize.ConsoleSmall, whiteSpace: WhiteSpace.Nowrap);
+            }
+            if (result.Product != "") {
+              Text(result.Product, fontFamily: Font.ConsoleMono, fontSize: FontSize.ConsoleBadge, color: Colors.ConsoleText2,
+                   whiteSpace: WhiteSpace.Nowrap);
+            }
+            if (result.Badge != "") {
+              ConsoleBadge(result.Badge);
+            }
+          }
+        }
       }
     }
   }

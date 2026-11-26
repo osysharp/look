@@ -4,7 +4,7 @@ namespace Osysharp.Look;
 // small menu of where the row can go. The page holds whether it is open, so choosing an item can close it.
 
 /// A chip that opens a menu: the chip (`ChipFace`) and, while `open`, its items (`MenuAction`s, the block) — on a
-/// tablet and wider in `MoreMenu`'s card under the chip (6 below, its left edge on the chip's, 240 wide, radius 10, the
+/// tablet and wider in `MoreMenu`'s card under the chip (`Space.MenuGap`, 6, below its bottom, its left edge on the chip's, 240 wide, radius 10, the
 /// drawer's lift). With `popover: false` (a phone: the page decides, as `Layout` here measures the chip's cell) it draws only the chip, open, and the page draws the items in a `MenuSheet` at its own level
 /// (a sheet drawn inside a card would stay inside it). `name` is the chip's
 /// accessible name ("Release of BOOK-SLOTS: Next · 2.4. Change it"), its words first.
@@ -15,7 +15,7 @@ component ChipMenu(string words, bool open, Action onToggle, string name = "", s
     Box(position: Position.Relative, display: Display.InlineFlex) {
       ChipFace(words, onToggle, name != "" ? name : words, open);
       if (open && popover) {
-        Stack(gap: 0, position: Position.Absolute, top: "38px", left: "0", z: ZIndex.Popover, w: "240px", p: "6px", bg: Colors.Surface,
+        Stack(gap: 0, position: Position.Absolute, top: "100%", mt: Space.MenuGap, left: "0", z: ZIndex.Popover, w: "240px", p: "6px", bg: Colors.Surface,
               borderW: 1, border: Colors.Border, rounded: Radius.Banner, shadow: Shadow.DrawerLift, role: UiRole.Menu, label: menuLabel,
               onEscape: onToggle) {
           Slot;

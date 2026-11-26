@@ -36,6 +36,33 @@ public class OrganizationSearch : IConsoleSearchSource {
   }
 }
 
+/// A conversation the console finds: a mono key, a title of several words, its product's key and its state, the row
+/// with every part `ConsoleSearchRow` draws (Foundry's ⌘K, FOUNDRY-609).
+entity ConsoleConversation {
+  [Required, Unique, MaxLength(40)] string Key;
+  [Required, MaxLength(200)] string Title;
+  [Required, MaxLength(40)] string Product;
+  [Required, MaxLength(40)] string State;
+  security { allow read when IsAuthenticated; }
+}
+
+/// The second search source: conversations whose title holds the typed text, under "Conversations".
+[Order(2)]
+public class ConversationSearch : IConsoleSearchSource {
+  public string Group() => "Conversations";
+
+  public List<ConsoleSearchResult> Search(string text) {
+    var words = text.ToLower();
+    var results = new List<ConsoleSearchResult>();
+    var found = ConsoleConversation.Where(c => c.Title.ToLower().Contains(words)).OrderBy(c => c.Key).Take(10).ToList();
+    foreach (var conversation in found) {
+      results.Add(new ConsoleSearchResult { Kind = "Conversation", Key = conversation.Key, Title = conversation.Title,
+                                            To = "/dev/console-search", Product = conversation.Product, Badge = conversation.State });
+    }
+    return results;
+  }
+}
+
 /// The console frame with its search connected the way an app connects it: the dialog shows what `ConsoleSearch` — every
 /// search source in the app, here `OrganizationSearch` — finds for the typed text.
 [Route("/dev/console-search")]

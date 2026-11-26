@@ -30,6 +30,34 @@ void The_search_shows_what_the_apps_search_source_finds_under_its_group() {
   Assert.Visible("Nothing found for “nowhere”.", within: "Search");
 }
 
+// PLATFORM-204 (Foundry FXLOOK §2): a result with every part — kind, key, title, product, badge. On one phone line the
+// fixed parts left the title about 15 px and it broke one letter to a line; below Tablet the title has a line of its own.
+[TestFixture]
+void ConsoleConversations() {
+  new ConsoleOperator { Email = "ops@osyrin.test" };
+  new ConsoleConversation { Key = "ALPHA-BRD-1-T1", Title = "Should the summary come first?", Product = "ALPHA", State = "Answered" };
+  new ConsoleConversation { Key = "ALPHA-BRD-1-T2", Title = "Does the summary go before the open questions and the list of what changed since the last release?",
+                            Product = "ALPHA", State = "Waiting" };
+}
+
+[Test(ConsoleConversations)]
+void A_search_result_wraps_its_title_by_words_on_a_phone_and_a_desktop() {
+  Ui.SignInAs(Ops);
+  foreach (var width in [390, 1440]) {
+    Ui.Viewport(width);
+    Ui.Visit("/dev/console-search");
+    Ui.Click("Search");
+    Ui.Fill("Search the console", "summary");
+    Assert.Visible("Should the summary come first?", within: "Conversations");
+    Assert.WrapsByWords("Should the summary come first?");
+    Assert.WrapsByWords("Does the summary go before the open questions and the list of what changed since the last release?");
+    Assert.WrapsByWords("ALPHA-BRD-1-T2 Does the summary go before the open questions and the list of what changed since the last release?");
+    Assert.NoOverflow();
+    Ui.Shot("search-row-" + width);
+    Ui.Press("Escape");
+  }
+}
+
 [Test(ConsoleOrganizations)]
 void Opening_the_search_by_the_shortcut_puts_the_keyboard_in_its_field() {
   Ui.SignInAs(Ops);

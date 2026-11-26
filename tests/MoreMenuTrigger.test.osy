@@ -61,6 +61,21 @@ void The_console_More_trigger_is_as_tall_as_the_console_buttons_beside_it() {
   Ui.Shot("more-menu-console-header", within: "Console header buttons");
 }
 
+// PLATFORM-204 (Foundry FXLOOK §1): the menu hangs from its trigger's own bottom, the kit's menu gap under it, so it
+// clears a console button of any height — 30 on a tablet and wider, 44 on a phone — and never covers the button.
+
+[Test]
+void The_console_More_menu_opens_under_its_button_on_a_phone_and_a_desktop() {
+  foreach (var width in [390, 1440]) {
+    Ui.Viewport(width);
+    Ui.Visit("/dev/controls/more-menu-console");
+    Ui.Click("More ▾");
+    Assert.Below("More release actions", "More ▾");
+    Assert.Clickable("Export evidence");
+    Ui.Press("Escape");
+  }
+}
+
 [Test]
 void A_tap_outside_an_open_console_More_menu_closes_it() {
   Ui.Visit("/dev/controls/more-menu-console");

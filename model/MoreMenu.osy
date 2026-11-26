@@ -3,7 +3,8 @@ namespace Osysharp.Look;
 // The header's "More ▾" (Release's "More release actions"): an outlined button that opens a small menu under it. The
 // page holds whether it is open, so choosing an item can close it.
 
-/// The button (`LookButton`, outlined) and, while `open`, its menu 50 px below, its right edge on the button's: 240
+/// The button (`LookButton`, outlined) and, while `open`, its menu hung from the button's own bottom (`Space.MenuGap`, 6,
+/// under it; `Space.ConsoleMenuGap`, 8, under a console button, whatever height the button is drawn), its right edge on the button's: 240
 /// wide, white on the Line hairline, radius 10, the drawer's lift, `6px` round its items (`MenuAction`). It closes as every
 /// menu does, through `onToggle` (so the page's `open` follows): a press anywhere outside it (the kit's `Backdrop`),
 /// Escape, which returns the keyboard to the button, and choosing an item, whose own action the page ends with `open = false`.
@@ -11,7 +12,7 @@ namespace Osysharp.Look;
 /// whose neighbours are `ConsoleButton`s; `wide` is `ConsoleButton`'s (full width on a phone). Everything else is as above.
 /// In a test: `Ui.Click("More ▾")`, then the item by its words.
 /// IN A TABLE ROW (a row's own actions): `announce` names each row's button apart, its words first ("More for
-/// GH_TOKEN"; a test clicks it by that name); `small` the band's 36 px button, its menu 42 below. The menu opens over the
+/// GH_TOKEN"; a test clicks it by that name); `small` the band's 36 px button. The menu opens over the
 /// card's edge — a `SectionCard`/`TableCard` does not clip — so the LAST row's menu is whole. On a phone pass
 /// `popover: false` (`Viewport.AtLeast(Tablet)`): the button alone is drawn and the page draws the items in a
 /// `MenuSheet` at its own level, as `ChipMenu` does.
@@ -27,7 +28,9 @@ component MoreMenu(string label, bool open, Action onToggle, string menuLabel = 
       }
       if (open && popover) {
         Backdrop(onToggle);
-        Stack(gap: 0, position: Position.Absolute, top: console ? "38px" : small ? "42px" : "50px", right: "0", z: ZIndex.Popover, w: "240px", p: "6px",
+        // Hung from the trigger's own bottom (`100%` of this box, which is the button's height), not a fixed distance:
+        // a console button is 44 high on a phone, and a fixed 38 put the menu over its last 6 px.
+        Stack(gap: 0, position: Position.Absolute, top: "100%", mt: console ? Space.ConsoleMenuGap : Space.MenuGap, right: "0", z: ZIndex.Popover, w: "240px", p: "6px",
               bg: Colors.Surface, borderW: 1, border: Colors.Border, rounded: Radius.Banner, shadow: Shadow.DrawerLift, role: UiRole.Menu,
               label: menuLabel, onEscape: onToggle) {
           Slot;

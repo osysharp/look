@@ -136,6 +136,13 @@ theme OsyrinLook {
     SignedOutMark = "36px";
     SignedOutActionH = "46px";
   }
+  // The gap between a menu and the control it hangs from (`MoreMenu`, `ChipMenu`): the menu starts at its trigger's own
+  // bottom plus this, so it clears a trigger of any height (a console button is 30 high, 44 on a phone). The look's
+  // buttons and chips leave 6, the console's buttons 8.
+  Space {
+    MenuGap = "6px";
+    ConsoleMenuGap = "8px";
+  }
   Shadow {
     SignedOutLift = "0 2px 6px rgba(0,0,0,0.05), 0 32px 72px -24px var(--colors-signedoutshadow)";
   }
